@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import type {
   ReactNode,
   MutableRefObject,
@@ -29,7 +36,7 @@ type WasmPackage =
 type Lookup = { [key: string]: string };
 
 // GPU buffer references
-export type BufferTriple = [WebGLBuffer|null, string, number];
+export type BufferTriple = [WebGLBuffer | null, string, number];
 
 // Single program handles
 interface ProgramEntry {
@@ -42,30 +49,30 @@ interface ProgramInfo {
   [k: string]: ProgramEntry;
 }
 interface UniformInfo {
-  [key: string]: ["i"|"f", [number, number] | number]
+  [key: string]: ["i" | "f", [number, number] | number];
 }
 
 // Inputs to create texture
-type TextureOptions = {
-  filter: "LINEAR" | "NEAREST";
-  data: any;
-  shape: number[];
-};
+export type TextureOptions = {
+      filter: "LINEAR" | "NEAREST";
+      data: Uint8Array;
+      shape: [number, number];
+    };
 
 // Optional texture type for useRef
-type TextureRef = { [key: string]: WebGLTexture | null } | null;
+type TextureRef = { [key: string]: WebGLTexture | null };
 
 export interface IRenderStage {
   textures: [WebGLTexture, number][];
   attributes: any;
-  framebuffer: [WebGLFramebuffer|null, WebGLTexture|null];
+  framebuffer: [WebGLFramebuffer | null, WebGLTexture | null];
   parameters: string[];
   program: ProgramEntry;
   topology: [number, number, number];
   viewport: [number, number, number, number];
   callback?: () => void;
 }
-export interface IRenderPipeLineStage extends IRenderStage  {
+export interface IRenderPipeLineStage extends IRenderStage {
   runtime: WasmPackage;
   webgl: WebGLRenderingContext;
   uniforms: UniformInfo;
@@ -111,7 +118,7 @@ interface ShaderHooks {
    * Create  texture in the webgl context if it is present. Will throw
    * and error otherwise.
    */
-  createTexture: (args: TextureOptions) => WebGLTexture | null;
+  createTexture: (name: string, options: TextureOptions) => void;
   /**
    * Framebuffer reference to target rendering.
    */
@@ -127,18 +134,9 @@ interface ShaderHooks {
   /**
    * Texture lookup.
    */
-  textures: MutableRefObject<TextureRef>;
+  textures: TextureRef;
+  setTextures: Dispatch<SetStateAction<TextureRef>>;
 }
-
-/**
- * Name of the GLSL variable for particle positions
- */
-const VERTEX_ARRAY_BUFFER = "a_index";
-
-/**
- * Name of the GLSL variable for rectangle of two triangles
- */
-const QUAD_ARRAY_BUFFER = "a_pos";
 
 /**
  * Name of time variable in shader source code. The handle for the uniform
@@ -154,24 +152,21 @@ export class ArrayBuffer {
   constructor(webgl: WebGLRenderingContext, data: any) {
     this.buffer = webgl.createBuffer();
     webgl.bindBuffer(webgl.ARRAY_BUFFER, this.buffer);
-    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(data), webgl.STATIC_DRAW);
-  }
-  static screen = (w: number, h: number) => {
-    return {
-      data: new Uint8Array(w * h * 4),
-      shape: [w, h],
-    };
-  };
-  static quad = (webgl: WebGLRenderingContext): BufferTriple => {
-    const { buffer } = new ArrayBuffer(
-      webgl,
-      [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]
+    webgl.bufferData(
+      webgl.ARRAY_BUFFER,
+      new Float32Array(data),
+      webgl.STATIC_DRAW
     );
-    return [buffer, QUAD_ARRAY_BUFFER, 2];
-  };
-  static index = (webgl: WebGLRenderingContext, vertexArray: any): BufferTriple => {
-    const { buffer } = new ArrayBuffer(webgl, vertexArray);
-    return [buffer, VERTEX_ARRAY_BUFFER, 1];
+  }
+
+  static triple = (
+    webgl: WebGLRenderingContext,
+    data: any,
+    name: string,
+    order: 1 | 2
+  ): BufferTriple => {
+    const { buffer } = new ArrayBuffer(webgl, data);
+    return [buffer, name, order];
   };
 }
 
@@ -257,7 +252,7 @@ export const renderPipelineStage = ({
   parameters.forEach(([key]) => {
     const [type, value] = uniforms[key];
     const handle = program[key];
-    const size: 1 | 2 = (typeof value === "number" ? 1 : 2);
+    const size: 1 | 2 = typeof value === "number" ? 1 : 2;
     try {
       if (size === 2) {
         const setUniform = webgl[`uniform${size}${type}`];
@@ -352,42 +347,6 @@ const getActiveParams = (
 };
 
 /**
- * Create a new texture
- */
-export const createTexture = (
-  webgl: WebGLRenderingContext,
-  { filter, data, shape }: TextureOptions
-) => {
-  const args: number[] = data instanceof Uint8Array ? [...shape, 0] : [];
-  const bindTexture = webgl.bindTexture.bind(webgl, webgl.TEXTURE_2D);
-  const texParameteri = webgl.texParameteri.bind(webgl, webgl.TEXTURE_2D);
-  const texture = webgl.createTexture();
-  bindTexture(texture);
-  webgl.texImage2D(
-    webgl.TEXTURE_2D,
-    0,
-    webgl.RGBA,
-    //@ts-ignore
-    ...args,
-    webgl.RGBA,
-    webgl.UNSIGNED_BYTE,
-    data
-  );
-
-  [
-    [webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE],
-    [webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE],
-    //@ts-ignore
-    [webgl.TEXTURE_MIN_FILTER, webgl[filter]],
-    [webgl.TEXTURE_MAG_FILTER, webgl[filter]],
-  ].forEach(([handle, value]) => {
-    texParameteri(handle, value);
-  });
-  bindTexture(null); // prevent accidental use
-  return texture;
-};
-
-/**
  * IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the
  * shaders as programs.
  *
@@ -422,7 +381,7 @@ const useShaders = (): ShaderHooks => {
   /**
    * Uniforms are non-texture values applied to each fragment.
    */
-  const [uniforms, setUniforms] = useState<UniformInfo|null>(null);
+  const [uniforms, setUniforms] = useState<UniformInfo | null>(null);
   /**
    * Runtime will be passed back to calling Hook or Component.
    * The WASM runtime contains all of the draw functions that
@@ -451,7 +410,9 @@ const useShaders = (): ShaderHooks => {
    * Lookup of texture locations my name. Current and previous
    * state is swapped after every render pass.
    */
-  const textures = useRef<{ [key: string]: WebGLTexture | null } | null>(null);
+  const [textures, setTextures] = useState<{
+    [key: string]: WebGLTexture | null;
+  }>({});
   /**
    * Check whether we have a valid context.
    */
@@ -499,12 +460,38 @@ const useShaders = (): ShaderHooks => {
   /**
    * Bind current webgl instance to createTexture
    */
-  const _createTexture = (args: TextureOptions) => {
-    if (!webgl) {
-      throw TypeError("No WebGL Rendering Context");
-    }
-    return createTexture(webgl, args);
-  };
+  const _createTexture = useCallback(
+    (name: string, { data, shape, filter }: TextureOptions) => {
+      if (!webgl) return;
+      const texture = webgl.createTexture();
+      const _filter = filter === "NEAREST" ? webgl.NEAREST : webgl.LINEAR;
+      webgl.bindTexture(webgl.TEXTURE_2D, texture);
+      webgl.texImage2D(
+        webgl.TEXTURE_2D,
+        0,
+        webgl.RGBA,
+        ...shape,
+        0,
+        webgl.RGBA,
+        webgl.UNSIGNED_BYTE,
+        data
+      );
+      [
+        [webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE],
+        [webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE],
+        [webgl.TEXTURE_MIN_FILTER, _filter],
+        [webgl.TEXTURE_MAG_FILTER, _filter],
+      ].forEach((each) => {
+        webgl.texParameteri.bind(webgl.TEXTURE_2D, ...each);
+      });
+      webgl.bindTexture(webgl.TEXTURE_2D, null); // prevent accidental use
+      setTextures({
+        ...textures,
+        [name]: texture,
+      });
+    },
+    [webgl]
+  );
   /**
    * Pass back useful state and actions to parent Component or Hook.
    */
@@ -522,6 +509,7 @@ const useShaders = (): ShaderHooks => {
     pipeline,
     setPipeline,
     textures,
+    setTextures,
   };
 };
 

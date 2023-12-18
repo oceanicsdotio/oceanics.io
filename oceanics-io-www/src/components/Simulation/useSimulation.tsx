@@ -1,15 +1,19 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useReducer, useCallback } from "react";
 import {
-  IRenderStage,
   renderPipelineStage,
   useShaderContext,
-  ArrayBuffer
+  ArrayBuffer,
 } from "../Shaders/Shaders.context";
-import type {BufferTriple} from "../Shaders/Shaders.context";
+import type { BufferTriple, IRenderStage, TextureOptions } from "../Shaders/Shaders.context";
 
 import useCanvasContext from "../../hooks/useCanvasContext";
 import useWorker from "../../hooks/useWorker";
 
+
+  /**
+   * Colormap size for velocity lookups.
+   */
+  const COLOR_MAP_SIZE = 16 * 16;
 /**
  * Mapping of uniforms to program components. Requires
  * knowledge of GLSL variable names and types.
@@ -27,6 +31,9 @@ const PARAMETER_MAP = {
   ],
   color: ["u_color_ramp", "u_opacity"],
 };
+
+type StepInfo = {complete: boolean, name: string};
+type StepState = {[key: string]: StepInfo};
 
 /**
  * Metadata about how to source data from an image
@@ -117,10 +124,6 @@ export const useSimulation = ({
   drop = 0.01, // how often the particles move to a random place
 }: ISimulation) => {
   /**
-   * Colormap size for velocity lookups.
-   */
-  const colorMapSize = 16 * 16;
-  /**
    * Background web worker. Uses dedicated message interface to do
    * numerical calculations and map/reduce in background.
    */
@@ -136,11 +139,21 @@ export const useSimulation = ({
    */
   const preview = useCanvasContext("2d");
   /**
+   * Expose progress information about the loading state of the simulation
+   * to show in the UI
+   */
+  const [steps, updateSteps] = useReducer((state: StepState, update: StepInfo) => {
+    return {
+      ...state,
+      [update.name]: update
+    }
+  }, {} as StepState);
+  /**
    * All WebGL related setup is relegated to the context
    * provider.
    */
   const {
-    shaders: { webgl, ref, ...shaders },
+    shaders: { webgl, ref, setProgramSourceMap, textures, ...shaders },
   } = useShaderContext();
   /**
    * Textures that are drawn to the screen.
@@ -153,17 +166,16 @@ export const useSimulation = ({
    * loop uses setTimeout to limit how quickly the simulation
    * runs.
    */
-  const timer = useRef<number|null>(null);
+  const timer = useRef<number | null>(null);
   /**
    * Adjustable scalar to fire faster/slower than 60fps. Works
    * with timer to control simulation speed.
    */
   const timeConstant = useRef(1.0);
   /**
-   * Interpreting image formatted velocity data requires having
-   * information about the range.
+   * Limit worker listener to firing once.
    */
-  const [metadata] = useState<{u: any, v: any}|null>(null);
+  const [listening, setListening] = useState(false);
   /**
    * Container for handles to GPU interface. Image data is loaded
    * and then handed off as a Texture.
@@ -173,34 +185,30 @@ export const useSimulation = ({
    * Message for user interface, passed out to parent component. Shows
    * current status or summary statistics about the simulation.
    */
-  const [message, setMessage] = useState("Working...");
+  const [message, setMessage] = useState(`Ichthyoid (N=${res * res})`);
   /**
    * Particle locations. Will be set by web worker from remote source,
    * procedure, or randomly.
    */
   const [particles, setParticles] = useState(null);
   /**
-   * Break out velocity texture, we want this to be optional.
-   * When present, it forces particle movement in the simulation.
-   * If absent, only diffusion and particle behaviors apply.
-   */
-  const [velocity, setVelocity] = useState<WebGLTexture | null>(null);
-  /**
-   * Linear color map texture for interpolated lookups.
-   */
-  const [texture, setTexture] = useState<WebGLTexture | null>(null);
-  /**
    * Point coordinates and window buffers for generic
    * drawArray rendering.
    */
-  const [buffers, setBuffers] = useState<{[key: string]: BufferTriple}>({});
+  const [attributes, setAttributes] = useState<{ [key: string]: BufferTriple }>({});
+  const createBuffer = useCallback(() => {
+    setAttributes(
+      attributes
+    )
+  }, [webgl]);
+  const [start, setStart] = useState(false);
   /**
    * Set the program source map triggers hooks that will
    * compile the shader program and return information
    * about how to bind real data to the textures and arrays.
    */
   useEffect(() => {
-    shaders.setProgramSourceMap({
+    setProgramSourceMap({
       screen: ["quad-vertex", "screen-fragment"],
       draw: ["draw-vertex", "draw-fragment"],
       update: ["quad-vertex", "update-fragment"],
@@ -210,31 +218,63 @@ export const useSimulation = ({
    * Create a temporary canvas element to paint a color
    * map to. This will be an orphan, and we need to make
    * sure it gets cleaned up.
+
+   * Then draw a gradient and extract a color look up table from it.
+   * Fires once when canvas is set.
    */
   useEffect(() => {
     colorMap.ref.current = document.createElement("canvas");
     [colorMap.ref.current.width, colorMap.ref.current.height] = [
-      colorMapSize,
+      COLOR_MAP_SIZE,
       1,
     ];
+    if (!colorMap.validContext) return;
+    const ctx = colorMap.validContext as CanvasRenderingContext2D;
+    // Create `CanvasGradient` and add color stops
+    ctx.fillStyle = ctx.createLinearGradient(0, 0, COLOR_MAP_SIZE, 0);
+    colors.forEach(([offset, color]) => {
+      (ctx.fillStyle as CanvasGradient).addColorStop(offset, color);
+    });
+    // Draw to temp canvas
+    ctx.fillRect(0, 0, COLOR_MAP_SIZE, 1);
+    // Extract regularly interpolated data
+    const buffer = ctx.getImageData(0, 0, COLOR_MAP_SIZE, 1).data;
+    shaders.createTexture("color", {
+      data: new Uint8Array(buffer),
+      filter: "LINEAR",
+      shape: [16, 16],
+    });
+    colorMap.ref.current?.remove();
+    colorMap.ref.current = null;
   }, []);
   /**
    * When we get a message back from the worker that matches
    * a specific pattern, report or act on that info.
+   * Once we have a valid context and initial positions, save the array buffers.
+   * Create the textures for particle state.
+   *  When we have some information ready, set the status message
+   * to something informative, like number of particles.
+   * 
+   *    * Create the textures for back and front buffers.
+   * We're using double buffering to draw to a back
+   * buffer, and swap when we want to update the view.
    */
   useEffect(() => {
-    if (!worker.ref.current || !ref.current) return;
+    if (!worker.ref.current || !ref.current || listening) return;
     // start listener
     const remove = worker.listen(({ data }) => {
       const _data = data.data as any;
+      if (!ref.current) return; // typescript/linting
       switch (data.type) {
+        case "status":
+          return;
         /**
          * Update values of uniforms using pre-calculated values
          * from image metadata and simulation configuration
          * inputs
          */
         case "init":
-          if (!ref.current) return; // typescript/linting
+          console.log(data.type, _data);
           shaders.setUniforms({
             u_screen: ["i", 2],
             u_opacity: ["f", opacity],
@@ -252,57 +292,37 @@ export const useSimulation = ({
             u_wind_res: ["f", [ref.current.width, ref.current.height]],
           });
           return;
+        /**
+         * Create and insert a texture
+         */
+        case "texture":
+          console.log(data.type, _data);
+          shaders.createTexture(...(_data as [string, TextureOptions]))
+          return;
+        case "buffer":
+          console.warn(data.type, _data);
+          return;
+        /**
+         * Report errors and update UI
+         */
+        case "error":
+          console.error(data.message, data.type, data.data);
+          return;
+        /**
+         * Catch other messages for troubleshooting message
+         * passing. 
+         */
         default:
           console.warn(data.type, data.data);
           return;
       }
     });
-    return remove;
+    setListening(true);
+    // return () => {
+    //   if (!worker.ref.current || !ref.current) return;
+    //   remove()
+    // };
   }, [worker.ref.current, ref.current]);
-  /**
-   * Create a initial distribution of particle positions,
-   * encoded as 4-byte colors. Fetch the metadata file.
-   */
-  useEffect(() => {
-    if (!worker.ref.current) return;
-    worker.post({
-      type: "init",
-      data: {
-        metadata: {
-          source: metadataFile
-        }
-      },
-    });
-  }, [worker.ref.current]);
-  /**
-   * Then draw a gradient and extract a color look up table from it.
-   * Fires once when canvas is set.
-   */
-  useEffect(() => {
-    if (!colorMap.validContext) return;
-    const ctx = colorMap.validContext as CanvasRenderingContext2D;
-    // Create `CanvasGradient` and add color stops
-    ctx.fillStyle = ctx.createLinearGradient(0, 0, colorMapSize, 0);
-    colors.forEach(([offset, color]) => {
-      (ctx.fillStyle as CanvasGradient).addColorStop(offset, color);
-    });
-    // Draw to temp canvas
-    ctx.fillRect(0, 0, colorMapSize, 1);
-    // Extract regularly interpolated data
-    const buffer = ctx.getImageData(0, 0, colorMapSize, 1).data;
-    const colorMapTexture = shaders.createTexture({
-      data: new Uint8Array(buffer),
-      filter: "LINEAR",
-      shape: [16, 16],
-    })
-    setTexture(colorMapTexture);
-    /**
-     * Clean up color map instance. Remove canvas and delete state.
-     */
-    colorMap.ref.current?.remove();
-    colorMap.ref.current = null;
-  }, [colorMap.validContext]);
-
   /**
    * Use external data as a velocity field to force movement of particles.
    *
@@ -318,7 +338,7 @@ export const useSimulation = ({
       //   })
       // );
       setImageData(data);
-    }
+    };
     data.addEventListener("load", onLoad, { capture: true, once: true });
     data.crossOrigin = source.includes(".") ? "" : null;
     data.src = source;
@@ -338,13 +358,6 @@ export const useSimulation = ({
     );
   }, [preview.validContext, imageData]);
   /**
-   * When we have some information ready, set the status message
-   * to something informative, like number of particles.
-   */
-  useEffect(() => {
-    if (particles) setMessage(`Ichthyoid (N=${res * res})`);
-  }, [particles]);
-  /**
    * In a stand alone loop, update the timeConstant to control
    * the time between render passes. This decouples that control,
    * so that it can be bound to UI elements, for example.
@@ -358,49 +371,29 @@ export const useSimulation = ({
       clearInterval(loop);
     };
   }, []);
-
   /**
-   * Once we have a valid context and initial positions, save the array buffers.
-   * This may not be strictly necessary.
+   * Fire startup messages
    */
   useEffect(() => {
-    if (!webgl || !particles) return;
-    setBuffers({
-      quad: ArrayBuffer.quad(webgl),
-      index: ArrayBuffer.index(webgl, particles)
+    if (!listening || !webgl) return;
+    worker.post({
+      type: "init",
+      data: {
+        metadata: {
+          source: metadataFile,
+        },
+      },
     });
-  }, [webgl, particles]);
-
-
-  /**
-   * Create the textures.
-   */
-  useEffect(() => {
-    if (!webgl || !ref.current) return;
-    const { width, height } = ref.current;
-    const size = width * height * 4;
-    const data = {
-      data: new Uint8Array(size),
-      shape: [width, height],
-      filter: "NEAREST" as ("NEAREST" | "LINEAR"),
-    };
-    screenBuffers.current = {
-      screen: shaders.createTexture(Object.assign({}, data)),
-      back: shaders.createTexture(data),
-    };
-  }, [webgl, ref.current]);
-
-  /**
-   * Create the textures
-   */
-  useEffect(() => {
-    if (!webgl || !particles) return;
-    const data = { data: particles, shape: [res, res], filter: "NEAREST" as ("NEAREST" | "LINEAR")};
-    const state = shaders.createTexture(Object.assign({}, data));
-    const previous = shaders.createTexture(data);
-    shaders.textures.current = { state, previous };
-  }, [particles, webgl]);
-
+    worker.post({
+      type: "texture",
+      data: {
+        width: ref.current?.width,
+        height: ref.current?.height,
+        res
+      },
+    });
+  }, [listening, webgl]);
+  
   /**
    * Set pipeline value to signal ready for rendering. The saved object
    * contains a `render()` function bound to a WebGL context.
@@ -408,96 +401,110 @@ export const useSimulation = ({
    * It also has a `stages()` function that produces an array of executable
    * stages. This is required, because we need to pass in the texture handles
    * between steps to do double buffering.
-   * Render function calls itself recursively, swapping front/back 
+   * Render function calls itself recursively, swapping front/back
    * buffers between passes. Triggered when pipeline of functions are ready.
    */
-useEffect(() => {
-    if (!webgl || !shaders.programs || !metadata || !shaders.framebuffer || !shaders.runtime || !shaders.uniforms) return;
+  useEffect(() => {
+    if (
+      !start ||
+      !webgl ||
+      !shaders.programs ||
+      !shaders.framebuffer ||
+      !shaders.runtime ||
+      !shaders.uniforms
+    )
+      return;
     let requestId: number;
+    console.log("Starting simulation loop");
     (function render() {
-        const pipeline = [
-            {
-                program: shaders.programs.screen,
-                textures: [
-                    [shaders.textures.current?.uv, 0],
-                    [shaders.textures.current?.state, 1],  // variable
-                    [shaders.textures.current?.back, 2]  // variable
-                ],
-                attributes: [buffers.quad],
-                parameters: PARAMETER_MAP.screen,
-                framebuffer: [shaders.framebuffer, screen],  // variable
-                topology: [webgl.TRIANGLES, 0, 6],
-                viewport: [0, 0, ref.current?.width, ref.current?.height]
-            }, {
-                program: shaders.programs.draw,
-                textures: [[shaders.textures.current?.color, 2]],
-                attributes: [buffers.index],
-                parameters: [...PARAMETER_MAP.wind, "u_point_size"],
-                framebuffer: [shaders.framebuffer, screen],  // variable
-                topology: [webgl.POINTS, 0, res * res],
-                viewport: [0, 0, ref.current?.width, ref.current?.height]
-            },{
-                program: shaders.programs.screen,
-                textures: [[shaders.textures.current?.screen, 2]], // variable
-                parameters: PARAMETER_MAP.color,
-                attributes: [buffers.quad],
-                framebuffer: [null, null],
-                topology: [webgl.TRIANGLES, 6],
-                viewport: [0, 0, ref.current?.width, ref.current?.height],
-                callback: () => {
-                  shaders.textures.current = {
-                    ...shaders.textures.current,
-                    back: shaders.textures.current?.screen??null,
-                    screen: shaders.textures.current?.back??null
-                  }
-                }  // blend frames
-            }, {
-                program: shaders.programs.update,
-                textures: [[shaders.textures.current?.color, 2]],
-                parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
-                attributes: [buffers.quad],
-                framebuffer: [shaders.framebuffer, shaders.textures.current?.previous],  // re-use the old data buffer
-                topology: [webgl.TRIANGLES, 0, 6],
-                viewport: [0, 0, res, res],
-                callback: () => {
-                  shaders.textures.current = {
-                    ...shaders.textures.current,
-                    previous: shaders.textures.current?.state??null,
-                    state: shaders.textures.current?.previous??null
-                  }
-                } // use previous pass to calculate next position
-            }
-        ] as IRenderStage[];
+      const pipeline = [
+        {
+          program: shaders.programs.screen,
+          textures: [
+            [textures.uv, 0],
+            [textures.state, 1], // variable
+            [textures.back, 2], // variable
+          ],
+          attributes: [attributes.quad],
+          parameters: PARAMETER_MAP.screen,
+          framebuffer: [shaders.framebuffer, screen], // variable
+          topology: [webgl.TRIANGLES, 0, 6],
+          viewport: [0, 0, ref.current?.width, ref.current?.height],
+        },
+        {
+          program: shaders.programs.draw,
+          textures: [[textures.color, 2]],
+          attributes: [attributes.index],
+          parameters: [...PARAMETER_MAP.wind, "u_point_size"],
+          framebuffer: [shaders.framebuffer, screen], // variable
+          topology: [webgl.POINTS, 0, res * res],
+          viewport: [0, 0, ref.current?.width, ref.current?.height],
+        },
+        {
+          program: shaders.programs.screen,
+          textures: [[textures.screen, 2]], // variable
+          parameters: PARAMETER_MAP.color,
+          attributes: [attributes.quad],
+          framebuffer: [null, null],
+          topology: [webgl.TRIANGLES, 6],
+          viewport: [0, 0, ref.current?.width, ref.current?.height],
+          // callback: () => {
+          //   textures.current = {
+          //     ...shaders.textures.current,
+          //     back: textures.current?.screen ?? null,
+          //     screen: shaders.textures.current?.back ?? null,
+          //   };
+          // }, // blend frames
+        },
+        {
+          program: shaders.programs.update,
+          textures: [[textures.color, 2]],
+          parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
+          attributes: [attributes.quad],
+          framebuffer: [
+            shaders.framebuffer,
+            textures.previous,
+          ], // re-use the old data buffer
+          topology: [webgl.TRIANGLES, 0, 6],
+          viewport: [0, 0, res, res],
+          // callback: () => {
+          //   shaders.textures.current = {
+          //     ...shaders.textures.current,
+          //     previous: shaders.textures.current?.state ?? null,
+          //     state: shaders.textures.current?.previous ?? null,
+          //   };
+          // }, // use previous pass to calculate next position
+        },
+      ] as IRenderStage[];
 
-        pipeline.forEach((stage) => {
-          if (!shaders.runtime || !shaders.uniforms) return;
-          renderPipelineStage({
-            webgl,
-            runtime: shaders.runtime, 
-            uniforms: shaders.uniforms, 
-            ...stage
-          });
-        })
-        // timer.current = setTimeout(
-        //   render,
-        //   timeConstant.current * 17.0,
-        //   screen,
-        //   textures.back,
-        //   textures.state,
-        //   textures.previous
-        // );
-        requestId = requestAnimationFrame(render);
-    })()
+      pipeline.forEach((stage) => {
+        if (!shaders.runtime || !shaders.uniforms) return;
+        renderPipelineStage({
+          webgl,
+          runtime: shaders.runtime,
+          uniforms: shaders.uniforms,
+          ...stage,
+        });
+      });
+      // timer.current = setTimeout(
+      //   render,
+      //   timeConstant.current * 17.0,
+      //   screen,
+      //   textures.back,
+      //   textures.state,
+      //   textures.previous
+      // );
+      requestId = requestAnimationFrame(render);
+    })();
     return () => {
       cancelAnimationFrame(requestId);
       // if (timer.current) clearTimeout(timer.current);
     };
-}, [shaders.programs, shaders.runtime]);
+  }, [shaders.programs, shaders.runtime, start]);
   /**
    * Resources available to parent Component or Hook.
    */
-  return { ref, message, preview, timeConstant };
+  return { ref, message, preview, timeConstant, steps };
 };
 
 export default useSimulation;
-
