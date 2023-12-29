@@ -11,19 +11,6 @@ export const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTML
     return [clientX - left, clientY - top]
 };
 
-export type FileObject = {
-    key: string;
-    updated: string;
-    size: string; 
-}
-
-export type FileSystem = {
-    objects: FileObject[];
-    collections: {
-        key: string;
-    }[];
-};
-
 type Points = [number, number][];
 
 /*

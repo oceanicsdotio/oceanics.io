@@ -1,85 +1,106 @@
-/**
- * React and friends
- */
-import React, {useState, useEffect, RefObject} from "react";
+import styled from "styled-components";
+import PropTypes from "prop-types";
+import Markdown from "react-markdown";
+import React from "react";
+import Form from "../Form/Form";
+import useOpenApi from "./useOpenApi";
+import type { Operation } from "./useOpenApi";
+import { ghost, charcoal, orange } from "../../palette";
 
-import Placeholder from "./Placeholder"
-
-export type ApiType = {
-    specUrl: string;
-    service: string;
-    scrapeIndexPage: boolean;
-    worker?: RefObject<unknown>;
+export interface IOpenApi { 
+    /**
+     * Source on the server to fetch the JSON
+     * specification from.
+     */
+    src: string
+    /**
+     * Hook for styled components.
+     */
+    className?: string
+}
+const propTypes = {
+    src: PropTypes.string.isRequired,
+    className: PropTypes.string
 }
 
 /**
- * The OpenApi component uses an OpenAPI specification for a 
+ * The OpenApi component uses an OpenAPI specification for a
  * simulation backend, and uses it to construct an interface.
  */
-const OpenApi = ({
-    specUrl,
-    // service,
-    scrapeIndexPage,
-    worker,
-}: ApiType) => {
-     /**
-      * OpenAPI spec structure will be populated asynchronously once the 
-      * web worker is available.
-      */
-     const [apiSpec, setApiSpec] = useState<object|null>(null); 
- 
-     /**
-      * Hook loads and parses an OpenAPI spec from a URL using a
-      * background worker.
-      * 
-      * It runs once when the component loads. This allows
-      * the specification to be available before derived data
-      * is calculated for UI. 
-      */
-     useEffect(() => {
-         // @ts-ignore
-         if (worker.current) worker.current.load(specUrl).then(setApiSpec);
-     },[ worker ]);
- 
-     /**
-      * API routes to convert to forms.
-      */
-     const [, setMethods ] = useState([]);
- 
-     /**
-      * Extract and flatten the paths and methods.
-      */
-     useEffect(() => {
-         if (!apiSpec) return;
-         // @ts-ignore
-         worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
-     }, [ apiSpec ]);
- 
-     /**
-      * Collections are scraped from available implementations
-      * of the API listed in the `servers` block.
-      */
-     const [, setIndex ] = useState<object|null>(null);
-     
-     /**
-      * Hook gets any existing configurations from the API 
-      * and formats them for display in React State.
-      * 
-      * The request url is inferred
-      * from the `servers` object of the OpenAPI specification.
-      */
-     useEffect(() => {
-         if (!scrapeIndexPage ||  !apiSpec) return;
-         // @ts-ignore
-        worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
-     }, [ apiSpec ]);
-    
-    return (
-        <div> 
-            <Placeholder>{`Loading ${specUrl}...`}</Placeholder> 
-            <Placeholder>{`Loading methods...`}</Placeholder>
-        </div>
-    )
-}
+export const OpenApi = ({ src, className }: IOpenApi) => {
+  /**
+   * OpenAPI spec structure will be populated asynchronously once the
+   * web worker is available.
+   */
+  const {api} = useOpenApi({src});
+  
+  return (
+    <div className={className}>
+        <h1>{api.info.title}</h1>
+        <Markdown>{api.info.description}</Markdown>
+        {api.operations.map((operation: Operation) => <>
+            <h2>{operation.summary}</h2>
+            <h3>path</h3>
+            <Markdown>
+                {`\`${operation.path}\``}
+            </Markdown>
+            <h3>method</h3>
+            <Markdown>
+                {operation.method.toUpperCase()}
+            </Markdown>
+            <h3>description</h3>
+            <Markdown>
+                {operation.description}
+            </Markdown>
+            <Form
+                name={"request body"}
+                action={()=>{}}
+                id={`api-request-body-${operation.path}-${operation.method}`}
+                fields={operation.requestBody??[]}
+                actions={[]}
+            />
+            <Form
+                name={"query parameters"}
+                action={()=>{}}
+                id={`api-query-${operation.path}-${operation.method}`}
+                fields={operation.parameters??[]}
+                actions={[]}
+            /></> 
+        )}
+    </div>
+  );
+};
 
-export default OpenApi;
+export const StyledOpenApi = styled(OpenApi)`
+    max-width: 65ch;
+    display: block;
+    padding: 1rem 1rem;
+    margin: 0;
+    border-radius: 5px;
+    background-color: ${charcoal};
+    color: ${ghost};
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+
+    & h3 {
+        text-transform: capitalize;
+        font-size: inherit;
+        font-style: inherit;
+    }
+
+    & a {
+        color: ${orange};
+    }
+
+    & code {
+        border: 1px dashed ${orange};
+        border-radius: 5px;
+        background-color: black;
+        padding: 5px;
+    }
+`;
+
+OpenApi.displayName = "OpenApi";
+OpenApi.propTypes = propTypes;
+StyledOpenApi.propTypes = propTypes;
+export default StyledOpenApi;

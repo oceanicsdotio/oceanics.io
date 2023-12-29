@@ -82,6 +82,10 @@ WWW_CACHE = $(WWW)/public/nodes.json
 $(WWW_CACHE): $(TEST_CACHE)
 	cp $< $@
 
+WWW_API_JSON = $(WWW)/public/bathysphere.json
+$(WWW_API_JSON): $(API_JSON)
+	cp $< $@
+
 # Build OpenAPI docs page from specification
 DOCS_PAGE = $(WWW)/public/bathysphere.html
 $(DOCS_PAGE): $(SPEC_FILE) node_modules
@@ -93,15 +97,23 @@ $(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
 	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
 	touch -m $@
 
+# Lint WWW
+WWW_SRC = $(shell find $(WWW)/src -type d)
+WWW_SRC_FILES = $(shell find $(WWW)/src -type f -name '*')
+WWW_PAGES = $(shell find $(WWW)/pages -type d)
+WWW_PAGES_FILES = $(shell find $(WWW)/pages -type f -name '*')
+www-lint: $(WWW_SRC) $(WWW_SRC_FILES) $(WWW_PAGES) $(WWW_PAGES_FILES)
+	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
+	yarn eslint "$(WWW)/pages/**/*.{tsx,jsx}"
+
 # Compile WWW
 OUT_DIR = build
-$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE)
-	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
+$(WWW)/$(OUT_DIR): node_modules www-lint $(WWW_CACHE) $(WWW_API_JSON) $(DOCS_PAGE)
 	yarn workspace $(WWW) run next build
 	touch -m $@
 
-# PHONY for convenience
-.PHONY: www www-cleanup www-dev
+# command aliases for www
+.PHONY: www www-cleanup www-dev www-lint
 www: $(WWW)/$(OUT_DIR)
 www-dev: $(WWW)/$(OUT_DIR)
 	yarn netlify dev --filter=oceanics-io-www
@@ -110,14 +122,6 @@ www-cleanup:
 	rm -rf $(WWW)/.next
 	rm -rf $(WWW)/$(OUT_DIR)
 	rm -rf $(WWW)/$(STORYBOOK)
-
-NATIVE = oceanics-io-native
-$(NATIVE)/web-build:
-	yarn workspace $(NATIVE) expo --non-interactive build:web
-
-expo:
-	yarn workspace $(NATIVE) expo start
-
 
 # Local dependencies need to be built before we can install
 # touching the directory updates timestamp for make
@@ -129,8 +133,11 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 .: www
 
 # Serve the storybook docs in dev mode for manual testing
-start-storybook: www
-	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
+storybook:
+	yarn workspace oceanics-io-www storybook dev \
+		--port ${STORYBOOK_PORT} \
+		--debug
+		--debug-webpack
 
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
@@ -147,7 +154,7 @@ clean: api-cleanup www-cleanup
 	rm -rf node_modules/
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook dev
+.PHONY: clean storybook dev
 
 # Cleanup targets on error
 .DELETE_ON_ERROR:
