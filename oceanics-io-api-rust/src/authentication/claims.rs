@@ -1,5 +1,5 @@
 use hmac::{Hmac, Mac};
-use jwt::{SignWithKey,VerifyWithKey};
+use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use serde::{Serialize, Deserialize};
 
@@ -23,30 +23,19 @@ impl Claims {
         Claims { sub, iss, exp }
     }
 
-    pub fn encode(&self, signing_key: &str) -> String {
+    pub fn encode(&self, signing_key: &str) -> Result<String, jwt::Error> {
         let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
-        match self.sign_with_key(&key) {
-            Ok(value) => value,
-            Err(_) => {
-                panic!("Cannot issue token with current signing key")
-            }
-        }
+        self.sign_with_key(&key)
     }
 
-    pub fn decode(token: String, signing_key: &str) -> Claims {
+    pub fn decode(token: String, signing_key: &str) -> Result<Claims, jwt::Error> {
         let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
-        match token.verify_with_key(&key) {
-            Ok(value) => value,
-            Err(_) => {
-                panic!("Cannot verify token with current signing key");
-            }
-        }
+        token.verify_with_key(&key)
     }
 }
 
-
 #[cfg(test)]
-mod test {
+mod tests {
     use super::Claims;
 
     #[test]
@@ -66,9 +55,9 @@ mod test {
             3600
         );
         let signing_key = "secret";
-        let token = claims.encode(signing_key);
+        let token = claims.encode(signing_key).unwrap();
         assert!(token.len() > 0);
-        let decoded = Claims::decode(token, signing_key);
+        let decoded = Claims::decode(token, signing_key).unwrap();
         assert_eq!(claims.sub, decoded.sub);
         assert_eq!(claims.iss, decoded.iss);
     }

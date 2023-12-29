@@ -7,6 +7,14 @@ use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 /**
  * For request matching. 
  */
@@ -18,9 +26,27 @@ pub enum HttpMethod {
     OPTIONS = "OPTIONS",
     QUERY = "QUERY",
     DELETE = "DELETE",
-    GET ="GET",
+    GET = "GET",
     HEAD = "HEAD"
 }
+
+#[derive(Debug)]
+pub enum MiddlewareError {
+    RequestInvalid,
+    BodyMissing,
+    BodyNotExpected,
+    BodyInvalid,
+    HeaderAuthorizationMissing,
+    HeaderAuthorizationInvalid,
+    TokenDecodeFailed
+}
+
+impl fmt::Display for MiddlewareError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl FromStr for HttpMethod {
     type Err = ();
     fn from_str(input: &str) -> Result<HttpMethod, Self::Err> {

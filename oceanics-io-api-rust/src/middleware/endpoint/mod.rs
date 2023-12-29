@@ -1,5 +1,5 @@
 mod specification;
-mod security;
+mod context;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -7,12 +7,12 @@ use js_sys::Function;
 use serde_json::json;
 use serde::Deserialize;
 
-use super::{HttpMethod, request::Context};
+use super::HttpMethod;
 use super::request::{LogLine, Request};
 use super::response::OptionsResponse;
 
 pub use specification::Specification;
-pub use security::Security;
+pub use context::Context;
 
 #[wasm_bindgen]
 #[derive(Deserialize)]
@@ -87,10 +87,7 @@ impl Endpoint {
     }
 
     pub fn has_method(&self, method: &str) -> bool {
-        match self.specification(&HttpMethod::from_str(method).unwrap()) {
-            Some(..) => true,
-            None => false
-        }
+        self.specification(&HttpMethod::from_str(method).unwrap()).is_some()
     }
 
     /**
@@ -98,7 +95,7 @@ impl Endpoint {
      * will be caught, and should return an Invalid Method response. 
      */
     pub fn context(&self, request: JsValue, signing_key: JsValue) -> Context {
-        let mut _request: Request = Request::new(request, signing_key);
+        let mut _request: Request = Request::new(request);
         let specification = match self.specification(&_request.http_method) {
             Some(value) => value.clone(),
             None => {
@@ -121,7 +118,8 @@ impl Endpoint {
                 panic!("{}", response);
             }
         };
-        Context::from_args(specification, _request, method)
+        let key = signing_key.as_string().unwrap();
+        Context::from_args(specification, _request, method, &key)
     }
 
     /**

@@ -1,13 +1,22 @@
-pub mod provider;
-pub mod user;
+mod provider;
+mod user;
+mod security;
 mod claims;
 
 pub use provider::Provider;
 pub use user::User;
 pub use claims::Claims;
+pub use security::Security;
+
+
+use std::{
+    fmt,
+    convert::From
+};
+use wasm_bindgen::prelude::*;
+
 
 use std::str::FromStr;
-use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
 
 /**
@@ -17,7 +26,8 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, PartialEq, Serialize, Deserialize, Copy, Clone)]
 pub enum Authentication {
     BearerAuth = "BearerAuth",
-    BasicAuth = "BasicAuth"
+    BasicAuth = "BasicAuth",
+    NoAuth = "NoAuth"
 }
 impl FromStr for Authentication {
     type Err = ();
@@ -25,8 +35,24 @@ impl FromStr for Authentication {
         match input {
             "BearerAuth" => Ok(Authentication::BearerAuth),
             "BasicAuth" => Ok(Authentication::BasicAuth),
+            "NoAuth" => Ok(Authentication::NoAuth),
             _ => Err(()),
         }
+    }
+}
+
+#[derive(Debug)]
+pub enum AuthError {
+    PasswordInvalid,
+    PasswordMissing,
+    SecretInvalid,
+    SecretMissing,
+    PasswordHash
+}
+
+impl fmt::Display for AuthError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
@@ -42,6 +68,11 @@ mod tests {
     #[test]
     fn parses_basic_auth_from_str() {
         assert_eq!(Authentication::from_str("BasicAuth").unwrap(), Authentication::BasicAuth);
+    }
+
+    #[test]
+    fn parses_no_auth_from_str() {
+        assert_eq!(Authentication::from_str("NoAuth").unwrap(), Authentication::NoAuth);
     }
 
     #[test]
