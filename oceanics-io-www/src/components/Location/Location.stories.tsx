@@ -28,9 +28,7 @@ Default.args = {
     coordinates: [0, 0],
     tile: {
         publicURL: "/assets/boat.gif", 
-        anchorHash: "hash",
-        queryString: "",
-        grayscale: false
+        anchorHash: "hash"
     }, 
-    query: {}
+    panTo: (coordinates: [number, number]) => {console.log(coordinates)}
 };

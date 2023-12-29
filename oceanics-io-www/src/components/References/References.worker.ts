@@ -1,6 +1,6 @@
 const ctx: Worker = self as unknown as Worker;
 type ModuleType = typeof import("oceanics-io-www-wasm");
-import type { Memo } from "oceanics-io-www-wasm";
+import { Memo } from "oceanics-io-www-wasm";
 
 let runtime: ModuleType;
 async function start() {
@@ -10,7 +10,7 @@ async function start() {
 
 let cache: Memo[];
 const getDocuments = async (documents: Memo[]) => {
-  cache = documents.map(each => new runtime.Memo(each));
+  cache = documents.map(each => new Memo(each));
   return cache;
 }
 

@@ -11,6 +11,10 @@
   NETLIFY_YARN_WORKSPACES = "true"
   YARN_VERSION="1.22.17"
 
+[[plugins]]
+  # https://www.netlify.com/blog/general-availability-content-security-policy-csp-nonce-integration/ 
+  package = "@netlify/plugin-csp-nonce"
+
 [dev]
   port = 8888
   framework = "#static"
@@ -33,6 +37,12 @@
 
 [functions.topology]
   external_node_modules = ["oceanics-io-api-wasm"]
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
     
 [[redirects]]
   from = "/api/auth"
@@ -142,13 +152,3 @@
   status = 200
   headers = {X-From = "Netlify"}
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Content-Security-Policy = '''
-        *.oceanics.io,
-        *.googleapis.com,
-        *.github.com,
-        cdn.jsdelivr.net
-    '''

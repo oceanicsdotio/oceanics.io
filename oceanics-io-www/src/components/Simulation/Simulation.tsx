@@ -1,12 +1,13 @@
 import React from "react";
 import useSimulation from  "./useSimulation";
-export interface ISimulation {
+import type { ISimulation } from "./useSimulation";
 
-}
 const Simulation = (args: ISimulation) => {
-    const {ref} = useSimulation(args);
+    const {ref, preview, message} = useSimulation(args);
     return (<div>
+        <p>{message}</p>
         <canvas ref={ref}/>
+        <canvas ref={preview.ref}/>
     </div>)
 }
 

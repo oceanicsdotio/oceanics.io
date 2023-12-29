@@ -11,6 +11,7 @@
     "packageManager": "yarn@4.0.1",
     "description": "Build environment",
     "devDependencies": {
+        "@netlify/plugin-csp-nonce": "^1.2.5",
         "@redocly/cli": "^1.5.0",
         "@typescript-eslint/eslint-plugin": "^6.13.2",
         "@typescript-eslint/parser": "^6.13.2",
