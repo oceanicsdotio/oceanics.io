@@ -1,3 +1,12 @@
+// Message passing enum
+import { MESSAGES } from "./useSimulation";
+
+// Force module to know it's a Web Worker
+const ctx: Worker = self as unknown as Worker;
+
+// Memoize to send twice
+let particles: Uint8Array | null;
+
 /**
  * Get image data from S3, the Blob-y way. 
  */
@@ -15,14 +24,13 @@ export const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
   }
 }
 
-let particles: Uint8Array | null;
-const ctx: Worker = self as unknown as Worker;
-
 /**
- * Create vertex array buffer
+ * Create vertex array buffer that will be passed back to
+ * create a texture.
  */
-const initParticles = (res: number) => {
+const _particles = (res?: number) => {
   if (!particles) {
+    if (typeof res === "undefined") throw Error("No resolution given on first")
     particles = new Uint8Array(Array.from(
       { length: res * res * 4 },
       () => Math.floor(Math.random() * 256)
@@ -30,14 +38,7 @@ const initParticles = (res: number) => {
   }
   return particles
 }
-/**
- * Known message types
- */
-const MESSAGES = {
-  status: "status",
-  error: "error",
-  texture: "texture"
-}
+
 
 const getJsonData = async (source: string) => {
   try {
@@ -46,7 +47,20 @@ const getJsonData = async (source: string) => {
     return {
       type: "init",
       data: {
-        metadata
+        u_screen: ["i", 2],
+        u_opacity: ["f", opacity],
+        u_wind: ["i", 0],
+        u_particles: ["i", 1],
+        u_color_ramp: ["i", 2],
+        u_particles_res: ["f", res],
+        u_point_size: ["f", pointSize],
+        u_wind_max: ["f", [metadata.u.max, metadata.v.max]],
+        u_wind_min: ["f", [metadata.u.min, metadata.v.min]],
+        speed: ["f", speed],
+        diffusivity: ["f", diffusivity],
+        drop: ["f", drop],
+        seed: ["f", Math.random()],
+        u_wind_res: ["f", [ref.current.width, ref.current.height]],
       }
     }
   } catch {
@@ -91,7 +105,7 @@ const handleMessage = async ({ data }: MessageEvent) => {
       ctx.postMessage({
         type: MESSAGES.texture,
         data: ["state", {
-          data: initParticles(data.data.res),
+          data: _particles(data.data.res),
           shape: [data.data.res, data.data.res],
           filter: "NEAREST",
         }],
@@ -99,21 +113,21 @@ const handleMessage = async ({ data }: MessageEvent) => {
       ctx.postMessage({
         type: MESSAGES.texture,
         data: ["previous", {
-          data: initParticles(data.data.res),
+          data: _particles(data.data.res),
           shape: [data.data.res, data.data.res],
           filter: "NEAREST",
         }],
       });
       ctx.postMessage({
-        type: "buffer",
+        type: MESSAGES.attribute,
         data: ["index", {
-          data: new Float32Array(initParticles(data.data.res)),
+          data: new Float32Array(_particles(data.data.res)),
           order: 2,
           name: "a_index"
         }],
       });
       ctx.postMessage({
-        type: "buffer",
+        type: MESSAGES.attribute,
         data: ["quad", {
           name: "a_pos",
           data: new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),

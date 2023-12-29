@@ -1,19 +1,25 @@
-import { useEffect, useState, useRef, useReducer, useCallback } from "react";
+import { useEffect, useState, useReducer, useCallback } from "react";
 import {
   renderPipelineStage,
   useShaderContext,
-  ArrayBuffer,
 } from "../Shaders/Shaders.context";
-import type { BufferTriple, IRenderStage, TextureOptions } from "../Shaders/Shaders.context";
-
+import type {
+  BufferTriple,
+  IRenderStage,
+  TextureOptions,
+} from "../Shaders/Shaders.context";
 import useCanvasContext from "../../hooks/useCanvasContext";
 import useWorker from "../../hooks/useWorker";
+/**
+ * Known message types
+ */
+export const MESSAGES = {
+  status: "status",
+  error: "error",
+  texture: "texture",
+  attribute: "attribute"
+}
 
-
-  /**
-   * Colormap size for velocity lookups.
-   */
-  const COLOR_MAP_SIZE = 16 * 16;
 /**
  * Mapping of uniforms to program components. Requires
  * knowledge of GLSL variable names and types.
@@ -32,8 +38,6 @@ const PARAMETER_MAP = {
   color: ["u_color_ramp", "u_opacity"],
 };
 
-type StepInfo = {complete: boolean, name: string};
-type StepState = {[key: string]: StepInfo};
 
 /**
  * Metadata about how to source data from an image
@@ -139,39 +143,12 @@ export const useSimulation = ({
    */
   const preview = useCanvasContext("2d");
   /**
-   * Expose progress information about the loading state of the simulation
-   * to show in the UI
-   */
-  const [steps, updateSteps] = useReducer((state: StepState, update: StepInfo) => {
-    return {
-      ...state,
-      [update.name]: update
-    }
-  }, {} as StepState);
-  /**
    * All WebGL related setup is relegated to the context
    * provider.
    */
   const {
     shaders: { webgl, ref, setProgramSourceMap, textures, ...shaders },
   } = useShaderContext();
-  /**
-   * Textures that are drawn to the screen.
-   */
-  const screenBuffers = useRef<{ [k: string]: WebGLTexture | null } | null>(
-    null
-  );
-  /**
-   * Reference for using and cancelling setTimeout. The render
-   * loop uses setTimeout to limit how quickly the simulation
-   * runs.
-   */
-  const timer = useRef<number | null>(null);
-  /**
-   * Adjustable scalar to fire faster/slower than 60fps. Works
-   * with timer to control simulation speed.
-   */
-  const timeConstant = useRef(1.0);
   /**
    * Limit worker listener to firing once.
    */
@@ -185,23 +162,24 @@ export const useSimulation = ({
    * Message for user interface, passed out to parent component. Shows
    * current status or summary statistics about the simulation.
    */
-  const [message, setMessage] = useState(`Ichthyoid (N=${res * res})`);
-  /**
-   * Particle locations. Will be set by web worker from remote source,
-   * procedure, or randomly.
-   */
-  const [particles, setParticles] = useState(null);
+  const [message] = useState(`Ichthyoid (N=${res * res})`);
   /**
    * Point coordinates and window buffers for generic
    * drawArray rendering.
    */
-  const [attributes, setAttributes] = useState<{ [key: string]: BufferTriple }>({});
-  const createBuffer = useCallback(() => {
-    setAttributes(
-      attributes
-    )
-  }, [webgl]);
-  const [start, setStart] = useState(false);
+  const [attributes, setAttributes] = useState<{ [key: string]: BufferTriple }>(
+    {}
+  );
+
+  const createAttribute = useCallback(
+    (name: string, attribute: BufferTriple) => {
+      setAttributes({
+        ...attributes,
+        [name]: attribute,
+      });
+    },
+    []
+  );
   /**
    * Set the program source map triggers hooks that will
    * compile the shader program and return information
@@ -223,6 +201,7 @@ export const useSimulation = ({
    * Fires once when canvas is set.
    */
   useEffect(() => {
+    const COLOR_MAP_SIZE = 16 * 16;
     colorMap.ref.current = document.createElement("canvas");
     [colorMap.ref.current.width, colorMap.ref.current.height] = [
       COLOR_MAP_SIZE,
@@ -248,69 +227,49 @@ export const useSimulation = ({
     colorMap.ref.current = null;
   }, []);
   /**
-   * When we get a message back from the worker that matches
-   * a specific pattern, report or act on that info.
-   * Once we have a valid context and initial positions, save the array buffers.
-   * Create the textures for particle state.
-   *  When we have some information ready, set the status message
-   * to something informative, like number of particles.
-   * 
-   *    * Create the textures for back and front buffers.
-   * We're using double buffering to draw to a back
-   * buffer, and swap when we want to update the view.
+   * When we get a message back from the worker that matches a specific pattern, 
+   * report or act on that info. The worker will push buffers and texture data
+   * that the frontend needs to send to the webgl rendering context. 
    */
   useEffect(() => {
     if (!worker.ref.current || !ref.current || listening) return;
-    // start listener
-    const remove = worker.listen(({ data }) => {
+    worker.listen(({ data }) => {
       const _data = data.data as any;
-      if (!ref.current) return; // typescript/linting
       switch (data.type) {
         case "status":
           return;
         /**
-         * Update values of uniforms using pre-calculated values
-         * from image metadata and simulation configuration
-         * inputs
+         * Set uniforms using pre-calculated values from image
+         * metadata and simulation configuration.
          */
-        case "init":
+        case "uniforms":
           console.log(data.type, _data);
-          shaders.setUniforms({
-            u_screen: ["i", 2],
-            u_opacity: ["f", opacity],
-            u_wind: ["i", 0],
-            u_particles: ["i", 1],
-            u_color_ramp: ["i", 2],
-            u_particles_res: ["f", res],
-            u_point_size: ["f", pointSize],
-            u_wind_max: ["f", [_data.metadata.u.max, _data.metadata.v.max]],
-            u_wind_min: ["f", [_data.metadata.u.min, _data.metadata.v.min]],
-            speed: ["f", speed],
-            diffusivity: ["f", diffusivity],
-            drop: ["f", drop],
-            seed: ["f", Math.random()],
-            u_wind_res: ["f", [ref.current.width, ref.current.height]],
-          });
+          shaders.setUniforms(_data as any);
           return;
         /**
-         * Create and insert a texture
+         * Create and insert a texture. These are assumed
+         * to be 2D. They can either be image data, or
+         * vector tiles.
          */
         case "texture":
           console.log(data.type, _data);
-          shaders.createTexture(...(_data as [string, TextureOptions]))
-          return;
-        case "buffer":
-          console.warn(data.type, _data);
+          shaders.createTexture(...(_data as [string, TextureOptions]));
           return;
         /**
-         * Report errors and update UI
+         * Buffers are draw targets for WebGL.
+         */
+        case "attribute":
+          console.warn(data.type, _data);
+          createAttribute(...(_data as [string, BufferTriple]));
+          return;
+        /**
+         * Report errors.
          */
         case "error":
           console.error(data.message, data.type, data.data);
           return;
         /**
-         * Catch other messages for troubleshooting message
-         * passing. 
+         * Catch other messages for troubleshooting message passing.
          */
         default:
           console.warn(data.type, data.data);
@@ -318,10 +277,6 @@ export const useSimulation = ({
       }
     });
     setListening(true);
-    // return () => {
-    //   if (!worker.ref.current || !ref.current) return;
-    //   remove()
-    // };
   }, [worker.ref.current, ref.current]);
   /**
    * Use external data as a velocity field to force movement of particles.
@@ -345,7 +300,9 @@ export const useSimulation = ({
   }, []);
   /**
    * Display the wind data in a secondary 2D HTML canvas, for debugging
-   * and interpretation.
+   * and interpretation. Broken out as a separate hook so that the
+   * canvas can be hidden/removed from DOM without altering the control
+   * flow of the data loading hook.
    */
   useEffect(() => {
     if (!preview.ref.current || !preview.validContext || !imageData) return;
@@ -357,20 +314,6 @@ export const useSimulation = ({
       preview.ref.current.height
     );
   }, [preview.validContext, imageData]);
-  /**
-   * In a stand alone loop, update the timeConstant to control
-   * the time between render passes. This decouples that control,
-   * so that it can be bound to UI elements, for example.
-   */
-  useEffect(() => {
-    const control = () => {
-      timeConstant.current = 0.5 * (Math.sin(0.005 * performance.now()) + 1.0);
-    };
-    const loop = setInterval(control, 30.0);
-    return () => {
-      clearInterval(loop);
-    };
-  }, []);
   /**
    * Fire startup messages
    */
@@ -389,11 +332,11 @@ export const useSimulation = ({
       data: {
         width: ref.current?.width,
         height: ref.current?.height,
-        res
+        res,
       },
     });
   }, [listening, webgl]);
-  
+
   /**
    * Set pipeline value to signal ready for rendering. The saved object
    * contains a `render()` function bound to a WebGL context.
@@ -406,7 +349,6 @@ export const useSimulation = ({
    */
   useEffect(() => {
     if (
-      !start ||
       !webgl ||
       !shaders.programs ||
       !shaders.framebuffer ||
@@ -461,10 +403,7 @@ export const useSimulation = ({
           textures: [[textures.color, 2]],
           parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
           attributes: [attributes.quad],
-          framebuffer: [
-            shaders.framebuffer,
-            textures.previous,
-          ], // re-use the old data buffer
+          framebuffer: [shaders.framebuffer, textures.previous], // re-use the old data buffer
           topology: [webgl.TRIANGLES, 0, 6],
           viewport: [0, 0, res, res],
           // callback: () => {
@@ -486,25 +425,20 @@ export const useSimulation = ({
           ...stage,
         });
       });
-      // timer.current = setTimeout(
-      //   render,
-      //   timeConstant.current * 17.0,
-      //   screen,
-      //   textures.back,
-      //   textures.state,
-      //   textures.previous
-      // );
       requestId = requestAnimationFrame(render);
     })();
     return () => {
       cancelAnimationFrame(requestId);
-      // if (timer.current) clearTimeout(timer.current);
     };
-  }, [shaders.programs, shaders.runtime, start]);
+  }, [shaders.programs, shaders.runtime]);
   /**
    * Resources available to parent Component or Hook.
    */
-  return { ref, message, preview, timeConstant, steps };
+  return { ref, message, preview };
 };
 
+/**
+ * Hook is used in the display component to provide
+ * data loading and interactivity options.
+ */
 export default useSimulation;
