@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
@@ -9,7 +7,7 @@ use crate::cypher::node::Node;
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::Specification;
 use crate::middleware::request::{Request, LogLine};
-use crate::authentication::{Claims,Authentication,User,Provider};
+use crate::authentication::{User,Provider};
 
 
 /**
@@ -168,12 +166,13 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use hex::encode;
-
+    use js_sys::Function;
+    use crate::authentication::Security;
     use crate::middleware::endpoint::Specification;
-    use crate::authentication::{Security};
     use crate::middleware::HttpMethod;
     use crate::middleware::request::{Request, Headers, QueryStringParameters};
     use super::Context;
+
     #[test]
     fn create_context () {
         let sec = Security{ 
@@ -190,11 +189,11 @@ mod tests {
             body: None
         };
         let signing_key = String::from(encode("some_secret"));
-        let ctx = Context::from_args(
+        let _ctx = Context::from_args(
             specification,
             request,
-            Function::new_no_args(),
+            Function::new_no_args(""),
             &signing_key
-        )
+        );
     }
 }
