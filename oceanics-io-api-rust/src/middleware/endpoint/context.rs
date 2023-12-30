@@ -12,9 +12,8 @@ use crate::authentication::{User,Provider};
 
 /**
  * The Outer Function level context produces
- * an inner Context that provides an
- * simple API for authentication and response
- * handling.
+ * an inner Context that provides a simple API 
+ * for authentication and response handling.
  */
 #[wasm_bindgen]
 #[derive(Deserialize,Serialize)]
@@ -23,7 +22,7 @@ pub struct Context {
     #[serde(skip)]
     start: DateTime<Local>,
     #[serde(skip)]
-    handler: Function,
+    handler: Option<Function>,
     #[serde(skip)]
     nodes: (Option<Node>, Option<Node>),
     specification: Specification,
@@ -32,13 +31,10 @@ pub struct Context {
 }
 
 impl Context {
-    /**
-     * This is how the context is created during request handling.
-     */
-    pub fn from_args(
+    pub fn from_args_opt_handler(
         specification: Specification,
         request: Request,
-        handler: Function,
+        handler: Option<Function>,
         signing_key: &String
     ) -> Self {
         let nodes = request.query_string_parameters.nodes(request.data());
@@ -52,6 +48,25 @@ impl Context {
             user,
             provider
         }
+    }
+    /**
+     * This is how the context is created during request handling.
+     */
+    pub fn from_args(
+        specification: Specification,
+        request: Request,
+        handler: Function,
+        signing_key: &String
+    ) -> Self {
+        Context::from_args_opt_handler(specification, request, Some(handler), signing_key)
+    }
+
+    pub fn from_args_no_handler(
+        specification: Specification,
+        request: Request,
+        signing_key: &String
+    ) -> Self {
+        Context::from_args_opt_handler(specification, request, None, signing_key)
     }
 }
 
@@ -126,7 +141,11 @@ impl Context {
      */
     pub fn handle(&self) -> JsValue {
         let serialized = serde_wasm_bindgen::to_value(self).unwrap();
-        match self.handler.call1(&JsValue::NULL, &serialized) {
+
+        let handler = self.handler.as_ref().unwrap_or_else(|| 
+            panic!("No response handler defined")
+        );
+        match handler.call1(&JsValue::NULL, &serialized) {
             Ok(value) => value,
             Err(_) => JsValue::NULL
         }
@@ -166,7 +185,6 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use hex::encode;
-    use js_sys::Function;
     use crate::authentication::Security;
     use crate::middleware::endpoint::Specification;
     use crate::middleware::HttpMethod;
@@ -189,10 +207,9 @@ mod tests {
             body: None
         };
         let signing_key = String::from(encode("some_secret"));
-        let _ctx = Context::from_args(
+        let _ctx = Context::from_args_no_handler(
             specification,
             request,
-            Function::new_no_args(""),
             &signing_key
         );
     }

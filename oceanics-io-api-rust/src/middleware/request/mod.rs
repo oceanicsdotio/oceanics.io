@@ -72,8 +72,16 @@ impl Request {
 
 
 impl Request {
-    // Parse string body to JSON hashmap. 
+    /**
+     * Parse string body to JSON hashmap. Need to check for
+     * method, because we error on checking for body in a GET,
+     * for example.
+     */
     pub fn data(&self) -> HashMap<String, Value> {
+        if self.http_method != HttpMethod::POST 
+            && self.http_method != HttpMethod::PUT {
+            return HashMap::with_capacity(0);
+        }
         serde_json::from_str(&self.body()).unwrap_or_else(
             |_| panic!("{}", MiddlewareError::BodyInvalid)
         )
@@ -93,7 +101,12 @@ impl Request {
         )
     }
 
-    // Body as String, like `text()`
+    /**
+     * Body as String, like `text()`. Because we only expect there
+     * to a body on PUT and POST requests, throw an error if the
+     * data are requested for another method. Also panic if we 
+     * ask for a body and there is not one.
+     */
     #[wasm_bindgen(getter)]
     pub fn body(&self) -> String {
         match self.http_method {

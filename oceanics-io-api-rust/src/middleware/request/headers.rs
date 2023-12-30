@@ -22,6 +22,12 @@ pub struct Headers {
  */
 #[wasm_bindgen]
 impl Headers {
+    #[wasm_bindgen(constructor)]
+    pub fn new(authorization: String) -> Self {
+        Self {
+            authorization: authorization.into()
+        }
+    }
     /**
      * This is the auth method implied
      * by the formatting of the request

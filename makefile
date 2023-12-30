@@ -26,7 +26,7 @@ $(TEST_CACHE): $(API_JSON) $(CACHE_SCRIPT)
 	yarn exec node $(CACHE_SCRIPT) $< $@
 
 # Compile API
-api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
+api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json $(TEST_CACHE)
 	yarn eslint "$(API)/src/**/*.{js,ts}"
 	yarn workspace $(API) run tsc 
 
