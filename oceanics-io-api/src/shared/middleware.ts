@@ -70,9 +70,7 @@ export function Router(
 
     // Pre-populate with assigned handlers & transform. 
     const endpoint: Endpoint = new Endpoint(pathSpec);
-    Object.entries(methods).forEach(([key, fn]) => {
-        endpoint.insertMethod(key, (ctx: Context) => fn(ctx).then(transform));
-    });
+    Object.keys(methods).forEach((key: string) => {endpoint.insertMethod(key)});
 
     /**
      * Inner handler will receive Netlify function event.
@@ -88,7 +86,7 @@ export function Router(
         try {
             context = endpoint.context(event, process.env.SIGNING_KEY);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             const response = JSON.parse(error.message);
             // console.log(response)
             // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
@@ -100,10 +98,11 @@ export function Router(
         }
         // console.log({event});
         try {
-            const response = await context.handle();
+            const handle = methods[context.request.httpMethod]
+            const response = await handle(context);
             // const logData = context.logLine(null, response.statusCode)
             // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
-            return response;
+            return transform(response);
         } catch ({message}) {
             return transform({
                 statusCode: 500,

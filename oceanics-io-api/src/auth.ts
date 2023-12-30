@@ -41,11 +41,14 @@ export const register: ApiHandler = async (context) => {
  * information needed when validating access to data. 
  */
 const getToken: ApiHandler = async (context) => {
-  console.log("Context", context)
-  const token = context.issueUserToken(process.env.SIGNING_KEY);
-  return {
-    statusCode: 200,
-    data: { token }
+  try {
+    const token = context.issueUserToken(process.env.SIGNING_KEY);
+    return {
+      statusCode: 200,
+      data: { token }
+    }
+  } catch ({message}) {
+    return JSON.parse(message)
   }
 };
 

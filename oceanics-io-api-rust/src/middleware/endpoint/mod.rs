@@ -1,9 +1,8 @@
 mod specification;
 mod context;
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
-use js_sys::Function;
 use serde_json::json;
 use serde::Deserialize;
 
@@ -23,7 +22,7 @@ pub struct Endpoint {
     delete: Option<Specification>,
     put: Option<Specification>,
     #[serde(skip)]
-    methods: HashMap<HttpMethod, Function>
+    methods: HashSet<HttpMethod>
 }
 
 /**
@@ -35,7 +34,7 @@ impl Endpoint {
      * request header.
      */
     fn allowed_methods(&self) -> String {
-        let mut keys: Vec<&str> = self.methods.keys().map(|x| x.to_str()).collect();
+        let mut keys: Vec<&str> = self.methods.iter().map(|x| x.to_str()).collect();
         keys.insert(0, "OPTIONS");
         keys.join(",")
     }
@@ -51,7 +50,7 @@ impl Endpoint {
     #[wasm_bindgen(constructor)]
     pub fn new(spec: JsValue) -> Self {
         let mut endpoint: Endpoint = serde_wasm_bindgen::from_value(spec).unwrap();
-        endpoint.methods = HashMap::with_capacity(8);
+        endpoint.methods = HashSet::with_capacity(8);
         endpoint
     }
 
@@ -107,19 +106,16 @@ impl Endpoint {
                 panic!("{}", response);
             }
         };
-        let method = match self.get_method(_request.http_method) {
-            Some(value) => value,
-            None => {
-                let response = json!({
-                    "message": "Invalid HTTP method",
-                    "statusCode": 405,
-                    "detail": "No handler found"
-                });
-                panic!("{}", response);
-            }
+        if !self.methods.contains(&_request.http_method) {
+            let response = json!({
+                "message": "Invalid HTTP method",
+                "statusCode": 405,
+                "detail": "No handler found"
+            });
+            panic!("{}", response);
         };
         let key = signing_key.as_string().unwrap();
-        Context::from_args(specification, _request, method, &key)
+        Context::from_args(specification, _request, &key)
     }
 
     /**
@@ -140,19 +136,7 @@ impl Endpoint {
      * and false if it already exists.
      */
     #[wasm_bindgen(js_name = "insertMethod")]
-    pub fn insert_method(&mut self, http_method: HttpMethod, handler: Function) -> bool {
-        if self.methods.contains_key(&http_method) {
-            return false;
-        }
-        self.methods.insert(http_method, handler);
-        true
-    }
-
-    #[wasm_bindgen(js_name = "getMethod")]
-    pub fn get_method(&self, method: HttpMethod) -> Option<Function> {
-        match self.methods.get(&method) {
-            Some(func) => Some(func.clone()),
-            None => None
-        }
+    pub fn insert_method(&mut self, http_method: HttpMethod) -> bool {
+        self.methods.insert(http_method)
     }
 }

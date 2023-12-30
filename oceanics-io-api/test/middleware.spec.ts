@@ -200,10 +200,6 @@ describe("idempotent", function() {
         }
       }
 
-      const HANDLER = () => {
-        return "mock"
-      }
-
       describe("endpoint", function() {
         describe("Endpoint", function() {
           test.concurrent("constructs Endpoint", async function() {
@@ -213,25 +209,23 @@ describe("idempotent", function() {
 
           test.concurrent("inserts methods", async function() {
             const endpoint = new Endpoint(ENDPOINT);
-            let ok = endpoint.insertMethod("GET", HANDLER);
+            let ok = endpoint.insertMethod("GET");
             expect(ok).toBe(true);
-            ok = endpoint.insertMethod("POST", HANDLER);
+            ok = endpoint.insertMethod("POST");
             expect(ok).toBe(true);
-            const postHandler = endpoint.getMethod("POST");
-            expect(postHandler()).toBe("mock");
           })
 
           test.concurrent("errors on insert existing method", async function() {
             const endpoint = new Endpoint(ENDPOINT);
             expect(endpoint).toBeInstanceOf(Endpoint);
-            let ok = endpoint.insertMethod("GET", HANDLER);
-            ok = endpoint.insertMethod("GET", HANDLER);
+            let ok = endpoint.insertMethod("GET");
+            ok = endpoint.insertMethod("GET");
             expect(ok).toBe(false);
           })
 
           test.concurrent("returns options", async function() {
             const endpoint = new Endpoint(ENDPOINT);
-            endpoint.insertMethod("GET", HANDLER);
+            endpoint.insertMethod("GET");
             expect(endpoint.options).toEqual({
               statusCode: 204,
               headers: {
@@ -242,7 +236,7 @@ describe("idempotent", function() {
 
           test.concurrent("returns request context", async function() {
             const endpoint = new Endpoint(ENDPOINT);
-            endpoint.insertMethod("POST", HANDLER);
+            endpoint.insertMethod("POST");
             const context = endpoint.context(EXAMPLE_REQUEST, process.env.SIGNING_KEY);
             expect(context).toBeInstanceOf(Context);
             console.log("headers:", typeof context.request.headers);
@@ -359,13 +353,13 @@ describe("idempotent", function() {
         }
         
         test.concurrent("constructs Context", async function () {
-          const context = new Context(ENDPOINT.post, EXAMPLE_REQUEST, HANDLER,  signingKey);
+          const context = new Context(ENDPOINT.post, EXAMPLE_REQUEST,  signingKey);
           expect(context).toBeInstanceOf(Context);
           expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
         })
 
         test.concurrent("generates LogLine JSON", async function () {
-          const context = new Context(ENDPOINT.post, EXAMPLE_REQUEST, HANDLER, signingKey);
+          const context = new Context(ENDPOINT.post, EXAMPLE_REQUEST, signingKey);
           const log = context.logLine("test@oceanics.io", 403);
           delete log.elapsedTime;
 
