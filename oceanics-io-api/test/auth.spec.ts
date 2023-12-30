@@ -67,8 +67,6 @@ describe("auth handlers", function () {
      */
     test("clears non-provider nodes", async function () {
       const token = await fetchToken();
-
-
       const response = await fetch(`${API_PATH}/auth`, {
         method: "DELETE",
         headers: {

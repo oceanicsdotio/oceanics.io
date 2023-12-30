@@ -1,9 +1,9 @@
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
 import apiSpec from "./shared/bathysphere.json";
 import { Router } from "./shared/middleware";
 import * as db from "./shared/queries"
 import type { ApiHandler } from "./shared/middleware";
-import { Node, ErrorDetail } from "oceanics-io-api-wasm";
+import { Node, ErrorDetail, User } from "oceanics-io-api-wasm";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -41,12 +41,10 @@ export const register: ApiHandler = async (context) => {
  * information needed when validating access to data. 
  */
 const getToken: ApiHandler = async (context) => {
-  const uuid = context.request.uuid;
+  const token = context.user.issueToken(process.env.SIGNING_KEY);
   return {
     statusCode: 200,
-    data: {
-      token: jwt.sign({ uuid }, process.env.SIGNING_KEY??"", { expiresIn: 3600 })
-    }
+    data: { token }
   }
 };
 

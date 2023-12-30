@@ -193,6 +193,12 @@ describe("idempotent", function() {
           authorization: "Bearer:x"
         }
       };
+      const EXAMPLE_REQUEST = {
+        ...POST_THINGS_REQUEST, 
+        headers: {
+          authorization: "testing@oceanics.io:some_password:some_secret"
+        }
+      }
 
       const HANDLER = () => {
         return "mock"
@@ -234,13 +240,14 @@ describe("idempotent", function() {
             })
           })
 
-          // test.concurrent("returns request context", async function() {
-          //   const endpoint = new Endpoint(ENDPOINT);
-          //   endpoint.insertMethod("POST", HANDLER);
-          //   const context = endpoint.context(POST_THINGS_REQUEST, process.env.SIGNING_KEY);
-          //   expect(context).toBeInstanceOf(Context);
-          //   expect(context.auth).toBe("BearerAuth");
-          // })
+          test.concurrent("returns request context", async function() {
+            const endpoint = new Endpoint(ENDPOINT);
+            endpoint.insertMethod("POST", HANDLER);
+            const context = endpoint.context(EXAMPLE_REQUEST, process.env.SIGNING_KEY);
+            expect(context).toBeInstanceOf(Context);
+            console.log("headers:", typeof context.request.headers);
+            expect(context.claimAuthMethod).toBe("BasicAuth");
+          })
         })
         
         describe("Specification", function() {
@@ -344,15 +351,21 @@ describe("idempotent", function() {
 
       describe("Context", function() {
         const signingKey = "test_secret";
+        const EXAMPLE_REQUEST = {
+          ...POST_THINGS_REQUEST, 
+          headers: {
+            authorization: "testing@oceanics.io:some_password:some_secret"
+          }
+        }
         
         test.concurrent("constructs Context", async function () {
-          const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER, signingKey);
+          const context = new Context(ENDPOINT.post, EXAMPLE_REQUEST, HANDLER,  signingKey);
           expect(context).toBeInstanceOf(Context);
           expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
         })
 
         test.concurrent("generates LogLine JSON", async function () {
-          const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER, signingKey);
+          const context = new Context(ENDPOINT.post, EXAMPLE_REQUEST, HANDLER, signingKey);
           const log = context.logLine("test@oceanics.io", 403);
           delete log.elapsedTime;
 
@@ -362,8 +375,8 @@ describe("idempotent", function() {
             statusCode: 403,
             auth: "BearerAuth"
           });
-          // expect(typeof context.elapsedTime).toBe("number");
-          // expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
+          expect(typeof context.elapsedTime).toBe("number");
+          expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
         })
       })
 

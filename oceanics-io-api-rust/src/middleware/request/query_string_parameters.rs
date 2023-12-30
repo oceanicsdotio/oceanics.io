@@ -20,7 +20,7 @@ fn opt_string(value: &Option<String>) -> String {
  * may have these query string parameters defined. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct QueryStringParameters {
     left: Option<String>,
     uuid: Option<String>,

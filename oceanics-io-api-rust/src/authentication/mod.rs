@@ -8,15 +8,12 @@ pub use user::User;
 pub use claims::Claims;
 pub use security::Security;
 
-
 use std::{
     fmt,
-    convert::From
+    convert::From,
+    str::FromStr
 };
 use wasm_bindgen::prelude::*;
-
-
-use std::str::FromStr;
 use serde::{Serialize, Deserialize};
 
 /**

@@ -130,6 +130,12 @@ impl Context {
     }
 
     #[wasm_bindgen(getter)]
+    #[wasm_bindgen(js_name = "claimAuthMethod")]
+    pub fn _claim_auth_method(&self) -> Option<crate::authentication::Authentication> {
+        self.request.headers.claim_auth_method()
+    }
+
+    #[wasm_bindgen(getter)]
     pub fn query(&self) -> JsValue {
         serde_wasm_bindgen::to_value(&self.request.query_string_parameters).unwrap()
     }

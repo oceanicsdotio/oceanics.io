@@ -12,7 +12,7 @@ use super::MiddlewareError;
 #[wasm_bindgen]
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Headers {
-    #[wasm_bindgen(skip)]
+    #[wasm_bindgen(getter_with_clone)]
     pub authorization: Option<String>
 }
 

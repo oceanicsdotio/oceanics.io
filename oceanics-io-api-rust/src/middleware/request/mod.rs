@@ -22,11 +22,13 @@ use serde_json::Value;
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Request {
-    #[wasm_bindgen(skip)]
+    #[wasm_bindgen(getter_with_clone)]
     pub headers: Headers,
     #[wasm_bindgen(js_name = httpMethod)]
+    #[wasm_bindgen(getter_with_clone)]
     pub http_method: HttpMethod,
-    #[wasm_bindgen(skip)]
+    #[wasm_bindgen(js_name = queryStringParameters)]
+    #[wasm_bindgen(getter_with_clone)]
     pub query_string_parameters: QueryStringParameters,
     #[wasm_bindgen(skip)]
     pub body: Option<String>
@@ -51,7 +53,7 @@ impl Request {
                     <[String; 2]>::try_from(self.headers.authorization()).unwrap_or_else(
                         |_| panic!("{}", MiddlewareError::HeaderAuthorizationInvalid)
                     );
-                let claims = Claims::decode(token, signing_key).unwrap_or_else(|_| panic!("{}", MiddlewareError::TokenDecodeFailed));
+                let claims = Claims::decode(token.clone(), signing_key).unwrap_or_else(|err| panic!("{}, {}: {}", MiddlewareError::TokenDecodeFailed, err, token));
                 user = Some(User::from(&claims));
                 provider = Some(Provider::from(&claims));
             },
