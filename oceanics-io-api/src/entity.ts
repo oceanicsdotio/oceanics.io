@@ -8,7 +8,7 @@ import apiSpec from "./shared/bathysphere.json";
  * by any single property. 
  */
  export const metadata: ApiHandler = async (context) => {
-  const value = await db.metadata(context.user, context.left);
+  const value = await db.readAndParse(context.metadata());
   return {
       statusCode: 200,
       data: {
@@ -28,7 +28,7 @@ import apiSpec from "./shared/bathysphere.json";
  * labels.
  */
 const remove: ApiHandler = async (context) => {
-  await db.remove(context.user, context.left);
+  await db.write(context.dropOneLinkedNode());
   return {
     statusCode: 204
   }

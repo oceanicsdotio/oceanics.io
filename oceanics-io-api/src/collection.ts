@@ -7,8 +7,8 @@ import apiSpec from "./shared/bathysphere.json";
  * Retrieve one or more entities of a single type. This may be filtered
  * by any single property. 
  */
- export const metadata: ApiHandler = async (context) => {
-    const value = await db.metadata(context.user, context.left);
+const metadata: ApiHandler = async (context) => {
+    const value = await db.readAndParse(context.metadata());
     return {
         statusCode: 200,
         data: {
@@ -29,7 +29,7 @@ import apiSpec from "./shared/bathysphere.json";
  * Location data receives additional processing logic internally.
  */
 const create: ApiHandler = async (context) => {
-    await db.create("Create", context.user, context.left)
+    db.write(context.insertLinkedNode(label))
     return {
         statusCode: 204
     }

@@ -24,13 +24,14 @@ const handler: Handler = async ({ body }) => {
     const memo = new Node(JSON.stringify(data), "n0", "Memos");
 
     const {query} = memo.create();
+    await db.write(query);
+
     const linkQueries = references.map((each: Record<string, unknown>) => {
         const node = new Node(JSON.stringify(each), `n1`, "Memos");
         const {query} = new Links("Reference", 0, 0, "").insert(memo, node);
         return query
     });
-    await db.connect(query, false);
-    await db.batch(linkQueries, false);
+    await db.writeMany(linkQueries);
 
     return {
         statusCode: 200,

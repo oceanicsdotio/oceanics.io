@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import spec from "../shared/bathysphere.json";
+import spec from "./shared/bathysphere.json";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 

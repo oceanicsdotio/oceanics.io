@@ -1,29 +1,20 @@
-// import jwt from "jsonwebtoken";
+import { ErrorDetail } from "oceanics-io-api-wasm";
+import * as db from "./shared/queries";
 import apiSpec from "./shared/bathysphere.json";
 import { Router } from "./shared/middleware";
-import * as db from "./shared/queries"
 import type { ApiHandler } from "./shared/middleware";
-import { Node, ErrorDetail } from "oceanics-io-api-wasm";
-
-/**
- * Generic interface for all of the HTTP method-specific handlers.
- */
-export interface IAuth {
-  email: string;
-  password: string;
-  secret: string;
-  apiKey?: string;
-  token?: string;
-}
 
 /**
  * Create a new account using email address. We don't perform
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend. 
  */
-export const register: ApiHandler = async (context) => {
+const POST: ApiHandler = async (context) => {
   try {
-    const domain = await db.register(context.provider, context.user);
+    const records = await db.writeAndParse(context.register("Register"));
+    if (records.length !== 1)
+      throw Error(`No provider match (N=${records.length})`);
+    const [{domain}] = records as {domain: string}[];
     return {
       data: {
         message: `Registered as a member of ${domain}.`
@@ -40,22 +31,22 @@ export const register: ApiHandler = async (context) => {
  * data per the standard, it includes the UUID for the User, as this is the
  * information needed when validating access to data. 
  */
-const getToken: ApiHandler = async (context) => {
+const GET: ApiHandler = async (context) => {
   try {
     const token = context.issueUserToken(process.env.SIGNING_KEY);
     return {
       statusCode: 200,
       data: { token }
     }
-  } catch ({message}) {
-    return JSON.parse(message)
+  } catch (error) {
+    return JSON.parse(error.message)
   }
 };
 
 /**
  * Change auth details, such as updating e-mail or password.
  */
-const manage: ApiHandler = async () => {
+const PUT: ApiHandler = async () => {
   return {
     statusCode: 501
   }
@@ -66,16 +57,14 @@ const manage: ApiHandler = async () => {
  * generator prevents internal Nodes like Provider from
  * being dropped.
  */
-export const remove: ApiHandler = async (context) => {
-  await db.remove(context.user, new Node());
+const DELETE: ApiHandler = async (context) => {
+  await db.write(context.dropAllLinkedNodes());
   return {
     statusCode: 204
   }
 }
 
-export const handler = Router({
-  GET: getToken,
-  POST: register,
-  PUT: manage,
-  DELETE: remove,
-}, apiSpec.paths["/auth"])
+export const handler = Router(
+  { GET, POST, PUT, DELETE }, 
+  apiSpec.paths["/auth"]
+)

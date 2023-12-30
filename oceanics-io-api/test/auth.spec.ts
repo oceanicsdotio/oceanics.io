@@ -1,17 +1,11 @@
 import fetch from "node-fetch";
 import { describe, expect, test, beforeAll } from '@jest/globals';
 import { API_PATH, fetchToken, Authorization, register as registerRequest } from "./test-utils";
-import { uniqueConstraint } from "../src/shared/queries";
-import { remove } from "../src/auth";
-import specification from "../src/shared/bathysphere.json";
+import * as db from "../src/shared/queries";
 
 import {
   panicHook as enableWasmLog,
-  Context,
-  Request,
-  Endpoint,
-  Specification,
-  User
+  Node
 } from "oceanics-io-api-wasm";
 
 const AUTH_PATH = `${API_PATH}/auth`;
@@ -53,7 +47,9 @@ describe("auth handlers", function () {
       ["Provider", "apiKey"],
       ["User", "email"]
     ])(`%s.%s`, async function (label: string, key: string) {
-      await uniqueConstraint(label, key);
+      const node = new Node(undefined, undefined, label);
+      const {query} = node.uniqueConstraintQuery(key);
+      await db.write(query);
     })
   })
 
@@ -132,6 +128,8 @@ describe("auth handlers", function () {
           Authorization: Authorization(undefined, "a-very-bad-password", undefined),
         },
       });
+      const data = await response.json();
+      console.warn("Data", data);
       expect(response.status).toEqual(403);
     });
 

@@ -2,7 +2,7 @@ use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
 use serde::Deserialize;
 use serde_json::json;
-use crate::cypher::node::Node;
+use crate::cypher::{Node,Links};
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::Specification;
 use crate::middleware::request::{Request, LogLine};
@@ -72,16 +72,104 @@ impl Context {
     }
 
     #[wasm_bindgen(js_name = "issueUserToken")]
-    pub fn issue_token(&self, signing_key: &str) -> JsValue {
-        let user = self.user.as_ref().unwrap_or_else(|| {         
-            let response = json!({
+    pub fn issue_token(&self, signing_key: &str) -> Result<JsValue, JsError> {
+        if !self.user.is_some() {
+            let error = json!({
                 "message": "Unauthorized",
                 "statusCode": 403,
                 "detail": "No User in Request Context"
-            });
-            panic!("{}", response);
-        });
-        user._issue_token(signing_key)
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
+        Ok(self.user.as_ref().unwrap()._issue_token(signing_key))
+    }
+
+    #[wasm_bindgen(js_name = "joinNodes")]
+    pub fn join_nodes(&self, label: Option<String>) -> JsValue {
+        let cypher = crate::cypher::links::Links::new(
+            label,
+            None,
+            None,
+            None
+        ).join(
+            &self.left().unwrap(), 
+            &self.right().unwrap()
+        );
+        cypher.query().into()
+    }
+
+    #[wasm_bindgen(js_name = "dropLink")]
+    pub fn drop_link(&self, label: Option<String>) -> JsValue {
+        let cypher = crate::cypher::links::Links::new(
+            label,
+            None,
+            None,
+            None
+        ).drop(
+            &self.left().unwrap(), 
+            &self.right().unwrap()
+        );
+        cypher.query().into()
+    }
+
+    fn drop_node(&self, node: &Node) -> JsValue {
+        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        let cypher = crate::cypher::links::Links::new(
+            None,
+            None,
+            None,
+            None
+        ).drop(
+            &Node::from(user), 
+            node
+        );
+        cypher.query().into()
+    }
+
+    #[wasm_bindgen(js_name = "dropAllLinkedNodes")]
+    pub fn drop_all_linked_nodes(&self) -> JsValue {
+        let wildcard = Node::new(None, None, None);
+        self.drop_node(&wildcard)
+    }
+
+    #[wasm_bindgen(js_name = "dropOneLinkedNode")]
+    pub fn drop_one_linked_node(&self) -> JsValue {
+        self.drop_node(&self.left().unwrap())
+    }
+
+    #[wasm_bindgen(js_name = "insertLinkedNode")]
+    pub fn insert_linked_node(&self, label: Option<String>) -> JsValue {
+        let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
+        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        let cypher = link.insert(
+            &Node::from(user),
+            &self.left().unwrap()
+        );
+        cypher.query().into()
+    }
+
+    #[wasm_bindgen]
+    pub fn register(&self, label: Option<String>) -> JsValue {
+        let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
+        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        let cypher = link.insert(
+            &Node::from(user),
+            &self.left().unwrap()
+        );
+        cypher.query().into()
+    }
+
+    #[wasm_bindgen]
+    pub fn metadata(&self) -> JsValue {
+        let link = Links::new(None, None, None, None);
+        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        let left = self.left().unwrap();
+        let cypher = link.query(
+            &Node::from(user), 
+            &left, 
+            left.symbol()
+        );
+        cypher.query().into()
     }
 
     /**
