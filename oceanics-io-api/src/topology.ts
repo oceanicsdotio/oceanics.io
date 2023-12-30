@@ -1,6 +1,6 @@
-import { connect, NetlifyRouter } from "./shared/middleware";
+import { Router } from "./shared/middleware";
+import * as db from "./shared/queries";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "oceanics-io-api-wasm";
 import apiSpec from "./shared/bathysphere.json";
 
 // Don't currently pass custom label through the API
@@ -9,8 +9,8 @@ const DEFAULT_LABEL = "Link"
 /**
  * Connect two nodes.
  */
-const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LABEL } }) => {
-  await connect((new Links(label)).join(left, right).query, false);
+const join: ApiHandler = async (context) => {
+  await db.join(DEFAULT_LABEL, context.left, context.right);
   return {
     statusCode: 204
   }
@@ -19,8 +19,8 @@ const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LA
 /**
  * Drop connection between two nodes. 
  */
-const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
-  await connect((new Links()).drop(left, right).query, false);
+const drop: ApiHandler = async (context) => {
+  await db.drop(undefined, context.left, context.right);
   return {
     statusCode: 204
   }
@@ -35,7 +35,7 @@ const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
  
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
-export const handler = NetlifyRouter({
+export const handler = Router({
   POST: join,
   DELETE: drop
 }, apiSpec.paths["/{root}({rootId})/{entity}"]);
