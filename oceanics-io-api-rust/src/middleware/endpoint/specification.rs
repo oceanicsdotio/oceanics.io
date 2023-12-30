@@ -40,7 +40,7 @@ mod tests {
             bearer_auth: Some(Vec::from([])), 
             basic_auth: None
         };
-        let specification = Specification {
+        let _specification = Specification {
             security: vec![sec],
         };
     }

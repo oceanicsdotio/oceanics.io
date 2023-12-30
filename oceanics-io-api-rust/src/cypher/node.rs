@@ -191,6 +191,7 @@ impl Node {
     /**
      * Get unique node labels in the database. 
      */
+    #[allow(unused)]
     #[wasm_bindgen(js_name = allLabels)]
     #[wasm_bindgen(static_method_of = Node)]
     pub fn all_labels() -> Cypher {

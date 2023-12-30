@@ -38,18 +38,20 @@ impl ErrorDetail {
 
 #[wasm_bindgen]
 impl ErrorDetail {
+    #[allow(unused)]
     #[wasm_bindgen(static_method_of = Node)]
     pub fn unauthorized() -> JsValue {
         let message = String::from("Unauthorized");
         ErrorDetail::new(message, 403)
     }
+    #[allow(unused)]
     #[wasm_bindgen(static_method_of = Node)]
     #[wasm_bindgen(js_name = invalidMethod)]
     pub fn invalid_method() -> JsValue {
         let message = String::from("Invalid HTTP method");
         ErrorDetail::new(message, 405)
     }
-
+    #[allow(unused)]
     #[wasm_bindgen(static_method_of = Node)]
     #[wasm_bindgen(js_name = notImplemented)]
     pub fn not_implemented() -> JsValue {
