@@ -1,5 +1,4 @@
 import { describe, expect, test } from '@jest/globals';
-import { Method } from '../src/shared/middleware';
 import { apiFetch, testAllowedMethodCount, getNodeTypes, getNodes } from "./test-utils";
 
 /**
@@ -9,7 +8,7 @@ import { apiFetch, testAllowedMethodCount, getNodeTypes, getNodes } from "./test
 describe("collection handlers", function () {
   describe("collection.options", function () {
     test.concurrent.each(getNodeTypes())("reports allowed methods for %s", async function (nodeType) {
-      const response = await apiFetch(nodeType, Method.OPTIONS)();
+      const response = await apiFetch(nodeType, "OPTIONS")();
       expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 3);
     });
@@ -22,9 +21,14 @@ describe("collection handlers", function () {
    */
   describe(`collection.post`, function () {
     test.concurrent.each(getNodes())(`creates %s %s`, async function(nodeType, _, properties) {
-      const response = await apiFetch(nodeType, Method.POST)(properties);
+      const response = await apiFetch(nodeType, "POST")(properties);
       expect(response.status).toEqual(204);
     });
+
+    test.concurrent("redirects unknown entity to 404", async function() {
+      const response = await apiFetch("Nothings", "POST")({});
+      expect(response.status).toEqual(404);
+    })
   });
 
   /**
@@ -35,7 +39,7 @@ describe("collection handlers", function () {
   describe("collection.get", function () {
     test.concurrent.each(getNodeTypes())(`retrieves %s (N=%s)`, async function (nodeType, count) {
       expect(typeof count).toBe("number");
-      const response = await apiFetch(nodeType, Method.GET)();
+      const response = await apiFetch(nodeType, "GET")();
       expect(response.status).toBe(200);
       const data = await response.json();
       const actual = data["@iot.count"]
