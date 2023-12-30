@@ -16,7 +16,7 @@ use crate::authentication::{User,Provider};
  * for authentication and response handling.
  */
 #[wasm_bindgen]
-#[derive(Deserialize,Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Context {
     request: Request,
     #[serde(skip)]
@@ -26,7 +26,9 @@ pub struct Context {
     #[serde(skip)]
     nodes: (Option<Node>, Option<Node>),
     specification: Specification,
+    #[serde(skip)]
     user: Option<User>,
+    #[serde(skip)]
     provider: Option<Provider>
 }
 
@@ -91,6 +93,12 @@ impl Context {
                 serde_wasm_bindgen::to_value(value).unwrap()
             }
         }
+    }
+
+    #[wasm_bindgen(js_name = "issueUserToken")]
+    pub fn issue_token(&self, signing_key: &str) -> JsValue {
+        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        user._issue_token(signing_key)
     }
 
     /**

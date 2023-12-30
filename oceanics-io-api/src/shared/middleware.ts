@@ -1,6 +1,6 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
-import { ILogtailLog } from "@logtail/types";
+import type { ILogtailLog } from "@logtail/types";
 import { Context, Endpoint, panicHook } from "oceanics-io-api-wasm";
 
 // Type for handlers, before response processing
@@ -66,8 +66,6 @@ export function Router(
     }, 
     pathSpec?: Record<string, unknown>
 ): Handler {
-    // Define context in outer scope for easier memoization of common responses
-    // let context: Context;
     panicHook();
 
     // Pre-populate with assigned handlers & transform. 
