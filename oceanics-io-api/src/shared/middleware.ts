@@ -338,7 +338,7 @@ const apiKeyClaim = ({ ["x-api-key"]: apiKey }: Headers) => {
  * The side-effect is that it can be hard to tell the difference between a 404 and
  * 403 error. 
  */
-export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler {
+export function Router(methods: HttpMethods, pathSpec?: unknown): Handler {
    
     const _methods = {
         ...methods,

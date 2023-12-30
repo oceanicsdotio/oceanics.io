@@ -5,7 +5,7 @@ import type { ApiHandler } from "./shared/middleware";
 import { 
   connect, 
   recordsToProperties,
-  NetlifyRouter,
+  Router,
   UNAUTHORIZED,
   dematerialize,
   WRITE
@@ -89,7 +89,7 @@ const remove: ApiHandler = async ({data: {user}}) => {
   }
 }
 
-export const handler = NetlifyRouter({
+export const handler = Router({
   GET: getToken,
   POST: register,
   PUT: manage,
