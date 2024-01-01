@@ -7,7 +7,7 @@ import apiSpec from "./shared/bathysphere.json";
  * Retrieve one or more entities of a single type. This may be filtered
  * by any single property. 
  */
-const metadata: ApiHandler = async (context) => {
+const GET: ApiHandler = async (context) => {
     const value = await db.readAndParse(context.metadata());
     return {
         statusCode: 200,
@@ -28,14 +28,14 @@ const metadata: ApiHandler = async (context) => {
  * 
  * Location data receives additional processing logic internally.
  */
-const create: ApiHandler = async (context) => {
-    db.write(context.insertLinkedNode(label))
+const POST: ApiHandler = async (context) => {
+    db.write(context.insertLinkedNode("Create"))
     return {
         statusCode: 204
     }
 }
 
-export const handler = Router({
-    GET: metadata, // shared with `/{entity}({uuid})`
-    POST: create
-}, apiSpec.paths["/{entity}"])
+export const handler = Router(
+    { GET, POST }, 
+    apiSpec.paths["/{entity}"]
+)

@@ -68,10 +68,10 @@ impl From<&User> for Node {
     fn from(user: &User) -> Self {
         let mut properties = HashMap::new();
         properties.insert(
-            "email".to_string(), Value::String(user.email.clone())
+            "email".into(), Value::String(user.email.clone())
         );
         properties.insert(
-            "credential".to_string(), Value::String(user.credential().to_string())
+            "credential".into(), Value::String(user.credential().to_string())
         );
         Node::from_hash_map(properties, "User".to_string())
     }

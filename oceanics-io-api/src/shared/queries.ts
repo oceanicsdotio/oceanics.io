@@ -6,7 +6,6 @@ type Properties = { [key: string]: unknown };
 
 const READ_ONLY = true;
 const WRITE = false;
-const RESTRICTED = new Set(["Provider", "User"]);
 
 /**
  * Connect to graph database using the service account credentials.
@@ -23,16 +22,11 @@ const connect = async (queries: string[], readOnly: boolean) => {
     return result;
 }
 
-type RecordObject = {
-    labels: string[]
-    properties: Properties
-}
-
 // Transform from Neo4j response records type to generic internal node representation.
 const recordsToProperties = ({records}: QueryResult): Properties[] => {
     return records
         .flatMap((record: Record) => Object.values(record.toObject()))
-        .map(({ properties }: RecordObject): Properties => properties)
+        .map(({ properties }: { properties: Properties }) => properties)
 }
 
 const read = (query: string) => connect([query], READ_ONLY)[0];
@@ -44,15 +38,13 @@ export const readAndParseLabels = async (query: string): Promise<Route[]> => {
     const {records} = await read(query);
     return records
         .flatMap((record: Record) => record.get(0))
-        .filter((name: string) => !RESTRICTED.has(name))
         .map((name: string): Route => Object({
             name,
             url: `/api/${name}`
         }))
-
 }
 
-export const readAuthClaim = async (query: string): Promise<Properties> => {
+export const verifyAuthClaim = async (query: string): Promise<Properties> => {
     const records = await readAndParse(query);
     if (records.length === 0)
         throw Error(`Basic auth claim does not exist`)

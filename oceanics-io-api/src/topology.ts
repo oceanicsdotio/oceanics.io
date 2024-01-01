@@ -9,7 +9,7 @@ const DEFAULT_LABEL = "Link"
 /**
  * Connect two nodes.
  */
-const join: ApiHandler = async (context) => {
+const POST: ApiHandler = async (context) => {
   await db.write(context.joinNodes(DEFAULT_LABEL));
   return {
     statusCode: 204
@@ -19,7 +19,7 @@ const join: ApiHandler = async (context) => {
 /**
  * Drop connection between two nodes. 
  */
-const drop: ApiHandler = async (context) => {
+const DELETE: ApiHandler = async (context) => {
   await db.write(context.dropLink(DEFAULT_LABEL));
   return {
     statusCode: 204
@@ -36,7 +36,7 @@ const drop: ApiHandler = async (context) => {
  * You can only access results for that test, although multiple collections 
  * may be stored in a single place 
  */
-export const handler = Router({
-  POST: join,
-  DELETE: drop
-}, apiSpec.paths["/{root}({rootId})/{entity}"]);
+export const handler = Router(
+  { POST, DELETE },
+  apiSpec.paths["/{root}({rootId})/{entity}"]
+);

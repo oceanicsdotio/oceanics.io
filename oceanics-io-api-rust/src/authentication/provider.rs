@@ -18,7 +18,6 @@ pub struct Provider {
     pub domain: String
 }
 
-
 impl Provider {
     // Convert to claims type and encode a JWT, usually used as registration key
     pub fn issue_token(&self, signing_key: &str) -> Result<String, jwt::Error> {

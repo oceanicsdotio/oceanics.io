@@ -33,6 +33,7 @@ const POST: ApiHandler = async (context) => {
  */
 const GET: ApiHandler = async (context) => {
   try {
+    db.verifyAuthClaim(context.basicAuthClaim());
     const token = context.issueUserToken(process.env.SIGNING_KEY);
     return {
       statusCode: 200,

@@ -246,6 +246,13 @@ impl Context {
             self.specification.auth()
         ).json()
     }
+
+    #[wasm_bindgen(js_name = "basicAuthClaim")]
+    pub fn basic_auth_claim(&self) -> JsValue {
+        let user = self.user.as_ref().unwrap();
+        let cypher = Node::from(user).load(None);
+        cypher.query().into()
+    }
 }
 
 

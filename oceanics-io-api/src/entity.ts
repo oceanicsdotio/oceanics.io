@@ -7,7 +7,7 @@ import apiSpec from "./shared/bathysphere.json";
  * Retrieve one or more entities of a single type. This may be filtered
  * by any single property. 
  */
- export const metadata: ApiHandler = async (context) => {
+const GET: ApiHandler = async (context) => {
   const value = await db.readAndParse(context.metadata());
   return {
       statusCode: 200,
@@ -27,14 +27,14 @@ import apiSpec from "./shared/bathysphere.json";
  * The underlying query explicitly forbids dropping `Providers`
  * labels.
  */
-const remove: ApiHandler = async (context) => {
+const DELETE: ApiHandler = async (context) => {
   await db.write(context.dropOneLinkedNode());
   return {
     statusCode: 204
   }
 }
 
-export const handler = Router({
-  GET: metadata,
-  DELETE: remove
-}, apiSpec.paths["/{entity}({uuid})"])
+export const handler = Router(
+  { GET, DELETE }, 
+  apiSpec.paths["/{entity}({uuid})"]
+)

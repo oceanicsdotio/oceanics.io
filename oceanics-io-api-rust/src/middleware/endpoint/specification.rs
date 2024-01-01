@@ -5,7 +5,9 @@ use crate::authentication::{Authentication, Security};
 
 /**
  * Specification for the request. These data
- * are retrieved from the OpenApi3 spec. 
+ * are retrieved from the OpenApi3 spec. They
+ * are not likely to be created or accessed
+ * individually.
  */
 #[wasm_bindgen]
 #[derive(Deserialize, Serialize, Clone)]
@@ -14,6 +16,10 @@ pub struct Specification {
     pub security: Vec<Security>,
 }
 
+/**
+ * Create JavaScript interface for testing
+ * and serialization.
+ */
 #[wasm_bindgen]
 impl Specification {
     #[wasm_bindgen(constructor)]
@@ -21,6 +27,12 @@ impl Specification {
         serde_wasm_bindgen::from_value(value).unwrap()
     }
 
+    /**
+     * Get authentication method for endpoint from
+     * API route operation specification. Only
+     * considers the first option in the array, 
+     * for simplicity.
+     */
     #[wasm_bindgen(getter)]
     pub fn auth(&self) -> Option<Authentication> {
         self.security.get(0).and_then(

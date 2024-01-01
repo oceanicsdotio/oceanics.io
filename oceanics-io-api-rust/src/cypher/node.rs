@@ -195,7 +195,11 @@ impl Node {
     #[wasm_bindgen(js_name = allLabels)]
     #[wasm_bindgen(static_method_of = Node)]
     pub fn all_labels() -> Cypher {
-        let query = String::from("CALL db.labels()");
+        let query = String::from("
+            CALL db.labels() YIELD label
+            WHERE (NOT (label CONTAINS 'Provider') AND NOT (label CONTAINS 'User'))
+            RETURN label
+        ");
         Cypher::new(query, READ_ONLY)
     }
 
