@@ -3,21 +3,18 @@ import btoa from "btoa";
 import {
   // Helpers,
   panicHook as enableWasmLog,
-  // Authentication
-  // Claims, 
-  Security,
+  // Authentication related
   User,
   // Data Layer Primitives
   Node,
   Links,
-  // Request
+  // Request related
   Context,
   LogLine,
   QueryStringParameters,
   Request, 
   Headers,
-  Specification,
-  // Endpoint
+  // API endpoint related
   Endpoint,
   // Response
   ErrorDetail,
@@ -44,22 +41,6 @@ beforeAll(enableWasmLog)
 // Can be parallelized
 describe("idempotent", function() {
   describe("wasm", function () {
-    // oceanics-io-api-rust/src/authentication
-    describe("authentication", function() {
-    
-      describe("Security", function () {
-        test.concurrent("constructs BasicAuth schema", async function () {
-          const security = new Security({basicAuth: []})
-          expect(security.authentication).toBe("BasicAuth")
-        })
-  
-        test.concurrent("constructs BearerAuth schema", async function () {
-          const security = new Security({bearerAuth: []})
-          expect(security.authentication).toBe("BearerAuth")
-        })
-      })
-    })
-
     /**
      * Tests lower-level parts of the API without making HTTP
      * requests.
@@ -244,12 +225,6 @@ describe("idempotent", function() {
           })
         })
         
-        describe("Specification", function() {
-          test.concurrent("constructs Specification", async function () {
-            const specification = new Specification(ENDPOINT.post);
-            expect(specification.auth).toBe("BearerAuth");
-          })
-        })
       })
 
       describe("request", function() {

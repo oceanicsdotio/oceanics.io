@@ -1,7 +1,12 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
 import type { ILogtailLog } from "@logtail/types";
-import { Context, Endpoint, panicHook } from "oceanics-io-api-wasm";
+import { Endpoint, panicHook } from "oceanics-io-api-wasm";
+import type { Context } from "oceanics-io-api-wasm";
+import {paths as _paths} from "./bathysphere.json";
+
+// Re-export for convenience in Functions
+export const paths = _paths;
 
 // Type for handlers, before response processing
 export type ApiHandler = (
@@ -12,7 +17,20 @@ export type ApiHandler = (
     data?: Record<string, unknown> | {name: string, url: string}[];
 }>
 
-export enum HttpMethod {
+interface IResponsePrimitive {
+    statusCode: number
+}
+interface IResponse extends IResponsePrimitive{
+    body: string
+    headers: { [header: string]: string | number | boolean; }
+}
+interface ITransform extends IResponsePrimitive{
+    extension?: string
+    data: object
+    headers?: { [header: string]: string | number | boolean; }
+}
+
+enum HttpMethod {
     POST = "POST",
     PUT = "PUT",
     OPTIONS = "OPTIONS",
@@ -22,6 +40,7 @@ export enum HttpMethod {
     HEAD = "HEAD"
 }
 
+// Logging provider
 const log = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 
 // Enrich logs with memory usage stats
@@ -33,8 +52,13 @@ log.use(async (log: ILogtailLog) => {
     }
 });
 
-// Response format
-const transform = ({extension="", data, statusCode, headers}) => {
+// Standardize response format
+const transform = ({
+    extension="", 
+    data, 
+    statusCode, 
+    headers={}
+}: ITransform): IResponse => {
     return {
         statusCode,
         headers: {
@@ -64,12 +88,12 @@ export function Router(
     methods: {
         [key in HttpMethod]?: ApiHandler;
     }, 
-    pathSpec?: Record<string, unknown>
+    specification?: Record<string, unknown>
 ): Handler {
     panicHook();
 
     // Pre-populate with assigned handlers & transform. 
-    const endpoint: Endpoint = new Endpoint(pathSpec);
+    const endpoint: Endpoint = new Endpoint(specification);
     Object.keys(methods).forEach((key: string) => {endpoint.insertMethod(key)});
 
     /**
@@ -79,39 +103,23 @@ export function Router(
      * that will authenticate and handle the request. If creating
      * the context throws an error, we can assume an invalid method
      * has been requested. 
+     * 
+     * All validation up until DB query is done in WASM.
      */
-    return async function (event: HandlerEvent) {
-        // All validation up until DB query is done in WASM.
-        let context: Context; 
+    return async function (event: HandlerEvent): Promise<IResponse> {
+        let context: Context;
         try {
             context = endpoint.context(event, process.env.SIGNING_KEY);
+            const response = methods[context.request.httpMethod](context);
+            // const logData = context.logLine(null, response.statusCode)
+            // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
+            return transform(response)
         } catch (error) {
             console.error(error);
             const response = JSON.parse(error.message);
-            // console.log(response)
             // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
             // log.error(error.message, logData);
-            return transform({
-                headers: {},
-                ...response,
-            })
-        }
-        // console.log({event});
-        try {
-            const handle = methods[context.request.httpMethod]
-            const response = await handle(context);
-            // const logData = context.logLine(null, response.statusCode)
-            // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
-            return transform(response);
-        } catch ({message}) {
-            return transform({
-                statusCode: 500,
-                data: {
-                    message: "Handle request error",
-                    detail: message
-                },
-                headers: {}
-            })
-        }
+            return transform(response)
+        }        
     }
 }

@@ -1,12 +1,12 @@
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
 use serde_json::json;
-use crate::cypher::{Node,Links};
+use crate::cypher::{Node,Links,Cypher};
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::Specification;
 use crate::middleware::request::{Request, LogLine};
 use crate::authentication::{User,Provider};
+use crate::middleware::response::error::ErrorDetail;
 
 
 /**
@@ -15,17 +15,12 @@ use crate::authentication::{User,Provider};
  * for authentication and response handling.
  */
 #[wasm_bindgen]
-#[derive(Deserialize)]
 pub struct Context {
     request: Request,
-    #[serde(skip)]
     start: DateTime<Local>,
-    #[serde(skip)]
     nodes: (Option<Node>, Option<Node>),
     specification: Specification,
-    #[serde(skip)]
     user: Option<User>,
-    #[serde(skip)]
     provider: Option<Provider>
 }
 
@@ -243,7 +238,7 @@ impl Context {
             self.request.http_method, 
             status_code, 
             self.elapsed_time(), 
-            self.specification.auth()
+            self.specification.authentication()
         ).json()
     }
 
@@ -253,13 +248,23 @@ impl Context {
         let cypher = Node::from(user).load(None);
         cypher.query().into()
     }
+
+    #[wasm_bindgen]
+    pub fn unauthorized() -> JsValue {
+        ErrorDetail::unauthorized()
+    }
+
+    #[wasm_bindgen(js_name = "allLabels")]
+    pub fn all_labels() -> Cypher {
+        Node::all_labels()
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
     use hex::encode;
-    use crate::authentication::Security;
+    use super::super::Security;
     use crate::middleware::endpoint::Specification;
     use crate::middleware::HttpMethod;
     use crate::middleware::request::{Request, Headers, QueryStringParameters};

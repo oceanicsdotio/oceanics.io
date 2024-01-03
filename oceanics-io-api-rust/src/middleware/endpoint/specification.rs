@@ -1,7 +1,6 @@
-use wasm_bindgen::prelude::*;
-use serde::{Deserialize,Serialize};
-
-use crate::authentication::{Authentication, Security};
+use serde::Deserialize;
+use crate::authentication::Authentication;
+use super::Security;
 
 /**
  * Specification for the request. These data
@@ -9,10 +8,8 @@ use crate::authentication::{Authentication, Security};
  * are not likely to be created or accessed
  * individually.
  */
-#[wasm_bindgen]
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Specification {
-    #[wasm_bindgen(skip)]
     pub security: Vec<Security>,
 }
 
@@ -20,21 +17,14 @@ pub struct Specification {
  * Create JavaScript interface for testing
  * and serialization.
  */
-#[wasm_bindgen]
 impl Specification {
-    #[wasm_bindgen(constructor)]
-    pub fn new(value: JsValue) -> Self {
-        serde_wasm_bindgen::from_value(value).unwrap()
-    }
-
     /**
      * Get authentication method for endpoint from
      * API route operation specification. Only
      * considers the first option in the array, 
      * for simplicity.
      */
-    #[wasm_bindgen(getter)]
-    pub fn auth(&self) -> Option<Authentication> {
+    pub fn authentication(&self) -> Option<Authentication> {
         self.security.get(0).and_then(
             |some| Some(Authentication::from(some))
         )
@@ -43,7 +33,7 @@ impl Specification {
 
 #[cfg(test)]
 mod tests {
-    use crate::authentication::Security;
+    use super::Security;
     use super::Specification;
 
     #[test]

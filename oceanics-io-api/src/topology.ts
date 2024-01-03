@@ -1,7 +1,7 @@
-import { Router } from "./shared/middleware";
+
 import * as db from "./shared/queries";
+import { Router, paths } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import apiSpec from "./shared/bathysphere.json";
 
 // Don't currently pass custom label through the API (but should)
 const DEFAULT_LABEL = "Link"
@@ -36,7 +36,4 @@ const DELETE: ApiHandler = async (context) => {
  * You can only access results for that test, although multiple collections 
  * may be stored in a single place 
  */
-export const handler = Router(
-  { POST, DELETE },
-  apiSpec.paths["/{root}({rootId})/{entity}"]
-);
+export const handler = Router({POST, DELETE}, paths["/{root}({rootId})/{entity}"]);

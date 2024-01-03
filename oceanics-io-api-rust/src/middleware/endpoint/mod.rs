@@ -1,13 +1,20 @@
 mod specification;
 mod context;
+mod security;
+
+pub use security::Security;
 
 use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 use serde::Deserialize;
+mod log_line;
+pub use log_line::LogLine;
+
+use crate::panic_hook;
 
 use super::HttpMethod;
-use super::request::{LogLine, Request};
+use super::request::Request;
 use super::response::OptionsResponse;
 
 pub use specification::Specification;
@@ -21,6 +28,7 @@ pub struct Endpoint {
     get: Option<Specification>,
     delete: Option<Specification>,
     put: Option<Specification>,
+    head: Option<Specification>,
     #[serde(skip)]
     methods: HashSet<HttpMethod>
 }
@@ -39,6 +47,20 @@ impl Endpoint {
         keys.join(",")
     }
 
+    /**
+     * Convert from request method to the context instance
+     */
+    fn specification(&self, method: &HttpMethod) -> &Option<Specification> {
+        match &method {
+            HttpMethod::POST => &self.post,
+            HttpMethod::GET => &self.get,
+            HttpMethod::DELETE => &self.delete,
+            HttpMethod::PUT => &self.put,
+            HttpMethod::HEAD => &self.head,
+            _ => &None
+        }
+    }
+
 }
 
 #[wasm_bindgen]
@@ -48,9 +70,11 @@ impl Endpoint {
      * from JavaScript.
      */
     #[wasm_bindgen(constructor)]
-    pub fn new(spec: JsValue) -> Self {
-        let mut endpoint: Endpoint = serde_wasm_bindgen::from_value(spec).unwrap();
-        endpoint.methods = HashSet::with_capacity(8);
+    pub fn new(specification: JsValue, methods: Vec<String>) -> Self {
+        panic_hook();
+        let mut endpoint: Endpoint = serde_wasm_bindgen::from_value(specification).unwrap();
+        let count = methods.len();
+        // endpoint.methods = HashSet::from(methods);
         endpoint
     }
 
@@ -66,25 +90,8 @@ impl Endpoint {
     }
 
     /**
-     * Convert from request method to the context instance
+     * Testing and debugging
      */
-    fn specification(&self, method: &HttpMethod) -> &Option<Specification> {
-        match &method {
-            HttpMethod::POST => &self.post,
-            HttpMethod::GET => &self.get,
-            HttpMethod::DELETE => &self.delete,
-            HttpMethod::PUT => &self.put,
-            _ => &None
-        }
-    }
-
-    pub fn get_specification(&self, method: &str) -> Option<Specification> {
-        match self.specification(&HttpMethod::from_str(method).unwrap()) {
-            Some(value) => Some(value.clone()),
-            None => None
-        }
-    }
-
     pub fn has_method(&self, method: &str) -> bool {
         self.specification(&HttpMethod::from_str(method).unwrap()).is_some()
     }
@@ -93,29 +100,30 @@ impl Endpoint {
      * Called from JS inside the generated handler function. Any errors
      * will be caught, and should return an Invalid Method response. 
      */
-    pub fn context(&self, request: JsValue, signing_key: JsValue) -> Context {
+    pub fn context(&self, request: JsValue, signing_key: JsValue) -> Result<Context, JsError> {
         let mut _request: Request = Request::new(request);
-        let specification = match self.specification(&_request.http_method) {
-            Some(value) => value.clone(),
-            None => {
-                let response = json!({
-                    "message": "Invalid HTTP method",
-                    "statusCode": 405,
-                    "detail": "No specification found"
-                });
-                panic!("{}", response);
-            }
-        };
+        let specification = self.specification(&_request.http_method);
+        if !specification.is_some() {
+            let error = json!({
+                "message": "Invalid HTTP method",
+                "statusCode": 405,
+                "detail": "No specification found"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
         if !self.methods.contains(&_request.http_method) {
-            let response = json!({
+            let error = json!({
                 "message": "Invalid HTTP method",
                 "statusCode": 405,
                 "detail": "No handler found"
-            });
-            panic!("{}", response);
+            }).to_string();
+            return Err(JsError::new(&error));
         };
-        let key = signing_key.as_string().unwrap();
-        Context::from_args(specification, _request, &key)
+        let key = signing_key.as_string().unwrap_or_else(|| panic!
+            ("{}", "No Signing Key")
+        );
+        let context = Context::from_args(specification.as_ref().unwrap(), _request, &key);
+        Ok(context)
     }
 
     /**

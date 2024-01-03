@@ -1,6 +1,7 @@
 pub mod request;
 pub mod endpoint;
 pub mod response;
+pub mod authentication;
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;

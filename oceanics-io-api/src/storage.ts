@@ -1,7 +1,5 @@
-import { Router } from "./shared/middleware";
+import { Router, paths } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import apiSpec from "./shared/bathysphere.json";
-
 import { Endpoint, S3 } from "aws-sdk";
 
 
@@ -12,7 +10,7 @@ export const s3 = new S3({
     secretAccessKey: process.env.SPACES_SECRET_KEY
 });
 
-const metadata: ApiHandler = async ({
+const HEAD: ApiHandler = async ({
     query: {
         key
     }
@@ -43,7 +41,7 @@ const metadata: ApiHandler = async ({
 /**
  * Create a new object in the S3 service
  */
-const create: ApiHandler = async (context) => {
+const POST: ApiHandler = async (context) => {
     try {
         await s3.putObject({
             Body: Buffer.from(context.request.body),
@@ -65,7 +63,7 @@ const create: ApiHandler = async (context) => {
 /**
  * Browse saved results for a single model configuration.
  */
-const retrieve: ApiHandler = async (context) => {
+const GET: ApiHandler = async (context) => {
     let Body: S3.Body;
     try {    
         ({Body} = await s3.getObject({
@@ -86,7 +84,7 @@ const retrieve: ApiHandler = async (context) => {
 }
 
 export const handler = Router({
-    GET: retrieve,
-    HEAD: metadata,
-    POST: create
-}, apiSpec.paths["/storage"]);
+    GET,
+    HEAD,
+    POST
+}, paths["/storage"]);

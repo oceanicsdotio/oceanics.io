@@ -1,7 +1,6 @@
-import { Router } from "./shared/middleware";
 import * as db from "./shared/queries";
+import { Router, paths } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import apiSpec from "./shared/bathysphere.json";
 
 /**
  * Retrieve one or more entities of a single type. This may be filtered
@@ -34,7 +33,4 @@ const DELETE: ApiHandler = async (context) => {
   }
 }
 
-export const handler = Router(
-  { GET, DELETE }, 
-  apiSpec.paths["/{entity}({uuid})"]
-)
+export const handler = Router({GET, DELETE}, paths["/{entity}({uuid})"])

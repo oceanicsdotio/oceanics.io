@@ -4,8 +4,7 @@ mod headers;
 pub use headers::Headers;
 mod query_string_parameters;
 pub use query_string_parameters::QueryStringParameters;
-mod log_line;
-pub use log_line::LogLine;
+
 
 use super::{HttpMethod,MiddlewareError};
 use crate::authentication::{Authentication,User,Provider,Claims};
@@ -97,10 +96,11 @@ impl Request {
      * Need to init the derived authentication values for headers
      * once the basic data has been parsed from the JavaScript side.
      */
-    pub fn new(value: JsValue) -> Self {
-        serde_wasm_bindgen::from_value(value).unwrap_or_else(
+    pub fn new(value: JsValue) -> Result<Request, JsError> {
+        let self = serde_wasm_bindgen::from_value(value).unwrap_or_else(
             |_| panic!("{}", MiddlewareError::RequestInvalid)
-        )
+        );
+        
     }
 
     /**

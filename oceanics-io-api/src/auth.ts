@@ -1,7 +1,6 @@
-import { ErrorDetail } from "oceanics-io-api-wasm";
+
 import * as db from "./shared/queries";
-import apiSpec from "./shared/bathysphere.json";
-import { Router } from "./shared/middleware";
+import { paths, Router } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
 
 /**
@@ -22,7 +21,7 @@ const POST: ApiHandler = async (context) => {
       statusCode: 200
     }
   } catch {
-    return ErrorDetail.unauthorized();
+    return context.unauthorized();
   }
 };
 
@@ -33,7 +32,12 @@ const POST: ApiHandler = async (context) => {
  */
 const GET: ApiHandler = async (context) => {
   try {
-    db.verifyAuthClaim(context.basicAuthClaim());
+    const records = await db.readAndParse(context.basicAuthClaim());
+    if (records.length === 0)
+        throw Error(`Basic auth claim does not exist`)
+    else if (records.length > 1) {
+        throw Error(`Basic auth claim matches multiple accounts`)
+    }
     const token = context.issueUserToken(process.env.SIGNING_KEY);
     return {
       statusCode: 200,
@@ -54,9 +58,8 @@ const PUT: ApiHandler = async () => {
 }
 
 /**
- * Detach and delete all child nodes. The underlying query
- * generator prevents internal Nodes like Provider from
- * being dropped.
+ * Detach and delete all child nodes. The underlying query generator prevents internal 
+ * Nodes like Provider from being dropped.
  */
 const DELETE: ApiHandler = async (context) => {
   await db.write(context.dropAllLinkedNodes());
@@ -65,7 +68,4 @@ const DELETE: ApiHandler = async (context) => {
   }
 }
 
-export const handler = Router(
-  { GET, POST, PUT, DELETE }, 
-  apiSpec.paths["/auth"]
-)
+export const handler = Router({GET, POST, PUT, DELETE}, paths["/auth"])

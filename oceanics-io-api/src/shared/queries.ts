@@ -1,21 +1,16 @@
 import neo4j from "neo4j-driver";
-import type { Record, QueryResult } from "neo4j-driver";
+import type { Record, QueryResult, SessionMode } from "neo4j-driver";
 
-type Route = {name: string, url: string};
 type Properties = { [key: string]: unknown };
-
-const READ_ONLY = true;
-const WRITE = false;
 
 /**
  * Connect to graph database using the service account credentials.
  */
-const connect = async (queries: string[], readOnly: boolean) => {
+const connect = async (queries: string[], defaultAccessMode: SessionMode) => {
     const driver = neo4j.driver(
         process.env.NEO4J_HOSTNAME ?? "",
         neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
     );
-    const defaultAccessMode = readOnly ? neo4j.session.READ : neo4j.session.WRITE
     const session = driver.session({ defaultAccessMode });
     const result = Promise.all(queries.map(query => session.run(query)));
     await driver.close();
@@ -29,34 +24,20 @@ const recordsToProperties = ({records}: QueryResult): Properties[] => {
         .map(({ properties }: { properties: Properties }) => properties)
 }
 
-const read = (query: string) => connect([query], READ_ONLY)[0];
+const read = (query: string) => connect([query], neo4j.session.READ)[0];
 
 export const readAndParse = async (query: string): Promise<Properties[]> => 
     read(query).then(recordsToProperties);
 
-export const readAndParseLabels = async (query: string): Promise<Route[]> => {
+export const readAndParseLabels = async (query: string): Promise<string[]> => {
     const {records} = await read(query);
     return records
         .flatMap((record: Record) => record.get(0))
-        .map((name: string): Route => Object({
-            name,
-            url: `/api/${name}`
-        }))
 }
 
-export const verifyAuthClaim = async (query: string): Promise<Properties> => {
-    const records = await readAndParse(query);
-    if (records.length === 0)
-        throw Error(`Basic auth claim does not exist`)
-    else if (records.length > 1) {
-        throw Error(`Basic auth claim matches multiple accounts`)
-    }
-    return records[0];
-}
+export const write = (query: string) => connect([query], neo4j.session.WRITE)[0];
 
-export const write = (query: string) => connect([query], WRITE)[0];
-
-export const writeMany = (queries: string[]) => connect(queries, WRITE);
+export const writeMany = (queries: string[]) => connect(queries, neo4j.session.WRITE);
 
 export const writeAndParse = async (query: string): Promise<Properties[]> =>
     write(query).then(recordsToProperties);

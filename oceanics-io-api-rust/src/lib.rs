@@ -1,4 +1,3 @@
-mod authentication;
 mod cypher;
 mod middleware;
 
