@@ -88,15 +88,15 @@ impl Node {
     }
 
     pub fn from_hash_map_and_symbol(
-        properties: HashMap<String,Value>,
+        properties: HashMap<String, Value>,
         symbol: String, 
         label: String,
-    ) -> Self {
-        Node {
+    ) -> Option<Node> {
+        Some(Node {
             properties: Some(properties),
             symbol: Some(symbol),
             label: Some(label)
-        }
+        })
     }
 }
 
@@ -351,3 +351,107 @@ impl Node {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Node;
+    use serde_json::json;
+
+    fn things() -> Option<String> {
+        Some(String::from("Things"))
+    }
+
+    fn uuid() -> String {
+        String::from("just-a-test")
+    }
+
+    fn example() -> Option<String> {
+        Some(json!({
+            "uuid": uuid()
+        }).to_string())
+    }
+
+    #[test]
+    fn constructs_empty_node() {
+        let node = Node::new(None, None, None);
+        assert_eq!(node.symbol(), String::from("n"));
+        assert_eq!(node.label(), String::from(""));
+        assert_eq!(node.pattern(), String::from(""));
+        assert_eq!(node.uuid(), String::from(""));
+    }
+
+    #[test]
+    fn constructs_labeled_node() {
+        let node = Node::new(None, None, things());
+        assert_eq!(node.symbol(), String::from("n"));
+        assert_eq!(node.label(), things().unwrap());
+        assert_eq!(node.pattern(), String::from(""));
+        assert_eq!(node.uuid(), String::from(""));
+    }
+
+    #[test]
+    fn constructs_materialized_node() {
+ 
+        let node = Node::new(example(), None, things());
+        assert_eq!(node.symbol(), String::from("n"));
+        assert_eq!(node.label(), things().unwrap());
+        assert!(node.pattern().contains(&uuid()));
+        assert_eq!(node.uuid(), uuid());
+    }
+
+    #[test]
+    #[should_panic]
+    fn panic_on_count_without_label() {
+        let node = Node::new(None, None, None);
+        let _query = node.count();
+    }
+
+    #[test]
+    #[should_panic]
+    fn panic_on_load_without_label() {
+        let node = Node::new(None, None, None);
+        let _query = node.load(None);
+    }
+
+
+    #[test]
+    #[should_panic]
+    fn panic_on_create_without_label() {
+        let node = Node::new(example(), None, None);
+        let _query = node.create();
+    }
+
+    #[test]
+    fn produces_count_query() {
+        let node = Node::new(None, None, things());
+        let query = node.count();
+        assert!(query.read_only);
+        assert!(query.query.len().gt(&0))
+    }
+
+    #[test]
+    fn produces_load_query() {
+        let node = Node::new(None, None, things());
+        let query = node.load(None);
+        assert!(query.read_only);
+        assert!(query.query.len().gt(&0))
+    }
+
+    #[test]
+    fn produces_create_query() {
+        let node = Node::new(example(), None, things());
+        let query = node.create();
+        assert!(!query.read_only);
+        assert!(query.query.len().gt(&0))
+    }
+
+    #[test]
+    fn produces_delete_query() {
+        let node = Node::new(None, None, None);
+        let query = node.delete();
+        assert!(!query.read_only);
+        assert!(query.query.len().gt(&0));
+        assert!(query.query.contains("DETACH DELETE"));
+    }
+
+    }

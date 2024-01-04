@@ -1,18 +1,15 @@
-use wasm_bindgen::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use regex::Regex;
 
-use crate::authentication::Authentication;
-use super::MiddlewareError;
+use crate::middleware::authentication::Authentication;
+use crate::middleware::error::MiddlewareError;
 
 /**
  * Extract Authentication information from the
  * request headers. 
  */
-#[wasm_bindgen]
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Headers {
-    #[wasm_bindgen(getter_with_clone)]
     pub authorization: Option<String>
 }
 
@@ -20,41 +17,13 @@ pub struct Headers {
  * Web bindings, includes constructor and getters. These
  * are public for the sake of testing.
  */
-#[wasm_bindgen]
 impl Headers {
-    #[wasm_bindgen(constructor)]
-    pub fn new(authorization: String) -> Self {
-        Self {
-            authorization: authorization.into()
-        }
-    }
     /**
      * This is the auth method implied
      * by the formatting of the request
      * headers. Should be compared to
      * the auth method of the specification
      * and automatically denied on a mismatch. 
-     */
-    #[wasm_bindgen(getter)]
-    #[wasm_bindgen(js_name = "claimAuthMethod")]
-    pub fn _claim_auth_method(&self) -> Option<Authentication> {
-        self.claim_auth_method()
-    }
-}
-
-/**
- * Rust-only methods
- */
-impl Headers {
-    // Hoist and wrap access to authorization headers in a usable format
-    pub fn authorization(&self) -> Vec<String> {
-        self.authorization.clone().unwrap_or_else(
-            || panic!("{}", MiddlewareError::HeaderAuthorizationMissing)
-        ).split(":").map(str::to_string).collect::<Vec<_>>()
-    }
-    /**
-     * Will be Some(Auth) when we can pattern match the auth header.
-     * None when there is a missing or malformed auth header. 
      */
     pub fn claim_auth_method(&self) -> Option<Authentication> {
         let bearer: Regex = Regex::new(r"[Bb]earer:(.+)").unwrap();
@@ -75,11 +44,19 @@ impl Headers {
             _ => None
         }
     }
+
+    // Hoist and wrap access to authorization headers in a usable format
+    pub fn authorization(&self) -> Vec<String> {
+        self.authorization.clone().unwrap_or_else(
+            || panic!("{}", MiddlewareError::HeaderAuthorizationMissing)
+        ).split(":").map(str::to_string).collect::<Vec<_>>()
+    }
+
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::authentication::Authentication;
+    use crate::middleware::authentication::Authentication;
     use super::Headers;
 
     #[test]
@@ -108,7 +85,6 @@ mod tests {
         };
         assert!(headers.claim_auth_method().is_none());
     }
-
 
     #[test]
     fn request_headers_claim_auth_method_with_basic_auth () {

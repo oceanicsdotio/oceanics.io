@@ -1,7 +1,6 @@
 use serde::Deserialize;
 use serde_json::Value;
-
-use crate::authentication::Authentication;
+use crate::middleware::authentication::Authentication;
 
 /**
  * Schema for individual item in OpenAPI security object
@@ -16,6 +15,8 @@ pub struct Security {
 
 /**
  * Implement conversion of Security into Authentication enum.
+ * 
+ * Uses basic auth if both are present.
  */
 impl From<&Security> for Authentication {
     fn from(security: &Security) -> Self {
@@ -38,7 +39,7 @@ impl From<&Security> for Authentication {
 
 #[cfg(test)]
 mod tests {
-    use crate::authentication::Authentication;
+    use crate::middleware::authentication::Authentication;
     use super::Security;
 
     #[test]

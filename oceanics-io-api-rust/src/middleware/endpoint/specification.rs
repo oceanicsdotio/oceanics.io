@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use crate::authentication::Authentication;
-use super::Security;
+use crate::middleware::authentication::Authentication;
+use crate::middleware::endpoint::security::Security;
 
 /**
  * Specification for the request. These data
@@ -9,7 +9,7 @@ use super::Security;
  * individually.
  */
 #[derive(Deserialize, Clone)]
-pub struct Specification {
+pub struct Operation {
     pub security: Vec<Security>,
 }
 
@@ -17,7 +17,7 @@ pub struct Specification {
  * Create JavaScript interface for testing
  * and serialization.
  */
-impl Specification {
+impl Operation {
     /**
      * Get authentication method for endpoint from
      * API route operation specification. Only
@@ -31,19 +31,33 @@ impl Specification {
     }
 }
 
+#[derive(Deserialize)]
+pub struct Specification {
+    pub post: Option<Operation>,
+    pub get: Option<Operation>,
+    pub delete: Option<Operation>,
+    pub put: Option<Operation>,
+    pub head: Option<Operation>,
+}
+
 #[cfg(test)]
 mod tests {
-    use super::Security;
-    use super::Specification;
+    use crate::middleware::endpoint::security::Security;
+    use crate::middleware::authentication::Authentication;
+    use super::Operation;
 
     #[test]
     fn create_specification () {
-        let sec = Security{ 
+        let security = Security{ 
             bearer_auth: Some(Vec::from([])), 
             basic_auth: None
         };
-        let _specification = Specification {
-            security: vec![sec],
+        let specification = Operation {
+            security: vec![Security{ 
+                bearer_auth: Some(Vec::from([])), 
+                basic_auth: None
+            }],
         };
+        assert_eq!(specification.authentication().unwrap(), Authentication::BearerAuth)
     }
 }

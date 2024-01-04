@@ -90,12 +90,8 @@ export function Router(
     }, 
     specification?: Record<string, unknown>
 ): Handler {
-    panicHook();
-
     // Pre-populate with assigned handlers & transform. 
-    const endpoint: Endpoint = new Endpoint(specification);
-    Object.keys(methods).forEach((key: string) => {endpoint.insertMethod(key)});
-
+    const endpoint: Endpoint = new Endpoint(specification, Object.keys(methods));
     /**
      * Inner handler will receive Netlify function event.
      * 

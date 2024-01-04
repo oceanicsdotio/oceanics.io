@@ -1,13 +1,12 @@
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
 use serde_json::json;
-use crate::cypher::{Node,Links,Cypher};
+use crate::cypher::{Node,Links};
 use crate::middleware::HttpMethod;
-use crate::middleware::endpoint::Specification;
-use crate::middleware::request::{Request, LogLine};
-use crate::authentication::{User,Provider};
-use crate::middleware::response::error::ErrorDetail;
-
+use crate::middleware::endpoint::{LogLine, Operation};
+use crate::middleware::handler_event::HandlerEvent;
+use crate::middleware::authentication::{User,Provider,Authentication};
+use crate::middleware::error::ErrorDetail;
 
 /**
  * The Outer Function level context produces
@@ -16,36 +15,45 @@ use crate::middleware::response::error::ErrorDetail;
  */
 #[wasm_bindgen]
 pub struct Context {
-    request: Request,
-    start: DateTime<Local>,
-    nodes: (Option<Node>, Option<Node>),
-    specification: Specification,
-    user: Option<User>,
-    provider: Option<Provider>
+    operation: Operation,
+    #[wasm_bindgen(skip)]
+    pub handler_event: HandlerEvent,
+    #[wasm_bindgen(skip)]
+    pub start: DateTime<Local>,
+    #[wasm_bindgen(getter_with_clone)]
+    pub left: Option<Node>,
+    #[wasm_bindgen(getter_with_clone)]
+    pub right: Option<Node>,
+    #[wasm_bindgen(getter_with_clone)]
+    pub user: Option<User>,
+    #[wasm_bindgen(getter_with_clone)]
+    pub provider: Option<Provider>
 }
 
 impl Context {
-    pub fn from_args(
-        specification: Specification,
-        request: Request,
+    pub fn new(
+        operation: Operation,
+        request: HandlerEvent,
         signing_key: &String
-    ) -> Self {
-        let nodes = request.query_string_parameters.nodes(request.data());
+    ) -> Result<Context, JsError> {
+        let (left, right) = request.nodes(request.data());
         let (user, provider) = request.parse_auth(signing_key);
-        Context {
-            request,
+        let this = Context {
+            handler_event: request,
             start: Local::now(),
-            nodes,
-            specification,
+            left,
+            right,
+            operation,
             user,
             provider
-        }
+        };
+        Ok(this)
     }
 }
 
-
 #[wasm_bindgen]
 impl Context {
+
     #[wasm_bindgen(getter)]
     #[wasm_bindgen(js_name = "elapsedTime")]
     pub fn elapsed_time(&self) -> f64 {
@@ -53,22 +61,53 @@ impl Context {
         big_int_duration as f64
     }
 
-    /**
-     * Parse user information from the headers.
-     */
     #[wasm_bindgen(getter)]
-    pub fn user(&self) -> JsValue {
-        match &self.user {
-            None => JsValue::NULL,
-            Some(value) => {
-                serde_wasm_bindgen::to_value(value).unwrap()
-            }
+    #[wasm_bindgen(js_name = "httpMethod")]
+    pub fn http_method(&self) -> HttpMethod {
+        self.handler_event.http_method
+    }
+
+    #[wasm_bindgen(getter)]
+    #[wasm_bindgen(js_name = "claimAuthMethod")]
+    pub fn claim_auth_method(&self) -> Option<Authentication> {
+        self.handler_event.headers.claim_auth_method()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[wasm_bindgen(js_name = "queryStringParameters")]
+    pub fn query_string_parameters(&self) -> JsValue {
+        serde_wasm_bindgen::to_value(&self.handler_event.query_string_parameters).unwrap()
+    }
+
+    #[wasm_bindgen]
+    pub fn unauthorized() -> JsValue {
+        ErrorDetail::unauthorized()
+    }
+
+    #[wasm_bindgen(js_name = "logLine")]
+    pub fn log_line(&self, user: String, status_code: u16) -> Result<JsValue, JsError> {
+        let line = LogLine {
+            user, 
+            http_method: self.handler_event.http_method, 
+            status_code, 
+            elapsed_time: self.elapsed_time(), 
+            auth: self.operation.authentication()
+        };
+        let result = serde_wasm_bindgen::to_value(&line);
+        if result.is_err() {
+            let error = json!({
+                "message": "Server Error",
+                "statusCode": 500,
+                "detail": "Problem while creating log line"
+            }).to_string();
+            return Err(JsError::new(&error));
         }
+        Ok(result.unwrap())
     }
 
     #[wasm_bindgen(js_name = "issueUserToken")]
     pub fn issue_token(&self, signing_key: &str) -> Result<JsValue, JsError> {
-        if !self.user.is_some() {
+        if self.user.is_none() {
             let error = json!({
                 "message": "Unauthorized",
                 "statusCode": 403,
@@ -79,36 +118,60 @@ impl Context {
         Ok(self.user.as_ref().unwrap()._issue_token(signing_key))
     }
 
-    #[wasm_bindgen(js_name = "joinNodes")]
-    pub fn join_nodes(&self, label: Option<String>) -> JsValue {
+    #[wasm_bindgen(js_name = "joinNodesQuery")]
+    pub fn join_nodes_query(&self, label: Option<String>) -> Result<String, JsError> {
+        if self.left.is_none() || self.right.is_none() {
+            let error = json!({
+                "message": "Server error",
+                "statusCode": 500,
+                "detail": "Join requires two nodes"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
         let cypher = crate::cypher::links::Links::new(
             label,
             None,
             None,
             None
         ).join(
-            &self.left().unwrap(), 
-            &self.right().unwrap()
+            self.left.as_ref().unwrap(), 
+            self.right.as_ref().unwrap()
         );
-        cypher.query().into()
+        Ok(cypher.query)
     }
 
-    #[wasm_bindgen(js_name = "dropLink")]
-    pub fn drop_link(&self, label: Option<String>) -> JsValue {
+    #[wasm_bindgen(js_name = "dropLinkQuery")]
+    pub fn drop_link_query(&self, label: Option<String>) -> Result<String, JsError> {
+        if self.left.is_none() || self.right.is_none() {
+            let error = json!({
+                "message": "Server error",
+                "statusCode": 500,
+                "detail": "Drop requires two nodes"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
         let cypher = crate::cypher::links::Links::new(
             label,
             None,
             None,
             None
         ).drop(
-            &self.left().unwrap(), 
-            &self.right().unwrap()
+            self.left.as_ref().unwrap(), 
+            self.right.as_ref().unwrap()
         );
-        cypher.query().into()
+        Ok(cypher.query)
     }
 
-    fn drop_node(&self, node: &Node) -> JsValue {
-        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+    fn drop_node_query(&self, node: &Node) -> Result<String, JsError> {
+        if self.user.is_none() {
+            let error = json!({
+                "message": "Unauthorized",
+                "statusCode": 403,
+                "detail": "No user in context"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
+        let user = self.user.as_ref().unwrap();
         let cypher = crate::cypher::links::Links::new(
             None,
             None,
@@ -118,145 +181,99 @@ impl Context {
             &Node::from(user), 
             node
         );
-        cypher.query().into()
+        Ok(cypher.query)
     }
 
-    #[wasm_bindgen(js_name = "dropAllLinkedNodes")]
-    pub fn drop_all_linked_nodes(&self) -> JsValue {
+    #[wasm_bindgen(js_name = "dropAllLinkedNodesQuery")]
+    pub fn drop_all_linked_nodes_query(&self) -> Result<String, JsError> {
         let wildcard = Node::new(None, None, None);
-        self.drop_node(&wildcard)
+        self.drop_node_query(&wildcard)
     }
 
-    #[wasm_bindgen(js_name = "dropOneLinkedNode")]
-    pub fn drop_one_linked_node(&self) -> JsValue {
-        self.drop_node(&self.left().unwrap())
+    #[wasm_bindgen(js_name = "dropOneLinkedNodeQuery")]
+    pub fn drop_one_linked_node_query(&self) -> Result<String, JsError> {
+        if self.left.is_none() {
+            let error = json!({
+                "message": "Server error",
+                "statusCode": 500,
+                "detail": "Drop requires left node"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
+        self.drop_node_query(self.left.as_ref().unwrap())
     }
 
-    #[wasm_bindgen(js_name = "insertLinkedNode")]
-    pub fn insert_linked_node(&self, label: Option<String>) -> JsValue {
+    #[wasm_bindgen(js_name = "insertLinkedNodeQuery")]
+    pub fn insert_linked_node_query(&self, label: Option<String>) -> Result<String, JsError> {
+        if self.user.is_none() || self.left.is_none() {
+            let error = json!({
+                "message": "Server error",
+                "statusCode": 500,
+                "detail": "Insert requires user and one node"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
         let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
-        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        let user = self.user.as_ref().unwrap();
         let cypher = link.insert(
             &Node::from(user),
-            &self.left().unwrap()
+            self.left.as_ref().unwrap()
         );
-        cypher.query().into()
+        Ok(cypher.query)
     }
 
-    #[wasm_bindgen]
-    pub fn register(&self, label: Option<String>) -> JsValue {
+    #[wasm_bindgen(js_name = "registerQuery")]
+    pub fn register_query(&self, label: Option<String>) -> Result<String, JsError> {
         let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
-        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
+        if self.user.is_none() || self.provider.is_none() {
+            let error = json!({
+                "message": "Server error",
+                "statusCode": 500,
+                "detail": "Register requires user and provider"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
+        let user = self.user.as_ref().unwrap();
+        let provider = self.provider.as_ref().unwrap();
         let cypher = link.insert(
-            &Node::from(user),
-            &self.left().unwrap()
+            &Node::from(provider),
+            &Node::from(user)
         );
-        cypher.query().into()
+        Ok(cypher.query)
     }
 
-    #[wasm_bindgen]
-    pub fn metadata(&self) -> JsValue {
+    #[wasm_bindgen(js_name = "metadataQuery")]
+    pub fn metadata_query(&self) -> Result<String, JsError> {
         let link = Links::new(None, None, None, None);
-        let user = self.user.as_ref().unwrap_or_else(|| panic!("{}", "No User in Context"));
-        let left = self.left().unwrap();
+        if self.user.is_none() || self.left.is_none() {
+            let error = json!({
+                "message": "Server error",
+                "statusCode": 500,
+                "detail": "Register requires user and provider"
+            }).to_string();
+            return Err(JsError::new(&error));
+        }
+        let user = self.user.as_ref().unwrap();
+        let left = self.left.as_ref().unwrap();
         let cypher = link.query(
             &Node::from(user), 
-            &left, 
+            left, 
             left.symbol()
         );
-        cypher.query().into()
+        Ok(cypher.query)
     }
 
-    /**
-     * Parse provider information from the headers. 
-     */
-    #[wasm_bindgen(getter)]
-    pub fn provider(&self) -> JsValue {
-        match &self.provider {
-            None => JsValue::NULL,
-            Some(value) => 
-                serde_wasm_bindgen::to_value(value).unwrap_or(JsValue::NULL)
-        }
-    }
-
-    /**
-     * Hoist access to one of the nodes. 
-     */
-    #[wasm_bindgen(getter)]
-    pub fn left(&self) -> Option<Node> {
-        self.nodes.0.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn right(&self) -> Option<Node> {
-        self.nodes.1.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    #[wasm_bindgen(js_name = "httpMethod")]
-    pub fn http_method(&self) -> HttpMethod {
-        self.request.http_method
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn request(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.request).unwrap()
-    }
-
-    #[wasm_bindgen(getter)]
-    #[wasm_bindgen(js_name = "claimAuthMethod")]
-    pub fn _claim_auth_method(&self) -> Option<crate::authentication::Authentication> {
-        self.request.headers.claim_auth_method()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn query(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.request.query_string_parameters).unwrap()
-    }
-
-    #[wasm_bindgen(constructor)]
-    pub fn new(
-        specification: JsValue,
-        request: JsValue,
-        signing_key: String
-    ) -> Self {
-        let spec = match serde_wasm_bindgen::from_value(specification) {
-            Ok(value) => value,
-            Err(_) => panic!("Cannot parse specification")
-        };
-        let req = match serde_wasm_bindgen::from_value(request) {
-            Ok(value) => value,
-            Err(_) => panic!("Cannot parse request data")
-        };
-        Context::from_args(spec, req, &signing_key)
-    }
-
-    #[wasm_bindgen(js_name = "logLine")]
-    pub fn log_line(&self, user: String, status_code: u16) -> JsValue {
-        LogLine::from_props(
-            user, 
-            self.request.http_method, 
-            status_code, 
-            self.elapsed_time(), 
-            self.specification.authentication()
-        ).json()
-    }
-
-    #[wasm_bindgen(js_name = "basicAuthClaim")]
-    pub fn basic_auth_claim(&self) -> JsValue {
+    #[wasm_bindgen(js_name = "basicAuthQuery")]
+    pub fn basic_auth_query(&self) -> String {
         let user = self.user.as_ref().unwrap();
         let cypher = Node::from(user).load(None);
-        cypher.query().into()
+        cypher.query
     }
 
-    #[wasm_bindgen]
-    pub fn unauthorized() -> JsValue {
-        ErrorDetail::unauthorized()
-    }
-
-    #[wasm_bindgen(js_name = "allLabels")]
-    pub fn all_labels() -> Cypher {
-        Node::all_labels()
+    #[wasm_bindgen(js_name = "allLabelsQuery")]
+    pub fn all_labels_query() -> String {
+        let cypher = Node::all_labels();
+        cypher.query
     }
 }
 
@@ -264,10 +281,10 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use hex::encode;
-    use super::super::Security;
-    use crate::middleware::endpoint::Specification;
+    use crate::middleware::endpoint::Operation;
+    use crate::middleware::endpoint::security::Security;
     use crate::middleware::HttpMethod;
-    use crate::middleware::request::{Request, Headers, QueryStringParameters};
+    use crate::middleware::handler_event::{HandlerEvent, Headers, QueryStringParameters};
     use super::Context;
 
     #[test]
@@ -276,20 +293,25 @@ mod tests {
             bearer_auth: Some(Vec::from([])), 
             basic_auth: None
         };
-        let specification = Specification {
+        let specification = Operation {
             security: vec![sec],
         };
-        let request = Request {
+        let request = HandlerEvent {
             headers: Headers { authorization: None },
             http_method: HttpMethod::GET,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: QueryStringParameters { 
+                left: None, 
+                uuid: None, 
+                right: None 
+            },
             body: None
         };
         let signing_key = String::from(encode("some_secret"));
-        let _ctx = Context::from_args(
+        let context = Context::new(
             specification,
             request,
             &signing_key
         );
+        assert!(context.is_ok());
     }
 }

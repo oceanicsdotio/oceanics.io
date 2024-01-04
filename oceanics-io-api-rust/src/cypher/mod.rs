@@ -20,7 +20,8 @@ pub const READ_ONLY: bool = true;
 pub struct Cypher {
     #[wasm_bindgen(js_name = "readOnly")]
     pub read_only: bool,
-    query: String,
+    #[wasm_bindgen(getter_with_clone)]
+    pub query: String,
 }
 
 #[wasm_bindgen]
@@ -31,9 +32,5 @@ impl Cypher {
             read_only,
             query
         }
-    }
-    #[wasm_bindgen(getter)]
-    pub fn query(&self) -> String {
-        self.query.clone()
     }
 }

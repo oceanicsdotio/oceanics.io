@@ -65,32 +65,7 @@ describe("idempotent", function() {
         const EXAMPLE = {
           uuid: "just-a-test"
         };
-  
-        test.concurrent("constructs empty node", async function () {
-          const node = new Node(undefined, undefined, undefined);
-          expect(node.symbol).toBe("n");
-          expect(node.label).toBe("");
-          expect(node.pattern).toBe("");
-          expect(node.uuid).toBe("");
-        })
-  
-        test.concurrent("constructs labeled node", async function () {
-          const node = new Node(undefined, undefined, THINGS);
-          expect(node.symbol).toBe("n");
-          expect(node.label).toBe(THINGS);
-          expect(node.pattern).toBe("");
-          expect(node.uuid).toBe("");
-        })
-  
-        test.concurrent("constructs materialized node", async function () {
-          const propString = JSON.stringify(EXAMPLE)
-          const node = new Node(propString, undefined, THINGS);
-          expect(node.symbol).toBe("n");
-          expect(node.label).toBe(THINGS);
-          expect(node.pattern).toContain(EXAMPLE.uuid);
-          expect(node.uuid).toBe(EXAMPLE.uuid);
-        })
-  
+    
         // Test queries that require properties to exist
         test.concurrent.each([
           "create"
@@ -99,34 +74,6 @@ describe("idempotent", function() {
           expectError(node, method)
         })
   
-        // Test queries that require label to exist
-        test.concurrent.each([
-          ["count", undefined],
-          ["load", undefined],
-          ["create", JSON.stringify(EXAMPLE)]
-        ])("errors on %s query without label", async function(method: string, props: string) {
-          const node = new Node(props, undefined, undefined);
-          expectError(node, method)
-        })
-  
-        test.concurrent.each([
-          ["count", true, undefined],
-          ["load", true, undefined],
-          ["create", false, JSON.stringify(EXAMPLE)]
-        ])("produces %s query", async function(method: string, readOnly: boolean, props: string) {
-          const node = new Node(props, undefined, THINGS);
-          const query = node[method]();
-          expect(query.readOnly).toBe(readOnly);
-          expect(query.query.length).toBeGreaterThan(0);
-        })
-  
-        test.concurrent("produces delete query", async function() {
-          const node = new Node(undefined, undefined, undefined)
-          const query = node.delete();
-          expect(query.readOnly).toBe(false);
-          expect(query.query.length).toBeGreaterThan(0);
-          expect(query.query).toContain("DETACH DELETE");
-        })
   
         test.concurrent.each([
           ["self props", undefined, THINGS, EXAMPLE, THINGS],

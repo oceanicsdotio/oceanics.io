@@ -1,5 +1,23 @@
 use wasm_bindgen::prelude::*;
 use serde::Serialize;
+use std::fmt;
+
+#[derive(Debug)]
+pub enum MiddlewareError {
+    RequestInvalid,
+    BodyMissing,
+    BodyNotExpected,
+    BodyInvalid,
+    HeaderAuthorizationMissing,
+    HeaderAuthorizationInvalid,
+    TokenDecodeFailed
+}
+
+impl fmt::Display for MiddlewareError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 /**
  * Error detail metadata

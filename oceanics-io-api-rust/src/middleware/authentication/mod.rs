@@ -3,6 +3,8 @@ mod claims;
 mod provider;
 
 pub use claims::Claims;
+pub use user::User;
+pub use provider::Provider;
 
 use std::{
     fmt,

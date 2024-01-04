@@ -1,39 +1,32 @@
 use std::convert::TryFrom;
-
 mod headers;
 pub use headers::Headers;
 mod query_string_parameters;
 pub use query_string_parameters::QueryStringParameters;
 
-
-use super::{HttpMethod,MiddlewareError};
-use crate::authentication::{Authentication,User,Provider,Claims};
+use crate::middleware::HttpMethod;
+use crate::middleware::error::MiddlewareError;
+use crate::middleware::authentication::{Authentication,User,Provider,Claims};
+use crate::cypher::Node;
 
 use std::collections::HashMap;
-use wasm_bindgen::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 /**
- * Data passed in from the Netlify handler. 
+ * Data passed in from the Netlify handler. This shadows the 
+ * HandlerEvent class from the JS Netlify SDK.
  */
-#[wasm_bindgen]
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct Request {
-    #[wasm_bindgen(getter_with_clone)]
+pub struct HandlerEvent {
     pub headers: Headers,
-    #[wasm_bindgen(js_name = httpMethod)]
-    #[wasm_bindgen(getter_with_clone)]
     pub http_method: HttpMethod,
-    #[wasm_bindgen(js_name = queryStringParameters)]
-    #[wasm_bindgen(getter_with_clone)]
     pub query_string_parameters: QueryStringParameters,
-    #[wasm_bindgen(skip)]
     pub body: Option<String>
 }
 
-impl Request {
+impl HandlerEvent {
     /**
      * Decode a JWT to get the issuer and/or subject. For us, this
      * corresponds to the provider and user respectively.
@@ -72,44 +65,13 @@ impl Request {
 }
 
 
-impl Request {
-    /**
-     * Parse string body to JSON hashmap. Need to check for
-     * method, because we error on checking for body in a GET,
-     * for example.
-     */
-    pub fn data(&self) -> HashMap<String, Value> {
-        if self.http_method != HttpMethod::POST 
-            && self.http_method != HttpMethod::PUT {
-            return HashMap::with_capacity(0);
-        }
-        serde_json::from_str(&self.body()).unwrap_or_else(
-            |_| panic!("{}", MiddlewareError::BodyInvalid)
-        )
-    }
-}
-
-#[wasm_bindgen]
-impl Request {
-    #[wasm_bindgen(constructor)]
-    /**
-     * Need to init the derived authentication values for headers
-     * once the basic data has been parsed from the JavaScript side.
-     */
-    pub fn new(value: JsValue) -> Result<Request, JsError> {
-        let self = serde_wasm_bindgen::from_value(value).unwrap_or_else(
-            |_| panic!("{}", MiddlewareError::RequestInvalid)
-        );
-        
-    }
-
+impl HandlerEvent {
     /**
      * Body as String, like `text()`. Because we only expect there
      * to a body on PUT and POST requests, throw an error if the
      * data are requested for another method. Also panic if we 
      * ask for a body and there is not one.
      */
-    #[wasm_bindgen(getter)]
     pub fn body(&self) -> String {
         match self.http_method {
             HttpMethod::POST | HttpMethod::PUT => {
@@ -125,13 +87,60 @@ impl Request {
     }
 
     /**
-     * For debugging. Returns Map, not Object.
+     * Parse string body to JSON hashmap. Need to check for
+     * method, because we error on checking for body in a GET,
+     * for example.
      */
-    #[wasm_bindgen(getter)]
-    pub fn json(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.data()).unwrap_or_else(
+    pub fn data(&self) -> HashMap<String, Value> {
+        if self.http_method != HttpMethod::POST 
+            && self.http_method != HttpMethod::PUT {
+            return HashMap::with_capacity(0);
+        }
+        serde_json::from_str(&self.body()).unwrap_or_else(
             |_| panic!("{}", MiddlewareError::BodyInvalid)
         )
+    }
+
+    /**
+     * Pass in the parsed body data, and get back a tuple of Nodes
+     * corresponding to left/right.
+     */
+    pub fn nodes(&self, data: HashMap<String, Value>) -> (Option<Node>, Option<Node>) {
+        match &self.query_string_parameters {
+            QueryStringParameters {
+                left: Some(left),
+                uuid: Some(uuid),
+                right: Some(right),
+            } => {
+                let left_props: HashMap<String, Value> = HashMap::from([(
+                    String::from("uuid"), Value::String(uuid.clone())
+                )]);
+                let left_node = Node::from_hash_map_and_symbol(
+                    left_props, 
+                    String::from("n0"), 
+                    left.clone()
+                );
+                let right_node = Node::from_hash_map_and_symbol(
+                    data, 
+                    String::from("n1"), 
+                    right.clone()
+                );
+                (left_node, right_node)
+            },
+            QueryStringParameters {
+                left: Some(left),
+                uuid,
+                right: None,
+            } => {
+                let mut clone = data.clone();
+                if uuid.is_some() {
+                    clone.insert(String::from("uuid"), Value::String(uuid.as_ref().unwrap().clone()));
+                }
+                let left_node = Node::from_hash_map(clone, left.clone());
+                (Some(left_node), None)
+            },
+            _ => (None, None),
+        }
     }
 }
 
@@ -140,15 +149,20 @@ impl Request {
 mod tests {
     use hex::encode;
 
-    use super::{Request, HttpMethod, Headers, QueryStringParameters};
-    use crate::authentication::{User,Authentication};
+    use super::{HandlerEvent, HttpMethod, Headers, QueryStringParameters};
+    use crate::middleware::authentication::{User,Authentication};
+    const EMPTY_QUERY: QueryStringParameters = QueryStringParameters {
+        left: None,
+        uuid: None,
+        right: None
+    };
 
     #[test]
     fn create_unauthorized_get_request () {
-        let req = Request {
+        let req = HandlerEvent {
             headers: Headers { authorization: None },
             http_method: HttpMethod::GET,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: EMPTY_QUERY,
             body: None
         };
         let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));
@@ -159,10 +173,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "BodyNotExpected")]
     fn panics_on_body_access_with_method_get () {
-        let req = Request {
+        let req = HandlerEvent {
             headers: Headers { authorization: Some(String::from("::")) },
             http_method: HttpMethod::GET,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: EMPTY_QUERY,
             body: None
         };
         let _body = req.body();
@@ -171,10 +185,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "BodyMissing")]
     fn panics_on_missing_body_with_method_post () {
-        let req = Request {
+        let req = HandlerEvent {
             headers: Headers { authorization: Some(String::from("::")) },
             http_method: HttpMethod::POST,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: EMPTY_QUERY,
             body: None
         };
         let _body = req.body();
@@ -183,10 +197,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "BodyMissing")]
     fn panics_on_missing_data_with_method_post () {
-        let req = Request {
+        let req = HandlerEvent {
             headers: Headers { authorization: Some(String::from("::")) },
             http_method: HttpMethod::POST,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: EMPTY_QUERY,
             body: None
         };
         let _data = req.data();
@@ -202,10 +216,10 @@ mod tests {
         );
         let token = _user.issue_token(&signing_key).unwrap();
         let authorization = format!("Bearer:{}", token);
-        let req = Request {
+        let req = HandlerEvent {
             headers: Headers { authorization: Some(authorization) },
             http_method: HttpMethod::POST,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: EMPTY_QUERY,
             body: None
         };
         let auth = req.headers.claim_auth_method();
@@ -219,10 +233,10 @@ mod tests {
 
     #[test]
     fn parse_auth_from_basic_auth () {
-        let req = Request {
+        let req = HandlerEvent {
             headers: Headers { authorization: Some(String::from("testing@oceanics.io:some_password:some_secret")) },
             http_method: HttpMethod::POST,
-            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            query_string_parameters: EMPTY_QUERY,
             body: None
         };
         let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));

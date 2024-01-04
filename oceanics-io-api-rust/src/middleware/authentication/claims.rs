@@ -3,7 +3,6 @@ use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use serde::{Serialize, Deserialize};
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,
