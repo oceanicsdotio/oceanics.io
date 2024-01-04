@@ -7,7 +7,7 @@ import type { ApiHandler } from "./shared/middleware";
  * by any single property. 
  */
 const GET: ApiHandler = async (context) => {
-    const value = await db.readAndParse(context.metadata());
+    const value = await db.readAndParse(context.metadataQuery());
     return {
         statusCode: 200,
         data: {
@@ -28,7 +28,7 @@ const GET: ApiHandler = async (context) => {
  * Location data receives additional processing logic internally.
  */
 const POST: ApiHandler = async (context) => {
-    db.write(context.insertLinkedNode("Create"))
+    db.write(context.insertLinkedNodeQuery("Create"))
     return {
         statusCode: 204
     }

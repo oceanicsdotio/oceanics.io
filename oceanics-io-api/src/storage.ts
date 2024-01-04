@@ -11,7 +11,7 @@ export const s3 = new S3({
 });
 
 const HEAD: ApiHandler = async ({
-    query: {
+    queryStringParameters: {
         key
     }
 }) => {
@@ -44,9 +44,9 @@ const HEAD: ApiHandler = async ({
 const POST: ApiHandler = async (context) => {
     try {
         await s3.putObject({
-            Body: Buffer.from(context.request.body),
+            Body: Buffer.from(context.body),
             Bucket: process.env.BUCKET_NAME,
-            Key: context.request.uuid,
+            Key: context.queryStringParameters.uuid,
             ContentType: 'application/octet-stream',
             ACL:'public-read',
         }).promise();
@@ -68,7 +68,7 @@ const GET: ApiHandler = async (context) => {
     try {    
         ({Body} = await s3.getObject({
             Bucket: process.env.BUCKET_NAME,
-            Key: context.query.key
+            Key: context.queryStringParameters.key
         }).promise()); 
     } catch ({message, statusCode}) {
         return { 

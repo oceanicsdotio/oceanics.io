@@ -10,7 +10,7 @@ const DEFAULT_LABEL = "Link"
  * Connect two nodes.
  */
 const POST: ApiHandler = async (context) => {
-  await db.write(context.joinNodes(DEFAULT_LABEL));
+  await db.write(context.joinNodesQuery(DEFAULT_LABEL));
   return {
     statusCode: 204
   }
@@ -20,7 +20,7 @@ const POST: ApiHandler = async (context) => {
  * Drop connection between two nodes. 
  */
 const DELETE: ApiHandler = async (context) => {
-  await db.write(context.dropLink(DEFAULT_LABEL));
+  await db.write(context.dropLinkQuery(DEFAULT_LABEL));
   return {
     statusCode: 204
   }

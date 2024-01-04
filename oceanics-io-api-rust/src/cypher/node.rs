@@ -361,6 +361,10 @@ mod tests {
         Some(String::from("Things"))
     }
 
+    fn sensors() -> Option<String> {
+        Some(String::from("Sensors"))
+    }
+
     fn uuid() -> String {
         String::from("just-a-test")
     }
@@ -420,6 +424,92 @@ mod tests {
         let node = Node::new(example(), None, None);
         let _query = node.create();
     }
+
+    #[test]
+    #[should_panic]
+    fn panic_on_create_without_props() {
+        let node = Node::new(None, None, things());
+        let _query = node.create();
+    }
+
+    fn valid_node() -> Node {
+        Node::new(
+            example(),
+            None,
+            things()
+        )
+    }
+
+    #[test]
+    fn produces_mutate_query() {
+        let updates = valid_node();
+        let node = valid_node();
+        let query = node.mutate(&updates);
+        assert!(!query.read_only);
+        assert!(query.query.len().gt(&0));
+        assert!(query.query.contains("SET"));
+    }
+
+    #[test]
+    #[should_panic]
+    fn panics_on_mutate_without_self_props() {
+        let node = Node::new(
+            None, 
+            None, 
+            things()
+        );
+        let updates = valid_node();
+        let _query = node.mutate(&updates);
+    }
+
+    #[test]
+    #[should_panic]
+    fn panics_on_mutate_without_self_label() {
+        let node = Node::new(
+            example(), 
+            None, 
+            None
+        );
+        let updates = valid_node();
+        let _query = node.mutate(&updates);
+    }
+
+    #[test]
+    #[should_panic]
+    fn panics_on_mutate_without_update_label() {
+        let updates = Node::new(
+            example(), 
+            None, 
+            None
+        );
+        let node = valid_node();
+        let _query = node.mutate(&updates);
+    }
+
+    #[test]
+    #[should_panic]
+    fn panics_on_mutate_without_update_props() {
+        let updates = Node::new(
+            None, 
+            None, 
+            things()
+        );
+        let node = valid_node();
+        let _query = node.mutate(&updates);
+    }
+
+    #[test]
+    #[should_panic]
+    fn panics_on_mutate_without_matching_labels() {
+        let updates = Node::new(
+            None, 
+            None, 
+            sensors()
+        );
+        let node = valid_node();
+        let _query = node.mutate(&updates);
+    }
+
 
     #[test]
     fn produces_count_query() {

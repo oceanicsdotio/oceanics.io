@@ -6,7 +6,7 @@ import type { ApiHandler } from "./shared/middleware";
  * Get an array of all collections by Node type
  */
 const GET: ApiHandler = async (context) => {
-  const { query } = context.allLabels();
+  const query = context.allLabelsQuery();
   const data = (await db.readAndParseLabels(query)).map((name: string) => {
     return {
       name,

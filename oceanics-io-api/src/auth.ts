@@ -10,7 +10,7 @@ import type { ApiHandler } from "./shared/middleware";
  */
 const POST: ApiHandler = async (context) => {
   try {
-    const records = await db.writeAndParse(context.register("Register"));
+    const records = await db.writeAndParse(context.registerQuery("Register"));
     if (records.length !== 1)
       throw Error(`No provider match (N=${records.length})`);
     const [{domain}] = records as {domain: string}[];
@@ -32,7 +32,7 @@ const POST: ApiHandler = async (context) => {
  */
 const GET: ApiHandler = async (context) => {
   try {
-    const records = await db.readAndParse(context.basicAuthClaim());
+    const records = await db.readAndParse(context.basicAuthQuery());
     if (records.length === 0)
         throw Error(`Basic auth claim does not exist`)
     else if (records.length > 1) {
@@ -62,7 +62,7 @@ const PUT: ApiHandler = async () => {
  * Nodes like Provider from being dropped.
  */
 const DELETE: ApiHandler = async (context) => {
-  await db.write(context.dropAllLinkedNodes());
+  await db.write(context.dropAllLinkedNodesQuery());
   return {
     statusCode: 204
   }

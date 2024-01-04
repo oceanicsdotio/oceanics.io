@@ -1,7 +1,7 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
 import type { ILogtailLog } from "@logtail/types";
-import { Endpoint, panicHook } from "oceanics-io-api-wasm";
+import { Endpoint } from "oceanics-io-api-wasm";
 import type { Context } from "oceanics-io-api-wasm";
 import {paths as _paths} from "./bathysphere.json";
 
@@ -91,7 +91,11 @@ export function Router(
     specification?: Record<string, unknown>
 ): Handler {
     // Pre-populate with assigned handlers & transform. 
-    const endpoint: Endpoint = new Endpoint(specification, Object.keys(methods));
+    const endpoint: Endpoint = new Endpoint(
+        Object.keys(methods),
+        specification, 
+        process.env.SIGNING_KEY
+    );
     /**
      * Inner handler will receive Netlify function event.
      * 
@@ -105,8 +109,8 @@ export function Router(
     return async function (event: HandlerEvent): Promise<IResponse> {
         let context: Context;
         try {
-            context = endpoint.context(event, process.env.SIGNING_KEY);
-            const response = methods[context.request.httpMethod](context);
+            context = endpoint.context(event);
+            const response = methods[context.httpMethod](context);
             // const logData = context.logLine(null, response.statusCode)
             // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
             return transform(response)

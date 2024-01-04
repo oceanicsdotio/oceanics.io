@@ -74,13 +74,18 @@ impl Context {
     }
 
     #[wasm_bindgen(getter)]
+    pub fn body(&self) -> Option<String> {
+        self.handler_event.body.clone()
+    }
+
+    #[wasm_bindgen(getter)]
     #[wasm_bindgen(js_name = "queryStringParameters")]
     pub fn query_string_parameters(&self) -> JsValue {
         serde_wasm_bindgen::to_value(&self.handler_event.query_string_parameters).unwrap()
     }
 
     #[wasm_bindgen]
-    pub fn unauthorized() -> JsValue {
+    pub fn unauthorized(&self) -> JsValue {
         ErrorDetail::unauthorized()
     }
 
@@ -271,7 +276,7 @@ impl Context {
     }
 
     #[wasm_bindgen(js_name = "allLabelsQuery")]
-    pub fn all_labels_query() -> String {
+    pub fn all_labels_query(&self) -> String {
         let cypher = Node::all_labels();
         cypher.query
     }

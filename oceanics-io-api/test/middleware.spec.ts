@@ -6,7 +6,6 @@ import {
   // Authentication related
   User,
   // Data Layer Primitives
-  Node,
   Links,
   // Request related
   Context,
@@ -16,24 +15,11 @@ import {
   Headers,
   // API endpoint related
   Endpoint,
-  // Response
   ErrorDetail,
-  OptionsResponse
 } from "oceanics-io-api-wasm";
 
 const THINGS = "Things";
 
-const expectError = (node: Node, method: string, ...args: unknown[]) => {
-  let error = null;
-  let query = null;
-  try {
-    query = node[method](...args)
-  } catch (_error) {
-    error = _error.message;
-  }
-  expect(query).toBe(null)
-  expect(error).not.toBeFalsy()
-}
 
 // Bubble up stack trace from Rust
 beforeAll(enableWasmLog)
@@ -57,47 +43,6 @@ describe("idempotent", function() {
           const link = new Links("Owns", 0, 0, undefined);
           expect(link.cost).toBe(0);
           expect(link.rank).toBe(0)
-        })
-      })
-
-      describe("Node", function (){
-  
-        const EXAMPLE = {
-          uuid: "just-a-test"
-        };
-    
-        // Test queries that require properties to exist
-        test.concurrent.each([
-          "create"
-        ])("errors on %s query without props", async function(method: string) {
-          const node = new Node(undefined, undefined, THINGS);
-          expectError(node, method)
-        })
-  
-  
-        test.concurrent.each([
-          ["self props", undefined, THINGS, EXAMPLE, THINGS],
-          ["self label", EXAMPLE, undefined, EXAMPLE, THINGS],
-          ["updates label", EXAMPLE, THINGS, EXAMPLE, undefined],
-          ["updates props", EXAMPLE, THINGS, undefined, THINGS],
-          ["matching labels", EXAMPLE, THINGS, undefined, "Sensors"]
-        ])("errors on mutate query without %s", async function(_, selfProps, selfLabel, insertProps, insertLabel) {
-          const _insertProps = typeof insertProps === "undefined" ?
-            undefined : JSON.stringify(insertProps)
-          const _selfProps = typeof selfProps === "undefined" ?
-          undefined : JSON.stringify(selfProps)
-          const updates = new Node(_insertProps, undefined, insertLabel);
-          const node = new Node(_selfProps, undefined, selfLabel);
-          expectError(node, "mutate", updates)
-        })
-  
-        test.concurrent("produces mutate query", async function() {
-          const updates = new Node(JSON.stringify(EXAMPLE), undefined, THINGS);
-          const node = new Node(JSON.stringify(EXAMPLE), undefined, THINGS);
-          const query = node.mutate(updates);
-          expect(query.readOnly).toBe(false);
-          expect(query.query.length).toBeGreaterThan(0);
-          expect(query.query).toContain("SET");
         })
       })
     })
@@ -314,15 +259,6 @@ describe("idempotent", function() {
               const detail = ErrorDetail.invalidMethod();
               expect(detail.statusCode).toEqual(405);
               expect(detail.data.message).toBe("Invalid HTTP method");
-            })
-          })
-        })
-
-        describe("options", function () {
-          describe("OptionsResponse", function () {
-            test.concurrent("constructs OptionsResponse", async function() {
-              const response = new OptionsResponse("get,post,delete,put");
-              expect(response).toBeInstanceOf(Object);
             })
           })
         })

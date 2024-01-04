@@ -7,7 +7,7 @@ import type { ApiHandler } from "./shared/middleware";
  * by any single property. 
  */
 const GET: ApiHandler = async (context) => {
-  const value = await db.readAndParse(context.metadata());
+  const value = await db.readAndParse(context.metadataQuery());
   return {
       statusCode: 200,
       data: {
@@ -27,7 +27,7 @@ const GET: ApiHandler = async (context) => {
  * labels.
  */
 const DELETE: ApiHandler = async (context) => {
-  await db.write(context.dropOneLinkedNode());
+  await db.write(context.dropOneLinkedNodeQuery());
   return {
     statusCode: 204
   }
