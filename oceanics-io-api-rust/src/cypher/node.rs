@@ -117,7 +117,7 @@ impl fmt::Display for Node {
         } else {
             _pattern = pattern.clone();
         }
-        write!(f, "( {}{}{} )", self.symbol(), label, pattern)
+        write!(f, "( {}{}{} )", self.symbol(), label, _pattern)
     }
 }
 

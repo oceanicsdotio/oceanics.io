@@ -60,9 +60,9 @@ pub fn error_detail_event(status_code: u16, message: String, operation: String, 
     JsError::new(&error)
 }
 
-pub fn unauthorized_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {
+pub fn unauthorized_response(operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> JsError {
     let message = String::from("Unauthorized");
-    error_detail_event(403, message, operation, errors, None)
+    error_detail_event(401, message, operation, errors, data)
 }
 
 pub fn invalid_method_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {

@@ -111,7 +111,7 @@ export function Router(
                     headers: {
                         'Content-Type': `application/json`
                     },
-                    body: JSON.stringify(error)
+                    body: JSON.stringify({message: error.message})
                 }
             }
             

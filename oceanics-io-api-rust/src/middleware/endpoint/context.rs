@@ -121,7 +121,8 @@ impl Context {
     pub fn unauthorized(&self) -> JsError {
         unauthorized_response(
             "None".to_string(),
-            vec![MiddlewareError::Unknown]
+            vec![MiddlewareError::Unknown],
+            None
         )
     }
 
@@ -329,7 +330,7 @@ impl Context {
     pub fn basic_auth_query(&self) -> Result<String, JsError> {
         let errors = self.check_user();
         if errors.len() > 0 {
-            let error = server_error_response(
+            let error = unauthorized_response(
                 "basicAuthQuery".to_string(),
                 errors,
                 None

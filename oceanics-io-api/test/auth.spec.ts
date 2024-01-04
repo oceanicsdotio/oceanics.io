@@ -112,17 +112,17 @@ describe("auth handlers", function () {
       expect(token).not.toBeFalsy();
     });
 
-    test("denies missing header with 403", async function () {
+    test("denies missing header with 401", async function () {
       const response = await fetch(AUTH_PATH);
       try {
-        expect(response.status).toEqual(403);
+        expect(response.status).toEqual(401);
       } catch (err) {
         console.log(await response.json());
         throw err;
       }
     });
 
-    test("denies wrong credentials with 403", async function () {
+    test("denies wrong credentials with 401", async function () {
       const response = await fetch(AUTH_PATH, {
         headers: {
           Authorization: Authorization(undefined, "a-very-bad-password", undefined),
@@ -130,16 +130,16 @@ describe("auth handlers", function () {
       });
       const data = await response.json();
       console.warn("Data", data);
-      expect(response.status).toEqual(403);
+      expect(response.status).toEqual(401);
     });
 
-    test("denies wrong salt with 403", async function () {
+    test("denies wrong salt with 401", async function () {
       const response = await fetch(AUTH_PATH, {
         headers: {
           Authorization: Authorization(undefined, undefined, "a-very-bad-secret"),
         },
       });
-      expect(response.status).toEqual(403);
+      expect(response.status).toEqual(401);
     });
   });
 });

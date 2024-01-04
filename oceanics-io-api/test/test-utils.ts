@@ -125,9 +125,9 @@ export const fetchToken = async () => {
       Authorization: Authorization(),
     },
   })
-  console.log(await response.json());
+  const data = await response.json();
   expect(response.status).toBe(200);
-  const { token } = await response.json();
+  const { token } = data;
   expect(typeof token).toBe("string");
   expect(token).not.toBeFalsy();
   expect(token).not.toBe("undefined");

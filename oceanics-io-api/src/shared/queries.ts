@@ -12,7 +12,7 @@ const connect = async (queries: string[], defaultAccessMode: SessionMode) => {
         neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
     );
     const session = driver.session({ defaultAccessMode });
-    const result = Promise.all(queries.map(query => session.run(query)));
+    const result = await Promise.all(queries.map(query => session.run(query)));
     await driver.close();
     return result;
 }
@@ -24,10 +24,12 @@ const recordsToProperties = ({records}: QueryResult): Properties[] => {
         .map(({ properties }: { properties: Properties }) => properties)
 }
 
-const read = (query: string) => connect([query], neo4j.session.READ)[0];
+const read = async (query: string) => connect([query], neo4j.session.READ)[0];
 
-export const readAndParse = async (query: string): Promise<Properties[]> => 
-    read(query).then(recordsToProperties);
+export const readAndParse = async (query: string): Promise<Properties[]> => {
+    const [result] = await connect([query], neo4j.session.READ);
+    return recordsToProperties(result);
+}
 
 export const readAndParseLabels = async (query: string): Promise<string[]> => {
     const {records} = await read(query);
@@ -35,9 +37,9 @@ export const readAndParseLabels = async (query: string): Promise<string[]> => {
         .flatMap((record: Record) => record.get(0))
 }
 
-export const write = (query: string) => connect([query], neo4j.session.WRITE)[0];
+export const write = async (query: string) => connect([query], neo4j.session.WRITE)[0];
 
-export const writeMany = (queries: string[]) => connect(queries, neo4j.session.WRITE);
+export const writeMany = async (queries: string[]) => connect(queries, neo4j.session.WRITE);
 
 export const writeAndParse = async (query: string): Promise<Properties[]> =>
     write(query).then(recordsToProperties);

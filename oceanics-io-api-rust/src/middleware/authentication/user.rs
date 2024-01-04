@@ -18,7 +18,10 @@ use pbkdf2::{
 };
 
 use super::Claims;
-use crate::{cypher::Node, middleware::error::server_error_response};
+use crate::{
+    cypher::Node, 
+    middleware::error::unauthorized_response
+};
 use crate::middleware::error::MiddlewareError;
 
 /**
@@ -124,7 +127,7 @@ impl User {
     fn credential(&self) -> Result<PasswordHash, JsError> {
         let mut errors = self.check_secrets();
         if errors.len() > 0 {
-            let error = server_error_response(
+            let error = unauthorized_response(
                 "credential".to_string(),
                 errors,
                 None
@@ -135,12 +138,12 @@ impl User {
         let password = self.password.as_ref().unwrap();
         let salt = Salt::from_b64(&secret);
         if salt.is_err() {
-            let error = salt.err().unwrap();
+            let _error = salt.err().unwrap();
             errors.push(MiddlewareError::SecretInvalid);
-            let error = server_error_response(
+            let error = unauthorized_response(
                 "credential".to_string(),
                 errors,
-                Some(error.to_string())
+                Some(_error.to_string())
             );
             return Err(error);
         }
@@ -149,11 +152,12 @@ impl User {
             salt.unwrap()
         );
         if password_hash.is_err() {
+            let _error = password_hash.err().unwrap();
             errors.push(MiddlewareError::PasswordHash);
-            let error = server_error_response(
+            let error = unauthorized_response(
                 "credential".to_string(),
                 errors,
-                self.password.clone()
+                Some(_error.to_string())
             );
             return Err(error);
         }

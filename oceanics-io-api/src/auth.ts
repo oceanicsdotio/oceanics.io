@@ -27,7 +27,9 @@ const POST: ApiHandler = async (context) => {
  * information needed when validating access to data. 
  */
 const GET: ApiHandler = async (context) => {
-  const records = await db.readAndParse(context.basicAuthQuery());
+  const query = context.basicAuthQuery();
+  console.log({query})
+  const records = await db.readAndParse(query);
   if (records.length !== 1) {
     context.unauthorized();
   }
