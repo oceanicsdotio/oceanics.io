@@ -1,12 +1,11 @@
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
-use serde_json::json;
 use crate::cypher::{Node,Links};
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::{LogLine, Operation};
 use crate::middleware::handler_event::HandlerEvent;
 use crate::middleware::authentication::{User,Provider,Authentication};
-use crate::middleware::error::ErrorDetail;
+use crate::middleware::error::{server_error_response, unauthorized_response, MiddlewareError};
 
 /**
  * The Outer Function level context produces
@@ -51,6 +50,40 @@ impl Context {
     }
 }
 
+impl Context {
+    fn check_user(&self) -> Vec<MiddlewareError> {
+        let mut errors: Vec<MiddlewareError> = Vec::with_capacity(3);
+        if self.user.is_none() {
+            errors.push(MiddlewareError::NoHandlerEventContextUser);
+        }
+        errors
+    }
+
+    fn check_user_and_provider(&self) -> Vec<MiddlewareError> {
+        let mut errors: Vec<MiddlewareError> = self.check_user();
+        if self.provider.is_none() {
+            errors.push(MiddlewareError::NoHandlerEventContextProvider);
+        }
+        errors
+    }
+
+    fn check_user_and_left(&self) -> Vec<MiddlewareError> {
+        let mut errors = self.check_user();
+        if self.left.is_none() {
+            errors.push(MiddlewareError::NoHandlerEventContextLeftNode);
+        }
+        errors
+    }
+
+    fn check_user_left_and_right(&self) -> Vec<MiddlewareError> {
+        let mut errors = self.check_user_and_left();
+        if self.right.is_none() {
+            errors.push(MiddlewareError::NoHandlerEventContextRightNode);
+        }
+        errors
+    }
+}
+
 #[wasm_bindgen]
 impl Context {
 
@@ -85,8 +118,11 @@ impl Context {
     }
 
     #[wasm_bindgen]
-    pub fn unauthorized(&self) -> JsValue {
-        ErrorDetail::unauthorized()
+    pub fn unauthorized(&self) -> JsError {
+        unauthorized_response(
+            "None".to_string(),
+            vec![MiddlewareError::Unknown]
+        )
     }
 
     #[wasm_bindgen(js_name = "logLine")]
@@ -100,38 +136,41 @@ impl Context {
         };
         let result = serde_wasm_bindgen::to_value(&line);
         if result.is_err() {
-            let error = json!({
-                "message": "Server Error",
-                "statusCode": 500,
-                "detail": "Problem while creating log line"
-            }).to_string();
-            return Err(JsError::new(&error));
+            let error = server_error_response(
+                "logLine".to_string(),
+                vec![MiddlewareError::LogLineSerializationFailure],
+                None
+            );
+            return Err(error);
+            
         }
         Ok(result.unwrap())
     }
 
     #[wasm_bindgen(js_name = "issueUserToken")]
-    pub fn issue_token(&self, signing_key: &str) -> Result<JsValue, JsError> {
-        if self.user.is_none() {
-            let error = json!({
-                "message": "Unauthorized",
-                "statusCode": 403,
-                "detail": "No User in Request Context"
-            }).to_string();
-            return Err(JsError::new(&error));
+    pub fn issue_token(&self, signing_key: &str) -> Result<String, JsError> {
+        let errors = self.check_user();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "issueUserToken".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
-        Ok(self.user.as_ref().unwrap()._issue_token(signing_key))
+        Ok(self.user.as_ref().unwrap().issue_token(signing_key))
     }
 
     #[wasm_bindgen(js_name = "joinNodesQuery")]
     pub fn join_nodes_query(&self, label: Option<String>) -> Result<String, JsError> {
-        if self.left.is_none() || self.right.is_none() {
-            let error = json!({
-                "message": "Server error",
-                "statusCode": 500,
-                "detail": "Join requires two nodes"
-            }).to_string();
-            return Err(JsError::new(&error));
+        let errors = self.check_user_left_and_right();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "joinNodesQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
         let cypher = crate::cypher::links::Links::new(
             label,
@@ -147,13 +186,14 @@ impl Context {
 
     #[wasm_bindgen(js_name = "dropLinkQuery")]
     pub fn drop_link_query(&self, label: Option<String>) -> Result<String, JsError> {
-        if self.left.is_none() || self.right.is_none() {
-            let error = json!({
-                "message": "Server error",
-                "statusCode": 500,
-                "detail": "Drop requires two nodes"
-            }).to_string();
-            return Err(JsError::new(&error));
+        let errors = self.check_user_left_and_right();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "dropLinkQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
         let cypher = crate::cypher::links::Links::new(
             label,
@@ -167,61 +207,70 @@ impl Context {
         Ok(cypher.query)
     }
 
-    fn drop_node_query(&self, node: &Node) -> Result<String, JsError> {
-        if self.user.is_none() {
-            let error = json!({
-                "message": "Unauthorized",
-                "statusCode": 403,
-                "detail": "No user in context"
-            }).to_string();
-            return Err(JsError::new(&error));
+    #[wasm_bindgen(js_name = "dropAllLinkedNodesQuery")]
+    pub fn drop_all_linked_nodes_query(&self) -> Result<String, JsError> {
+        let errors = self.check_user();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "dropAllLinkedNodesQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
-        let user = self.user.as_ref().unwrap();
+        let wildcard = Node::new(None, None, None);
+        let user = self.user.as_ref().unwrap().node();
         let cypher = crate::cypher::links::Links::new(
             None,
             None,
             None,
             None
         ).drop(
-            &Node::from(user), 
-            node
+            user.ok().as_ref().unwrap(), 
+            &wildcard
         );
         Ok(cypher.query)
     }
 
-    #[wasm_bindgen(js_name = "dropAllLinkedNodesQuery")]
-    pub fn drop_all_linked_nodes_query(&self) -> Result<String, JsError> {
-        let wildcard = Node::new(None, None, None);
-        self.drop_node_query(&wildcard)
-    }
-
     #[wasm_bindgen(js_name = "dropOneLinkedNodeQuery")]
     pub fn drop_one_linked_node_query(&self) -> Result<String, JsError> {
-        if self.left.is_none() {
-            let error = json!({
-                "message": "Server error",
-                "statusCode": 500,
-                "detail": "Drop requires left node"
-            }).to_string();
-            return Err(JsError::new(&error));
+        let errors = self.check_user_and_left();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "dropOneLinkedNodeQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
-        self.drop_node_query(self.left.as_ref().unwrap())
+        let user = self.user.as_ref().unwrap().node();
+        let cypher = crate::cypher::links::Links::new(
+            None,
+            None,
+            None,
+            None
+        ).drop(
+            user.ok().as_ref().unwrap(), 
+            self.left.as_ref().unwrap()
+        );
+        Ok(cypher.query)
     }
 
     #[wasm_bindgen(js_name = "insertLinkedNodeQuery")]
     pub fn insert_linked_node_query(&self, label: Option<String>) -> Result<String, JsError> {
-        if self.user.is_none() || self.left.is_none() {
-            let error = json!({
-                "message": "Server error",
-                "statusCode": 500,
-                "detail": "Insert requires user and one node"
-            }).to_string();
-            return Err(JsError::new(&error));
+        let errors = self.check_user_and_left();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "insertLinkedNodeQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
         let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
-        let user = self.user.as_ref().unwrap();
+        let user = self.user.as_ref().unwrap().node();
         let cypher = link.insert(
-            &Node::from(user),
+            user.ok().as_ref().unwrap(),
             self.left.as_ref().unwrap()
         );
         Ok(cypher.query)
@@ -229,20 +278,21 @@ impl Context {
 
     #[wasm_bindgen(js_name = "registerQuery")]
     pub fn register_query(&self, label: Option<String>) -> Result<String, JsError> {
-        let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
-        if self.user.is_none() || self.provider.is_none() {
-            let error = json!({
-                "message": "Server error",
-                "statusCode": 500,
-                "detail": "Register requires user and provider"
-            }).to_string();
-            return Err(JsError::new(&error));
+        let errors = self.check_user_and_provider();        
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "registerQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
-        let user = self.user.as_ref().unwrap();
+        let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
+        let user = self.user.as_ref().unwrap().node();
         let provider = self.provider.as_ref().unwrap();
         let cypher = link.insert(
             &Node::from(provider),
-            &Node::from(user)
+            user.ok().as_ref().unwrap(),
         );
         Ok(cypher.query)
     }
@@ -250,29 +300,48 @@ impl Context {
     #[wasm_bindgen(js_name = "metadataQuery")]
     pub fn metadata_query(&self) -> Result<String, JsError> {
         let link = Links::new(None, None, None, None);
-        if self.user.is_none() || self.left.is_none() {
-            let error = json!({
-                "message": "Server error",
-                "statusCode": 500,
-                "detail": "Register requires user and provider"
-            }).to_string();
-            return Err(JsError::new(&error));
+        let errors = self.check_user_and_left();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "metadataQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
-        let user = self.user.as_ref().unwrap();
+        let user = self.user.as_ref().unwrap().node();
         let left = self.left.as_ref().unwrap();
         let cypher = link.query(
-            &Node::from(user), 
+            user.ok().as_ref().unwrap(), 
             left, 
             left.symbol()
         );
         Ok(cypher.query)
     }
 
+    /**
+     * Produces a Cypher query string that will try to match
+     * a User pattern based on the basic authentication credentials.
+     * 
+     * This should only be called when issuing a JWT.
+     */
     #[wasm_bindgen(js_name = "basicAuthQuery")]
-    pub fn basic_auth_query(&self) -> String {
-        let user = self.user.as_ref().unwrap();
-        let cypher = Node::from(user).load(None);
-        cypher.query
+    pub fn basic_auth_query(&self) -> Result<String, JsError> {
+        let errors = self.check_user();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "basicAuthQuery".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
+        }
+        let node = self.user.as_ref().unwrap().node(); // safe
+        if node.is_err() {
+            return Err(node.err().unwrap())
+        }
+        let cypher = node.ok().unwrap().load(None);
+        Ok(cypher.query)
     }
 
     #[wasm_bindgen(js_name = "allLabelsQuery")]

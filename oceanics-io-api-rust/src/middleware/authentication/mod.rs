@@ -7,7 +7,6 @@ pub use user::User;
 pub use provider::Provider;
 
 use std::{
-    fmt,
     convert::From,
     str::FromStr
 };
@@ -33,21 +32,6 @@ impl FromStr for Authentication {
             "NoAuth" => Ok(Authentication::NoAuth),
             _ => Err(()),
         }
-    }
-}
-
-#[derive(Debug)]
-pub enum AuthError {
-    PasswordInvalid,
-    PasswordMissing,
-    SecretInvalid,
-    SecretMissing,
-    PasswordHash
-}
-
-impl fmt::Display for AuthError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
     }
 }
 

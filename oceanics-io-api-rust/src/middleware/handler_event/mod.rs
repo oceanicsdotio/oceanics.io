@@ -150,7 +150,7 @@ mod tests {
     use hex::encode;
 
     use super::{HandlerEvent, HttpMethod, Headers, QueryStringParameters};
-    use crate::middleware::authentication::{User,Authentication};
+    use crate::middleware::authentication::{User,Authentication,Claims};
     const EMPTY_QUERY: QueryStringParameters = QueryStringParameters {
         left: None,
         uuid: None,
@@ -158,12 +158,25 @@ mod tests {
     };
 
     #[test]
-    fn create_unauthorized_get_request () {
+    fn create_get_request_without_auth_header () {
         let req = HandlerEvent {
             headers: Headers { authorization: None },
             http_method: HttpMethod::GET,
             query_string_parameters: EMPTY_QUERY,
             body: None
+        };
+        let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));
+        assert!(user.is_none());
+        assert!(provider.is_none());
+    }
+
+    #[test]
+    fn create_post_request_without_auth_header () {
+        let req = HandlerEvent {
+            headers: Headers { authorization: None },
+            http_method: HttpMethod::POST,
+            query_string_parameters: EMPTY_QUERY,
+            body: Some("data-goes-here".to_string())
         };
         let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));
         assert!(user.is_none());
@@ -214,7 +227,8 @@ mod tests {
             String::from("some_password"),
             String::from("some_secret")
         );
-        let token = _user.issue_token(&signing_key).unwrap();
+        
+        let token = Claims::from(&_user).encode(&signing_key).unwrap();
         let authorization = format!("Bearer:{}", token);
         let req = HandlerEvent {
             headers: Headers { authorization: Some(authorization) },

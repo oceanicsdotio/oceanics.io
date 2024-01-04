@@ -101,7 +101,7 @@ export const Authorization = (
   username: string = process.env.SERVICE_ACCOUNT_USERNAME ?? "",
   password: string = process.env.SERVICE_ACCOUNT_PASSWORD ?? "",
   secret: string = process.env.SERVICE_ACCOUNT_SECRET ?? ""
-) => [username, password, secret].join(":")
+) => [username, btoa(password).replaceAll("=", ""), btoa(secret).replaceAll("=", "")].join(":")
 
 /**
  * Parse and check the number of methods in the Allow header.
@@ -125,6 +125,7 @@ export const fetchToken = async () => {
       Authorization: Authorization(),
     },
   })
+  console.log(await response.json());
   expect(response.status).toBe(200);
   const { token } = await response.json();
   expect(typeof token).toBe("string");

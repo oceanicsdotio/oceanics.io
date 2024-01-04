@@ -170,3 +170,21 @@ impl Links {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::Links;
+
+    #[test]
+    fn construct_blank_link() {
+        let link = Links::new(None, None, None, None);
+        assert!(link.cost.is_none());
+        assert!(link.rank.is_none());
+    }
+
+    #[test]
+    fn construct_weighted_link() {
+        let link = Links::new(Some("Owns".to_string()), Some(0), Some(1.0), None);
+        assert!(link.cost.is_some_and(|x| x > 0.0));
+        assert!(link.rank.is_some_and(|x| x == 0));
+    }
+}

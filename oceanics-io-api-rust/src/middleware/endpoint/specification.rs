@@ -48,10 +48,6 @@ mod tests {
 
     #[test]
     fn create_specification () {
-        let security = Security{ 
-            bearer_auth: Some(Vec::from([])), 
-            basic_auth: None
-        };
         let specification = Operation {
             security: vec![Security{ 
                 bearer_auth: Some(Vec::from([])), 

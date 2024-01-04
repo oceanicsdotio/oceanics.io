@@ -17,8 +17,9 @@ use pbkdf2::{
     }
 };
 
-use super::{Claims, AuthError};
-use crate::cypher::Node;
+use super::Claims;
+use crate::{cypher::Node, middleware::error::server_error_response};
+use crate::middleware::error::MiddlewareError;
 
 /**
  * Users are a special type of internal node. They
@@ -63,20 +64,6 @@ impl From<&Claims> for User {
     }
 }
 
-// Transform User into database Node representation
-impl From<&User> for Node {
-    fn from(user: &User) -> Self {
-        let mut properties = HashMap::new();
-        properties.insert(
-            "email".into(), Value::String(user.email.clone())
-        );
-        properties.insert(
-            "credential".into(), Value::String(user.credential().to_string())
-        );
-        Node::from_hash_map(properties, "User".to_string())
-    }
-}
-
 impl User {
     /**
      * All fields are private, so we expose a rust level
@@ -97,48 +84,80 @@ impl User {
         }
     }
 
+    // Transform User into database Node representation
+    pub fn node(&self) -> Result<Node, JsError> {
+        let mut properties = HashMap::new();
+        properties.insert(
+            "email".into(), Value::String(self.email.clone())
+        );
+        let credential = self.credential();
+        if credential.is_err() {
+            return Err(credential.err().unwrap())
+        }
+        let cred_string = credential.ok().unwrap().to_string();
+        properties.insert(
+            "credential".into(), Value::String(cred_string)
+        );
+        let node = Node::from_hash_map(properties, "User".to_string());
+        Ok(node)
+    }
+
+    fn check_secrets(&self) -> Vec<MiddlewareError> {
+        let mut errors: Vec<MiddlewareError> = Vec::with_capacity(10);
+        let base64: Regex = Regex::new(r"^[-A-Za-z0-9+/]*={0,3}$+").unwrap();
+        if self.password.is_none() {
+            errors.push(MiddlewareError::PasswordMissing)
+        } else if !base64.is_match(self.password.as_ref().unwrap()) {
+            errors.push(MiddlewareError::PasswordInvalid)
+        }
+        if self.secret.is_none() {
+            errors.push(MiddlewareError::PasswordMissing)
+        } else if !base64.is_match(self.secret.as_ref().unwrap()) {
+            errors.push(MiddlewareError::SecretInvalid)
+        }
+        return errors
+    }
+
     /**
      * Salt the password with a provided secret.
      */
-    fn credential(&self) -> PasswordHash {
-        let password = self.password.as_ref().unwrap_or_else(
-            || panic!("{}", AuthError::PasswordMissing)
-        );
-        let base64: Regex = Regex::new(r"^[-A-Za-z0-9+/]*={0,3}$+").unwrap();
-        if !base64.is_match(&password) {
-            panic!("{}", AuthError::PasswordInvalid)
+    fn credential(&self) -> Result<PasswordHash, JsError> {
+        let mut errors = self.check_secrets();
+        if errors.len() > 0 {
+            let error = server_error_response(
+                "credential".to_string(),
+                errors,
+                None
+            );
+            return Err(error);
         }
-        let data = self.secret.as_ref().unwrap_or_else(
-            || panic!("{}", AuthError::SecretMissing)
-        );
-        if !base64.is_match(&data) {
-            panic!("{}", AuthError::SecretInvalid)
+        let secret = self.secret.as_ref().unwrap();
+        let password = self.password.as_ref().unwrap();
+        let salt = Salt::from_b64(&secret);
+        if salt.is_err() {
+            let error = salt.err().unwrap();
+            errors.push(MiddlewareError::SecretInvalid);
+            let error = server_error_response(
+                "credential".to_string(),
+                errors,
+                Some(error.to_string())
+            );
+            return Err(error);
         }
-        let salt = Salt::from_b64(data).unwrap_or_else(
-            |_| panic!("{}", AuthError::SecretInvalid)
-        );
-        Pbkdf2.hash_password(
+        let password_hash = Pbkdf2.hash_password(
             password.as_bytes(), 
-            salt
-        ).unwrap_or_else(
-            |_| panic!("{}", AuthError::PasswordHash)
-        )
-    }
-
-    // Testing interface only
-    pub fn issue_token(&self, signing_key: &str) -> Result<String, jwt::Error> {
-        Claims::from(self).encode(signing_key)
-    }
-
-    /**
-     * Check a base64 string against a credential in the PHC format, 
-     * which is a $-separated string that includes algorithm, salt,
-     * and hash.
-     */
-    fn _verify_credential(&self, stored_credential: String) -> bool {
-        let claim_credential = self.credential();
-        let bytes = stored_credential.as_bytes();
-        Pbkdf2.verify_password(bytes, &claim_credential).is_ok()
+            salt.unwrap()
+        );
+        if password_hash.is_err() {
+            errors.push(MiddlewareError::PasswordHash);
+            let error = server_error_response(
+                "credential".to_string(),
+                errors,
+                self.password.clone()
+            );
+            return Err(error);
+        }
+        Ok(password_hash.unwrap())
     }
 }
 
@@ -154,17 +173,25 @@ impl User {
 
     // Create a JS object 
     #[wasm_bindgen(js_name=issueToken)]
-    pub fn _issue_token(&self, signing_key: &str) -> JsValue {
-        let token = self.issue_token(signing_key).expect(
+    pub fn issue_token(&self, signing_key: &str) -> String {
+        Claims::from(self).encode(signing_key).expect(
             "Could not create token"
-        );
-        JsValue::from(token)
+        )
     }
 
-    // Compare a pre-encoded credential against the secrets in the user instance
+    /**
+     * Check a base64 string against a credential in the PHC format, 
+     * which is a $-separated string that includes algorithm, salt,
+     * and hash.
+     */
     #[wasm_bindgen(js_name=verifyCredential)]
-    pub fn verify_credential(self, credential: &str) -> bool {
-        self._verify_credential(String::from(credential))
+    pub fn verify_credential(self, stored_credential: String) -> Result<bool, JsError> {
+        let claim_credential = self.credential();
+        if claim_credential.is_err() {
+            return Err(claim_credential.err().unwrap())
+        }
+        let bytes = stored_credential.as_bytes();
+        Ok(Pbkdf2.verify_password(bytes, claim_credential.ok().as_ref().unwrap()).is_ok())
     }
 }
 
@@ -172,7 +199,6 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::{User, Claims};
-    use crate::cypher::node::Node;
     use hex::encode;
 
     #[test]
@@ -193,7 +219,7 @@ mod tests {
             encode("password"),
             encode("secret")
         );
-        let node = Node::from(&user);
+        let node = user.node().ok().unwrap();
         assert!(node.pattern().len() > 0);
     }
 
@@ -233,7 +259,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "PasswordMissing")]
     fn user_credential_panics_with_no_password () {
         let user = User {
             email: "test@oceanics.io".to_string(),
@@ -241,10 +266,10 @@ mod tests {
             secret: Some("some_secret".to_string())
         };
         let _cred = user.credential();
+        assert!(_cred.is_err());
     }
 
     #[test]
-    #[should_panic(expected = "SecretInvalid")]
     fn user_credential_panics_with_empty_secret () {
         let user = User {
             email: "test@oceanics.io".to_string(),
@@ -252,10 +277,10 @@ mod tests {
             secret: Some(encode(""))
         };
         let _cred = user.credential();
+        assert!(_cred.is_err());
     }
 
     #[test]
-    #[should_panic(expected = "SecretInvalid")]
     fn user_credential_panics_with_plaintext_secret () {
         let user = User {
             email: "test@oceanics.io".to_string(),
@@ -263,10 +288,10 @@ mod tests {
             secret: Some("some_secret".to_string())
         };
         let _cred = user.credential();
+        assert!(_cred.is_err());
     }
 
     #[test]
-    #[should_panic(expected = "PasswordHash")]
     fn user_credential_panics_with_empty_password () {
         let user = User {
             email: "test@oceanics.io".to_string(),
@@ -274,10 +299,10 @@ mod tests {
             secret: Some(encode("some_secret".to_string()))
         };
         let _cred = user.credential();
+        assert!(_cred.is_err());
     }
 
     #[test]
-    #[should_panic(expected = "PasswordInvalid")]
     fn user_credential_panics_with_plaintext_password () {
         let user = User {
             email: "test@oceanics.io".to_string(),
@@ -285,6 +310,7 @@ mod tests {
             secret: Some(encode("some_secret".to_string()))
         };
         let _cred = user.credential();
+        assert!(_cred.is_err());
     }
 
     #[test]
@@ -295,7 +321,7 @@ mod tests {
             password.clone(),
             encode("secret")
         );
-        assert!(user._verify_credential(password));
+        assert!(user.verify_credential(password).ok().unwrap());
     }
 
 
@@ -306,7 +332,7 @@ mod tests {
             encode("password"),
             encode("secret")
         );
-        assert!(!user._verify_credential(encode("bad_password")));
+        assert!(user.verify_credential(encode("bad_password")).is_err());
     }
 
     #[test]
@@ -316,7 +342,7 @@ mod tests {
             encode("password"),
             encode("secret")
         );
-        let token = user.issue_token("another_secret").unwrap();
+        let token = Claims::from(&user).encode("another_secret").unwrap();
         assert!(token.len() > 0);
     }
 

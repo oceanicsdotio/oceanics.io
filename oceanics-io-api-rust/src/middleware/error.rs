@@ -1,5 +1,5 @@
-use wasm_bindgen::prelude::*;
-use serde::Serialize;
+use serde_json::json;
+use wasm_bindgen::JsError;
 use std::fmt;
 
 #[derive(Debug)]
@@ -10,7 +10,19 @@ pub enum MiddlewareError {
     BodyInvalid,
     HeaderAuthorizationMissing,
     HeaderAuthorizationInvalid,
-    TokenDecodeFailed
+    TokenDecodeFailed,
+    LogLineSerializationFailure,
+    NoHandlerEventContextUser,
+    NoHandlerEventContextLeftNode,
+    NoHandlerEventContextRightNode,
+    NoHandlerEventContextProvider,
+    Unknown,
+    // Auth
+    PasswordInvalid,
+    PasswordMissing,
+    SecretInvalid,
+    SecretMissing,
+    PasswordHash
 }
 
 impl fmt::Display for MiddlewareError {
@@ -19,61 +31,52 @@ impl fmt::Display for MiddlewareError {
     }
 }
 
-/**
- * Error detail metadata
- */
-#[derive(Serialize)]
-struct ErrorBody {
-    message: String,
-    details: Option<String>
+fn error_detail(
+    status_code: u16, 
+    message: String, 
+    operation: String, 
+    errors: Vec<MiddlewareError>,
+    data: Option<String>
+) -> String {
+    let body = json!({ 
+        "message": message, 
+        "details": {
+            "operation": operation,
+            "errors": errors.iter().map(|x| x.to_string()).collect::<Vec<String>>(),
+            "data": data
+        }
+    }).to_string();
+    json!({ 
+        "statusCode": status_code, 
+        "body": body, 
+        "headers": {
+            "Content-Type": String::from("application/problem+json")
+        }
+    }).to_string()
 }
 
-/**
- * Problem details for response
- */
-#[wasm_bindgen]
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ErrorDetail{
-    pub status_code: u16,
-    data: ErrorBody,
-    extension: Option<String>
+pub fn error_detail_event(status_code: u16, message: String, operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> JsError {
+    let error = error_detail(status_code, message, operation, errors, data);
+    JsError::new(&error)
 }
 
-impl ErrorDetail {
-    fn new(message: String, status_code: u16) -> JsValue {
-        let detail = ErrorDetail { 
-            status_code, 
-            data: ErrorBody { 
-                message, 
-                details: None
-            }, 
-            extension: Some(String::from("problem+"))
-        };
-        serde_wasm_bindgen::to_value(&detail).unwrap()
-    }
+pub fn unauthorized_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {
+    let message = String::from("Unauthorized");
+    error_detail_event(403, message, operation, errors, None)
 }
 
-#[wasm_bindgen]
-impl ErrorDetail {
-    #[allow(unused)]
-    #[wasm_bindgen(static_method_of = Node)]
-    pub fn unauthorized() -> JsValue {
-        let message = String::from("Unauthorized");
-        ErrorDetail::new(message, 403)
-    }
-    #[allow(unused)]
-    #[wasm_bindgen(static_method_of = Node)]
-    #[wasm_bindgen(js_name = invalidMethod)]
-    pub fn invalid_method() -> JsValue {
-        let message = String::from("Invalid HTTP method");
-        ErrorDetail::new(message, 405)
-    }
-    #[allow(unused)]
-    #[wasm_bindgen(static_method_of = Node)]
-    #[wasm_bindgen(js_name = notImplemented)]
-    pub fn not_implemented() -> JsValue {
-        let message = String::from("Not implemented");
-        ErrorDetail::new(message, 501)
-    }
+pub fn invalid_method_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {
+    let message = String::from("Invalid HTTP method");
+    error_detail_event(405, message, operation, errors, None)
 }
+
+pub fn not_implemented_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {
+    let message = String::from("Not implemented");
+    error_detail_event(501, message, operation, errors, None)
+}
+
+pub fn server_error_response(operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> JsError {
+    let message = String::from("Server error");
+    error_detail_event(500, message, operation, errors, data)
+}
+

@@ -24,11 +24,6 @@ interface IResponse extends IResponsePrimitive{
     body: string
     headers: { [header: string]: string | number | boolean; }
 }
-interface ITransform extends IResponsePrimitive{
-    extension?: string
-    data: object
-    headers?: { [header: string]: string | number | boolean; }
-}
 
 enum HttpMethod {
     POST = "POST",
@@ -51,23 +46,6 @@ log.use(async (log: ILogtailLog) => {
         nodeEnv: process.env.NODE_ENV??"undefined",
     }
 });
-
-// Standardize response format
-const transform = ({
-    extension="", 
-    data, 
-    statusCode, 
-    headers={}
-}: ITransform): IResponse => {
-    return {
-        statusCode,
-        headers: {
-            ...headers,
-            'Content-Type': `application/${extension}json`
-        },
-        body: JSON.stringify(data)
-    };
-}
 
 /**
  * Return a handler function depending on the HTTP method. Want to take 
@@ -110,16 +88,33 @@ export function Router(
         let context: Context;
         try {
             context = endpoint.context(event);
-            const response = methods[context.httpMethod](context);
+            const response = await methods[context.httpMethod](context);
             // const logData = context.logLine(null, response.statusCode)
             // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
-            return transform(response)
+            return {
+                ...response,
+                headers: {
+                    ...response.headers,
+                    'Content-Type': `application/json`
+                },
+                body: JSON.stringify(response.data)
+            }
         } catch (error) {
-            console.error(error);
-            const response = JSON.parse(error.message);
-            // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
-            // log.error(error.message, logData);
-            return transform(response)
+            try {
+                const response = JSON.parse(error.message);
+                // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
+                // log.error(error.message, logData);
+                return response
+            } catch (inner) {
+                return {
+                    statusCode: 500,
+                    headers: {
+                        'Content-Type': `application/json`
+                    },
+                    body: JSON.stringify(error)
+                }
+            }
+            
         }        
     }
 }

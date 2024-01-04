@@ -129,7 +129,7 @@ impl Endpoint {
     pub fn options(&self) -> String {
         let keys: Vec<&str> = self.methods.iter().map(|x| x.to_str()).collect();
         let response = json!({
-            "statusCode": 200,
+            "statusCode": 204,
             "headers": {
                 "allow": keys.join(",")
             }

@@ -9,19 +9,15 @@ import type { ApiHandler } from "./shared/middleware";
  * excluded passwords. Assume this is delegated to frontend. 
  */
 const POST: ApiHandler = async (context) => {
-  try {
-    const records = await db.writeAndParse(context.registerQuery("Register"));
-    if (records.length !== 1)
-      throw Error(`No provider match (N=${records.length})`);
-    const [{domain}] = records as {domain: string}[];
-    return {
-      data: {
-        message: `Registered as a member of ${domain}.`
-      },
-      statusCode: 200
-    }
-  } catch {
+  const records = await db.writeAndParse(context.registerQuery("Register"));
+  if (records.length !== 1)
     return context.unauthorized();
+  const [{domain}] = records as {domain: string}[];
+  return {
+    data: {
+      message: `Registered as a member of ${domain}.`
+    },
+    statusCode: 200
   }
 };
 
@@ -31,20 +27,14 @@ const POST: ApiHandler = async (context) => {
  * information needed when validating access to data. 
  */
 const GET: ApiHandler = async (context) => {
-  try {
-    const records = await db.readAndParse(context.basicAuthQuery());
-    if (records.length === 0)
-        throw Error(`Basic auth claim does not exist`)
-    else if (records.length > 1) {
-        throw Error(`Basic auth claim matches multiple accounts`)
-    }
-    const token = context.issueUserToken(process.env.SIGNING_KEY);
-    return {
-      statusCode: 200,
-      data: { token }
-    }
-  } catch (error) {
-    return JSON.parse(error.message)
+  const records = await db.readAndParse(context.basicAuthQuery());
+  if (records.length !== 1) {
+    context.unauthorized();
+  }
+  const token = context.issueUserToken(process.env.SIGNING_KEY);
+  return {
+    statusCode: 200,
+    data: { token }
   }
 };
 
