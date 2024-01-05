@@ -4,7 +4,7 @@ use crate::cypher::{Node,Links};
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::{LogLine, Operation};
 use crate::middleware::handler_event::HandlerEvent;
-use crate::middleware::authentication::{User,Provider,Authentication};
+use crate::middleware::authentication::{User,Provider};
 use crate::middleware::error::{server_error_response, unauthorized_response, MiddlewareError};
 
 /**
@@ -36,15 +36,16 @@ impl Context {
         signing_key: &String
     ) -> Result<Context, JsError> {
         let (left, right) = request.nodes(request.data());
-        let (user, provider) = request.parse_auth(signing_key);
+        let user = request.user(signing_key)?;
+        let provider = request.provider(signing_key)?;
         let this = Context {
             handler_event: request,
             start: Local::now(),
             left,
             right,
             operation,
-            user,
-            provider
+            user: Some(user),
+            provider: Some(provider)
         };
         Ok(this)
     }
@@ -98,12 +99,6 @@ impl Context {
     #[wasm_bindgen(js_name = "httpMethod")]
     pub fn http_method(&self) -> HttpMethod {
         self.handler_event.http_method
-    }
-
-    #[wasm_bindgen(getter)]
-    #[wasm_bindgen(js_name = "claimAuthMethod")]
-    pub fn claim_auth_method(&self) -> Option<Authentication> {
-        self.handler_event.headers.claim_auth_method()
     }
 
     #[wasm_bindgen(getter)]
@@ -290,10 +285,10 @@ impl Context {
     pub fn register_query(&self, label: Option<String>) -> Result<String, JsError> {
         let errors = self.check_user_and_provider();        
         if errors.len() > 0 {
-            let error = server_error_response(
+            let error = unauthorized_response(
                 "registerQuery".to_string(),
                 errors,
-                None
+                self.handler_event.headers.authorization.clone()
             );
             return Err(error);
         }

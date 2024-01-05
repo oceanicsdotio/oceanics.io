@@ -140,28 +140,6 @@ export const fetchToken = async () => {
   return token;
 }
 
-export const registerJSON = (apiKey: string) => {
-  return {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey ?? ""
-    },
-    body: JSON.stringify({
-      email: process.env.SERVICE_ACCOUNT_USERNAME,
-      password: process.env.SERVICE_ACCOUNT_PASSWORD,
-      secret: process.env.SERVICE_ACCOUNT_SECRET
-    }),
-  }
-}
-
-/**
- * Convenience method for creating consistent test user account under
- * multiple providers.
- */
-export const register = (apiKey: string) =>
-  fetch(`${API_PATH}/auth`, registerJSON(apiKey));
-
 // Bind an auth token to fetch transaction
 export const apiFetch = (url: string, method = "GET") => async (data?: unknown) => {
   const token = await fetchToken();
@@ -170,7 +148,7 @@ export const apiFetch = (url: string, method = "GET") => async (data?: unknown) 
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `bearer:${token}`,
+      Authorization: `Bearer:${token}`,
     },
   })
 };

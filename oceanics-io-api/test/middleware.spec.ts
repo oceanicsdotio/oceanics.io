@@ -50,7 +50,6 @@ describe("idempotent", function () {
         })
         const context = endpoint.context(EXAMPLE_REQUEST);
         expect(context).toBeInstanceOf(Context);
-        expect(context.claimAuthMethod).toBe("BearerAuth");
         expect(typeof context.elapsedTime).toBe("number");
         expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
         const log = context.logLine("test@oceanics.io", 403);

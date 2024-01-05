@@ -3,6 +3,7 @@ mod headers;
 pub use headers::Headers;
 mod query_string_parameters;
 pub use query_string_parameters::QueryStringParameters;
+use wasm_bindgen::JsError;
 
 use crate::middleware::HttpMethod;
 use crate::middleware::error::MiddlewareError;
@@ -12,6 +13,8 @@ use crate::cypher::Node;
 use std::collections::HashMap;
 use serde::Deserialize;
 use serde_json::Value;
+
+use super::error::unauthorized_response;
 
 /**
  * Data passed in from the Netlify handler. This shadows the 
@@ -27,6 +30,87 @@ pub struct HandlerEvent {
 }
 
 impl HandlerEvent {
+
+    pub fn token(&self) -> Result<String, JsError> {
+        let parts = <[String; 2]>::try_from(self.headers.authorization());
+        if parts.is_err() {
+            return Err(unauthorized_response(
+                "handler_event.token".to_string(), 
+                vec![MiddlewareError::HeaderAuthorizationInvalid], 
+                self.headers.authorization.clone()
+            ))
+        }
+        let [_, token] = parts.unwrap();
+        Ok(token)
+    }
+
+    pub fn user(&self, signing_key: &String) -> Result<User, JsError> {
+        // Already pattern-checked using regex
+        let auth_method = self.headers.claim_auth_method();
+        match auth_method {
+            Some(Authentication::BearerAuth) => {
+                let token = self.token()?;
+                let claims = Claims::decode(token.clone(), signing_key);
+                if claims.is_err() {
+                    return Err(unauthorized_response(
+                        "handler_event.user".to_string(), 
+                        vec![
+                            MiddlewareError::TokenDecodeFailed
+                        ], 
+                        Some(claims.err().unwrap().to_string())
+                    ))
+                }
+                Ok(User::from(&claims.ok().unwrap()))
+            },
+            Some(Authentication::BasicAuth) => {
+                let auth_parts  =  <[String; 3]>::try_from(self.headers.authorization());
+                if auth_parts.is_err() {
+                    return Err(unauthorized_response(
+                        "handler_event.user".to_string(), 
+                        vec![
+                            MiddlewareError::HeaderAuthorizationInvalid
+                        ], 
+                        self.headers.authorization.clone()
+                    ))
+                }
+                let [email, password, secret] = auth_parts.ok().unwrap();
+                Ok(User::create(
+                    email, 
+                    password, 
+                    secret
+                ))
+            },
+            _ => {
+                Err(unauthorized_response(
+                    "handler_event.user".to_string(), 
+                    vec![MiddlewareError::HeaderAuthorizationInvalid], 
+                    self.headers.authorization.clone()
+                ))
+            },
+        }
+    }
+
+    pub fn provider(&self, signing_key: &String) -> Result<Provider, JsError> {
+        // Already pattern-checked using regex
+        let auth_method = self.headers.claim_auth_method();
+        match auth_method {
+            Some(Authentication::BearerAuth) => {
+                let [_, token] = 
+                    <[String; 2]>::try_from(self.headers.authorization()).unwrap_or_else(
+                        |_| panic!("{}", MiddlewareError::HeaderAuthorizationInvalid)
+                    );
+                let claims = Claims::decode(token.clone(), signing_key).unwrap_or_else(|err| panic!("{}, {}: {}", MiddlewareError::TokenDecodeFailed, err, token));
+                Ok(Provider::from(&claims))
+            },
+            _ => {
+                Err(unauthorized_response(
+                    "handler_event.provider".to_string(), 
+                    vec![MiddlewareError::HeaderAuthorizationInvalid], 
+                    self.headers.authorization.clone()
+                ))
+            },
+        }
+    }
     /**
      * Decode a JWT to get the issuer and/or subject. For us, this
      * corresponds to the provider and user respectively.
@@ -62,10 +146,7 @@ impl HandlerEvent {
         };
         (user, provider)
     }
-}
 
-
-impl HandlerEvent {
     /**
      * Body as String, like `text()`. Because we only expect there
      * to a body on PUT and POST requests, throw an error if the

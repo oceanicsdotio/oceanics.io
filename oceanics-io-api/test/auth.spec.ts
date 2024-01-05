@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
-import type {Response} from "node-fetch";
+import type { Response } from "node-fetch";
 import { describe, expect, test, beforeAll } from '@jest/globals';
-import { API_PATH, fetchToken, Authorization, register as registerRequest } from "./test-utils";
+import { API_PATH, fetchToken, Authorization } from "./test-utils";
 import * as db from "../src/shared/queries";
 
 import {
@@ -32,7 +32,7 @@ describe("auth handlers", function () {
       ["NEO4J_HOSTNAME"],
       ["NEO4J_ACCESS_KEY"],
       ["LOGTAIL_SOURCE_TOKEN"]
-    ])(`%s is in environment`, async function(key: string) {
+    ])(`%s is in environment`, async function (key: string) {
       const value = process.env[key];
       expect(typeof value).toBe("string");
       expect(value).not.toBeFalsy();
@@ -49,7 +49,7 @@ describe("auth handlers", function () {
       ["User", "email"]
     ])(`%s.%s`, async function (label: string, key: string) {
       const node = new Node(undefined, undefined, label);
-      const {query} = node.uniqueConstraintQuery(key);
+      const { query } = node.uniqueConstraintQuery(key);
       await db.write(query);
     })
   })
@@ -86,30 +86,48 @@ describe("auth handlers", function () {
         expect(response.status).toEqual(code);
       } catch (error) {
         const data = await response.json();
-        console.warn(data);
+        console.log(data);
         throw error
       }
-      }
-      
+    }
+
+
+    /**
+     * Convenience method for creating consistent test user account under
+     * multiple providers.
+     */
+    const register = (apiKey: string) =>
+      fetch(`${API_PATH}/auth`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer:${apiKey}`
+        },
+        body: JSON.stringify({
+          email: process.env.SERVICE_ACCOUNT_USERNAME,
+          password: process.env.SERVICE_ACCOUNT_PASSWORD,
+          secret: process.env.SERVICE_ACCOUNT_SECRET
+        }),
+      });
 
     test("allows registration with valid API key", async function () {
-      const response = await registerRequest(process.env.SERVICE_PROVIDER_API_KEY??"");
-      expect_status_code(response, 200);
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY ?? "");
+      await expect_status_code(response, 200);
     });
 
     test("prevents duplicate registration", async function () {
-      const response = await registerRequest(process.env.SERVICE_PROVIDER_API_KEY??"");
-      expect_status_code(response, 403);
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY ?? "");
+      await expect_status_code(response, 403);
     });
 
     test.concurrent("denies missing API key with 403", async function () {
-      const response = await registerRequest("");
-      expect_status_code(response, 403);
+      const response = await register("");
+      await expect_status_code(response, 403);
     });
 
     test.concurrent("denies invalid API key with 403", async function () {
-      const response = await registerRequest("not-a-valid-api-key");
-      expect_status_code(response, 403);
+      const response = await register("not-a-valid-api-key");
+      await expect_status_code(response, 403);
     });
   });
 
@@ -142,7 +160,7 @@ describe("auth handlers", function () {
       });
       try {
         expect(response.status).toEqual(401);
-      } catch(err) {
+      } catch (err) {
         console.warn(await response.json());
         throw err;
       }
@@ -156,7 +174,7 @@ describe("auth handlers", function () {
       });
       try {
         expect(response.status).toEqual(401);
-      } catch(err) {
+      } catch (err) {
         console.warn(await response.json());
         throw err;
       }

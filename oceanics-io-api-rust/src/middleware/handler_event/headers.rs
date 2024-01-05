@@ -41,7 +41,15 @@ impl Headers {
             } if basic.is_match(auth) => {
                 Some(Authentication::BasicAuth)
             },
-            _ => None
+            Self {
+                authorization: None,
+                ..
+            } => {
+                Some(Authentication::NoAuth)
+            },
+            _ => {
+                None
+            }
         }
     }
 
@@ -83,7 +91,7 @@ mod tests {
         let headers = Headers {
             authorization: None
         };
-        assert!(headers.claim_auth_method().is_none());
+        assert_eq!(headers.claim_auth_method(), Some(Authentication::NoAuth));
     }
 
     #[test]
