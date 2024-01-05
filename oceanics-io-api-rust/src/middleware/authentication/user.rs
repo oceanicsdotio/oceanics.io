@@ -114,7 +114,7 @@ impl User {
             errors.push(MiddlewareError::PasswordInvalid)
         }
         if self.secret.is_none() {
-            errors.push(MiddlewareError::PasswordMissing)
+            errors.push(MiddlewareError::SecretMissing)
         } else if !base64.is_match(self.secret.as_ref().unwrap()) {
             errors.push(MiddlewareError::SecretInvalid)
         }

@@ -9,9 +9,14 @@ import type { ApiHandler } from "./shared/middleware";
  * excluded passwords. Assume this is delegated to frontend. 
  */
 const POST: ApiHandler = async (context) => {
-  const records = await db.writeAndParse(context.registerQuery("Register"));
-  if (records.length !== 1)
-    return context.unauthorized();
+  const query = context.registerQuery("Register");
+  const records = await db.writeAndParse(query);
+  if (records.length === 0) {
+    throw context.unauthorizedNoMatchingCredentials("auth.post");
+  } else if (records.length > 1) {
+    throw context.unauthorizedMultipleMatchingCredentials("auth.post");
+  }
+  
   const [{domain}] = records as {domain: string}[];
   return {
     data: {
@@ -30,8 +35,10 @@ const GET: ApiHandler = async (context) => {
   const query = context.basicAuthQuery();
   console.log({query})
   const records = await db.readAndParse(query);
-  if (records.length !== 1) {
-    context.unauthorized();
+  if (records.length === 0) {
+    throw context.unauthorizedNoMatchingCredentials("auth.get");
+  } else if (records.length > 1) {
+    throw context.unauthorizedMultipleMatchingCredentials("auth.get");
   }
   const token = context.issueUserToken(process.env.SIGNING_KEY);
   return {

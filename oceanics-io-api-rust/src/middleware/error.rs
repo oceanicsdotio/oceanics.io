@@ -17,6 +17,8 @@ pub enum MiddlewareError {
     NoHandlerEventContextRightNode,
     NoHandlerEventContextProvider,
     Unknown,
+    MultipleCredentialResolutions,
+    NoCredentialResolution,
     // Auth
     PasswordInvalid,
     PasswordMissing,

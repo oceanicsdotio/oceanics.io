@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import type {Response} from "node-fetch";
 import { describe, expect, test, beforeAll } from '@jest/globals';
 import { API_PATH, fetchToken, Authorization, register as registerRequest } from "./test-utils";
 import * as db from "../src/shared/queries";
@@ -80,24 +81,35 @@ describe("auth handlers", function () {
    */
   describe("auth.post", function () {
 
+    async function expect_status_code(response: Response, code: number) {
+      try {
+        expect(response.status).toEqual(code);
+      } catch (error) {
+        const data = await response.json();
+        console.warn(data);
+        throw error
+      }
+      }
+      
+
     test("allows registration with valid API key", async function () {
       const response = await registerRequest(process.env.SERVICE_PROVIDER_API_KEY??"");
-      expect(response.status).toEqual(200);
+      expect_status_code(response, 200);
     });
 
     test("prevents duplicate registration", async function () {
       const response = await registerRequest(process.env.SERVICE_PROVIDER_API_KEY??"");
-      expect(response.status).toEqual(403);
+      expect_status_code(response, 403);
     });
 
     test.concurrent("denies missing API key with 403", async function () {
       const response = await registerRequest("");
-      expect(response.status).toEqual(403);
+      expect_status_code(response, 403);
     });
 
     test.concurrent("denies invalid API key with 403", async function () {
       const response = await registerRequest("not-a-valid-api-key");
-      expect(response.status).toEqual(403);
+      expect_status_code(response, 403);
     });
   });
 
@@ -128,9 +140,12 @@ describe("auth handlers", function () {
           Authorization: Authorization(undefined, "a-very-bad-password", undefined),
         },
       });
-      const data = await response.json();
-      console.warn("Data", data);
-      expect(response.status).toEqual(401);
+      try {
+        expect(response.status).toEqual(401);
+      } catch(err) {
+        console.warn(await response.json());
+        throw err;
+      }
     });
 
     test("denies wrong salt with 401", async function () {
@@ -139,7 +154,12 @@ describe("auth handlers", function () {
           Authorization: Authorization(undefined, undefined, "a-very-bad-secret"),
         },
       });
-      expect(response.status).toEqual(401);
+      try {
+        expect(response.status).toEqual(401);
+      } catch(err) {
+        console.warn(await response.json());
+        throw err;
+      }
     });
   });
 });

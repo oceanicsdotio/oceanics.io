@@ -126,7 +126,13 @@ export const fetchToken = async () => {
     },
   })
   const data = await response.json();
-  expect(response.status).toBe(200);
+  try {
+    expect(response.status).toBe(200);
+  } catch (error) {
+    console.warn(data);
+    throw error;
+  }
+  
   const { token } = data;
   expect(typeof token).toBe("string");
   expect(token).not.toBeFalsy();

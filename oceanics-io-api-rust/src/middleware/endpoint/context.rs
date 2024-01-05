@@ -117,11 +117,20 @@ impl Context {
         serde_wasm_bindgen::to_value(&self.handler_event.query_string_parameters).unwrap()
     }
 
-    #[wasm_bindgen]
-    pub fn unauthorized(&self) -> JsError {
+    #[wasm_bindgen(js_name="unauthorizedMultipleMatchingCredentials")]
+    pub fn unauthorized_multiple_matching_credentials(&self, operation: String) -> JsError {
         unauthorized_response(
-            "None".to_string(),
-            vec![MiddlewareError::Unknown],
+            operation,
+            vec![MiddlewareError::MultipleCredentialResolutions],
+            None
+        )
+    }
+
+    #[wasm_bindgen(js_name="unauthorizedNoMatchingCredentials")]
+    pub fn unauthorized_no_matching_credentials(&self, operation: String) -> JsError {
+        unauthorized_response(
+            operation,
+            vec![MiddlewareError::NoCredentialResolution],
             None
         )
     }
