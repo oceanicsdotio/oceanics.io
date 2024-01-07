@@ -1,13 +1,16 @@
 use std::convert::TryFrom;
-mod headers;
-pub use headers::Headers;
-mod query_string_parameters;
-pub use query_string_parameters::QueryStringParameters;
 use wasm_bindgen::JsError;
 
-use crate::middleware::HttpMethod;
-use crate::middleware::error::MiddlewareError;
-use crate::middleware::authentication::{Authentication,User,Provider,Claims};
+use crate::middleware::{
+    Authentication,
+    Claims,
+    Headers,
+    HttpMethod,
+    MiddlewareError,
+    Provider,
+    QueryStringParameters,
+    User
+};
 use crate::cypher::Node;
 
 use std::collections::HashMap;
@@ -44,23 +47,29 @@ impl HandlerEvent {
         Ok(token)
     }
 
-    pub fn user(&self, signing_key: &String) -> Result<User, JsError> {
-        // Already pattern-checked using regex
-        let auth_method = self.headers.claim_auth_method();
-        match auth_method {
+    pub fn token_claims(&self, signing_key: &String) -> Result<Claims, JsError> {
+        let token = self.token()?;
+        let claims = Claims::decode(token.clone(), signing_key);
+        if claims.is_err() {
+            return Err(unauthorized_response(
+                "handler_event.token_claims".to_string(), 
+                vec![
+                    MiddlewareError::TokenDecodeFailed
+                ], 
+                Some(claims.err().unwrap().to_string())
+            ))
+        }
+        Ok(claims.ok().unwrap())
+    }
+
+    /**
+     * Strategy for parsing depends on the HTTP method
+     */
+    pub fn user(&self, signing_key: &String) -> Result<Option<User>, JsError> {
+        match self.headers.claim_auth_method() {
             Some(Authentication::BearerAuth) => {
-                let token = self.token()?;
-                let claims = Claims::decode(token.clone(), signing_key);
-                if claims.is_err() {
-                    return Err(unauthorized_response(
-                        "handler_event.user".to_string(), 
-                        vec![
-                            MiddlewareError::TokenDecodeFailed
-                        ], 
-                        Some(claims.err().unwrap().to_string())
-                    ))
-                }
-                Ok(User::from(&claims.ok().unwrap()))
+                let claims = self.token_claims(signing_key)?;
+                Ok(Some(User::from(&claims)))
             },
             Some(Authentication::BasicAuth) => {
                 let auth_parts  =  <[String; 3]>::try_from(self.headers.authorization());
@@ -74,32 +83,21 @@ impl HandlerEvent {
                     ))
                 }
                 let [email, password, secret] = auth_parts.ok().unwrap();
-                Ok(User::create(
+                Ok(Some(User::new(
                     email, 
                     password, 
                     secret
-                ))
+                )))
             },
-            _ => {
-                Err(unauthorized_response(
-                    "handler_event.user".to_string(), 
-                    vec![MiddlewareError::HeaderAuthorizationInvalid], 
-                    self.headers.authorization.clone()
-                ))
-            },
+            _ => Ok(None),
         }
     }
 
     pub fn provider(&self, signing_key: &String) -> Result<Provider, JsError> {
         // Already pattern-checked using regex
-        let auth_method = self.headers.claim_auth_method();
-        match auth_method {
+        match self.headers.claim_auth_method() {
             Some(Authentication::BearerAuth) => {
-                let [_, token] = 
-                    <[String; 2]>::try_from(self.headers.authorization()).unwrap_or_else(
-                        |_| panic!("{}", MiddlewareError::HeaderAuthorizationInvalid)
-                    );
-                let claims = Claims::decode(token.clone(), signing_key).unwrap_or_else(|err| panic!("{}, {}: {}", MiddlewareError::TokenDecodeFailed, err, token));
+                let claims = self.token_claims(signing_key)?;
                 Ok(Provider::from(&claims))
             },
             _ => {
@@ -110,41 +108,6 @@ impl HandlerEvent {
                 ))
             },
         }
-    }
-    /**
-     * Decode a JWT to get the issuer and/or subject. For us, this
-     * corresponds to the provider and user respectively.
-     * 
-     * We use tokens for both granting registration capabilities, 
-     * and performing account/user level interactions, so both
-     * user and provider are optional. 
-     */
-    pub fn parse_auth(&self, signing_key: &String) -> (Option<User>, Option<Provider>) {
-        // Already pattern-checked using regex, shouldn't throw an error
-        let mut user: Option<User> = None;
-        let mut provider: Option<Provider> = None;
-        match self.headers.claim_auth_method() {
-            Some(Authentication::BearerAuth) => {
-                let [_, token] = 
-                    <[String; 2]>::try_from(self.headers.authorization()).unwrap_or_else(
-                        |_| panic!("{}", MiddlewareError::HeaderAuthorizationInvalid)
-                    );
-                let claims = Claims::decode(token.clone(), signing_key).unwrap_or_else(|err| panic!("{}, {}: {}", MiddlewareError::TokenDecodeFailed, err, token));
-                user = Some(User::from(&claims));
-                provider = Some(Provider::from(&claims));
-            },
-            Some(Authentication::BasicAuth) => {
-                let [email, password, secret] = 
-                    <[String; 3]>::try_from(self.headers.authorization()).ok().unwrap_or_else(|| panic!("{}", MiddlewareError::HeaderAuthorizationInvalid));
-                user = Some(User::create(
-                    email, 
-                    password, 
-                    secret
-                ));
-            },
-            _ => {}
-        };
-        (user, provider)
     }
 
     /**
@@ -229,9 +192,8 @@ impl HandlerEvent {
 #[cfg(test)]
 mod tests {
     use hex::encode;
-
-    use super::{HandlerEvent, HttpMethod, Headers, QueryStringParameters};
-    use crate::middleware::authentication::{User,Authentication,Claims};
+    use super::HandlerEvent;
+    use crate::middleware::{User,Authentication,Claims, HttpMethod, Headers, QueryStringParameters};
     const EMPTY_QUERY: QueryStringParameters = QueryStringParameters {
         left: None,
         uuid: None,
@@ -303,7 +265,7 @@ mod tests {
     #[test]
     fn parse_auth_from_bearer_auth () {
         let signing_key = String::from(encode("another_secret"));
-        let _user = User::create(
+        let _user = User::new(
             String::from("testing@oceanics.io"),
             String::from("some_password"),
             String::from("some_secret")

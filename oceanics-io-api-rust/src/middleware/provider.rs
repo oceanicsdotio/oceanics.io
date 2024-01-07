@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-use super::Claims;
-use crate::cypher::node::Node;
+use crate::middleware::Claims;
+use crate::cypher::Node;
 
 /**
  * Like Users, Providers are a special type of internal Node
@@ -65,8 +65,8 @@ impl From<&Provider> for Claims {
 #[cfg(test)]
 mod tests {
     use super::Provider;
-    use super::Claims;
-    use crate::cypher::node::Node;
+    use crate::middleware::Claims;
+    use crate::cypher::Node;
 
     #[test]
     fn create_provider () {

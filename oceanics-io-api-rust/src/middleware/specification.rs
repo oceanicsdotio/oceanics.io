@@ -1,6 +1,8 @@
 use serde::Deserialize;
-use crate::middleware::authentication::Authentication;
-use crate::middleware::endpoint::security::Security;
+use crate::middleware::{
+    Authentication,
+    Security
+};
 
 /**
  * Specification for the request. These data
@@ -42,8 +44,7 @@ pub struct Specification {
 
 #[cfg(test)]
 mod tests {
-    use crate::middleware::endpoint::security::Security;
-    use crate::middleware::authentication::Authentication;
+    use crate::middleware::{Authentication,Security};
     use super::Operation;
 
     #[test]

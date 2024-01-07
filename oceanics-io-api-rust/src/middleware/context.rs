@@ -1,11 +1,17 @@
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
+
 use crate::cypher::{Node,Links};
-use crate::middleware::HttpMethod;
-use crate::middleware::endpoint::{LogLine, Operation};
-use crate::middleware::handler_event::HandlerEvent;
-use crate::middleware::authentication::{User,Provider};
-use crate::middleware::error::{server_error_response, unauthorized_response, MiddlewareError};
+use crate::middleware::{
+    HttpMethod,
+    LogLine, 
+    Operation,
+    HandlerEvent,
+    Provider,
+    server_error_response, 
+    unauthorized_response, 
+    MiddlewareError
+};
 
 /**
  * The Outer Function level context produces
@@ -24,8 +30,6 @@ pub struct Context {
     #[wasm_bindgen(getter_with_clone)]
     pub right: Option<Node>,
     #[wasm_bindgen(getter_with_clone)]
-    pub user: Option<User>,
-    #[wasm_bindgen(getter_with_clone)]
     pub provider: Option<Provider>
 }
 
@@ -36,22 +40,28 @@ impl Context {
         signing_key: &String
     ) -> Result<Context, JsError> {
         let (left, right) = request.nodes(request.data());
-        let user = request.user(signing_key)?;
-        let provider = request.provider(signing_key)?;
+        // user more likely, try first then check provider
+        let user = request.user(signing_key);
+        let mut provider: Option<Provider> = None;
+        if user.is_err() || user.is_ok_and(|u|u.is_none()) {
+            let _provider = request.provider(signing_key);
+        }
         let this = Context {
             handler_event: request,
             start: Local::now(),
             left,
             right,
             operation,
-            user: Some(user),
-            provider: Some(provider)
+            user: user.ok().expect("user-not-ok"),
+            provider
         };
         Ok(this)
     }
 }
 
 impl Context {
+
+    
     fn check_user(&self) -> Vec<MiddlewareError> {
         let mut errors: Vec<MiddlewareError> = Vec::with_capacity(3);
         if self.user.is_none() {

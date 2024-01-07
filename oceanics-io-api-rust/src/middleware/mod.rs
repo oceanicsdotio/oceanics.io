@@ -1,9 +1,29 @@
-
-
 pub mod authentication;
+pub use authentication::Authentication;
+pub mod claims;
+pub use claims::Claims;
+pub mod context;
+pub use context::Context;
 pub mod endpoint;
-pub mod handler_event;
+pub use endpoint::Endpoint;
 pub mod error;
+pub use error::*;
+pub mod handler_event;
+pub use handler_event::HandlerEvent;
+pub mod headers;
+pub use headers::Headers;
+pub mod log_line;
+pub use log_line::LogLine;
+pub mod provider;
+pub use provider::Provider;
+pub mod query_string_parameters;
+pub use query_string_parameters::QueryStringParameters;
+pub mod security;
+pub use security::Security;
+pub mod specification;
+pub use specification::{Operation,Specification};
+pub mod user;
+pub use user::User;
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;

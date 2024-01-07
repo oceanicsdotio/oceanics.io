@@ -1,11 +1,10 @@
+use wasm_bindgen::prelude::*;
 use std::{
     fmt,
     convert::From,
     collections::HashMap
 };
 use regex::Regex;
-use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use pbkdf2::{
     Pbkdf2,
@@ -16,13 +15,16 @@ use pbkdf2::{
         Salt
     }
 };
-
-use super::Claims;
 use crate::{
     cypher::Node, 
-    middleware::error::unauthorized_response
+    middleware::{
+        error::{
+            unauthorized_response,
+            MiddlewareError
+        },
+        claims::Claims
+    }
 };
-use crate::middleware::error::MiddlewareError;
 
 /**
  * Users are a special type of internal node. They
@@ -30,23 +32,20 @@ use crate::middleware::error::MiddlewareError;
  * apply to Nodes, so we provide methods for transforming
  * between the two. 
  */
-#[wasm_bindgen]
-#[derive(Serialize, Deserialize, Clone)]
-pub struct User {
+pub struct User<'a> {
     email: String,
-    password: Option<String>,
-    secret: Option<String>,
+    credential: Option<PasswordHash<'a>>
 }
 
 // Control how user info is printed, prevent leaking secrets
-impl fmt::Display for User {
+impl fmt::Display for User<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.email)
     }
 }
 
 // Transform into claims for hash operations
-impl From<&User> for Claims {
+impl From<&User<'_>> for Claims {
     fn from(user: &User) -> Self {
         Claims::new(
             user.email.to_string(),
@@ -57,91 +56,47 @@ impl From<&User> for Claims {
 }
 
 // Transform into application user type from claims
-impl From<&Claims> for User {
+impl From<&Claims> for User<'_> {
     fn from(claims: &Claims) -> Self {
         User {
             email: claims.sub.clone(), 
-            password: None, 
-            secret: None
+            credential: None,
         }
     }
 }
 
-impl User {
-    /**
-     * All fields are private, so we expose a rust level
-     * 
-     * constructor in addition to the new() method. Needs
-     * to be public for use in `Context` methods. Reduces
-     * boilerplate by wrapping optional values with Some().
-     */ 
-    pub fn create(
+impl<'a> User<'a> {
+    pub fn new(
         email: String, 
         password: String, 
         secret: String
-    ) -> Self {
-        User {
-            email,
-            password: Some(password),
-            secret: Some(secret)
-        }
-    }
-
-    // Transform User into database Node representation
-    pub fn node(&self) -> Result<Node, JsError> {
-        let mut properties = HashMap::new();
-        properties.insert(
-            "email".into(), Value::String(self.email.clone())
-        );
-        let credential = self.credential();
-        if credential.is_err() {
-            return Err(credential.err().unwrap())
-        }
-        let cred_string = credential.ok().unwrap().to_string();
-        properties.insert(
-            "credential".into(), Value::String(cred_string)
-        );
-        let node = Node::from_hash_map(properties, "User".to_string());
-        Ok(node)
-    }
-
-    fn check_secrets(&self) -> Vec<MiddlewareError> {
+    ) -> Result<User<'a>, JsError> {
         let mut errors: Vec<MiddlewareError> = Vec::with_capacity(10);
         let base64: Regex = Regex::new(r"^[-A-Za-z0-9+/]*={0,3}$+").unwrap();
-        if self.password.is_none() {
+        if password.is_none() | password.is_some_and(|p| p.len() == 0) {
             errors.push(MiddlewareError::PasswordMissing)
-        } else if !base64.is_match(self.password.as_ref().unwrap()) {
+        } else if !base64.is_match(password.as_ref().unwrap()) {
             errors.push(MiddlewareError::PasswordInvalid)
         }
-        if self.secret.is_none() {
+        if secret.is_none() | secret.is_some_and(|p| p.len() == 0) {
             errors.push(MiddlewareError::SecretMissing)
-        } else if !base64.is_match(self.secret.as_ref().unwrap()) {
+        } else if !base64.is_match(secret.as_ref().unwrap()) {
             errors.push(MiddlewareError::SecretInvalid)
         }
-        return errors
-    }
-
-    /**
-     * Salt the password with a provided secret.
-     */
-    fn credential(&self) -> Result<PasswordHash, JsError> {
-        let mut errors = self.check_secrets();
         if errors.len() > 0 {
             let error = unauthorized_response(
-                "credential".to_string(),
+                "User::new".to_string(),
                 errors,
                 None
             );
             return Err(error);
         }
-        let secret = self.secret.as_ref().unwrap();
-        let password = self.password.as_ref().unwrap();
-        let salt = Salt::from_b64(&secret);
+        let salt = Salt::from_b64(&secret.clone());
         if salt.is_err() {
             let _error = salt.err().unwrap();
             errors.push(MiddlewareError::SecretInvalid);
             let error = unauthorized_response(
-                "credential".to_string(),
+                "User::new".to_string(),
                 errors,
                 Some(_error.to_string())
             );
@@ -155,32 +110,36 @@ impl User {
             let _error = password_hash.err().unwrap();
             errors.push(MiddlewareError::PasswordHash);
             let error = unauthorized_response(
-                "credential".to_string(),
+                "User::new".to_string(),
                 errors,
                 Some(_error.to_string())
             );
             return Err(error);
         }
-        Ok(password_hash.unwrap())
+        Ok(User {
+            email,
+            credential: Some(password_hash.unwrap())
+        })
     }
-}
 
-/**
- * Methods exposed to JavaScript
- */
-#[wasm_bindgen]
-impl User {
-    #[wasm_bindgen(constructor)]
-    pub fn new(data: JsValue) -> Self {
-        serde_wasm_bindgen::from_value(data).unwrap()
+    // Transform User into database Node representation
+    pub fn node(&self) -> Result<Node, JsError> {
+        let mut properties = HashMap::new();
+        properties.insert(
+            "email".into(), Value::String(self.email.clone())
+        );
+        let cred_string = self.credential.unwrap().to_string();
+        properties.insert(
+            "credential".into(), Value::String(cred_string)
+        );
+        let node = Node::from_hash_map(properties, "User".to_string());
+        Ok(node)
     }
 
     // Create a JS object 
-    #[wasm_bindgen(js_name=issueToken)]
-    pub fn issue_token(&self, signing_key: &str) -> String {
-        Claims::from(self).encode(signing_key).expect(
-            "Could not create token"
-        )
+    pub fn issue_token(&self, signing_key: &str) -> Result<String, JsError> {
+        let claims = Claims::from(self).encode(signing_key);
+        Ok(claims.unwrap())
     }
 
     /**
@@ -188,37 +147,32 @@ impl User {
      * which is a $-separated string that includes algorithm, salt,
      * and hash.
      */
-    #[wasm_bindgen(js_name=verifyCredential)]
     pub fn verify_credential(self, stored_credential: String) -> Result<bool, JsError> {
-        let claim_credential = self.credential();
-        if claim_credential.is_err() {
-            return Err(claim_credential.err().unwrap())
-        }
         let bytes = stored_credential.as_bytes();
-        Ok(Pbkdf2.verify_password(bytes, claim_credential.ok().as_ref().unwrap()).is_ok())
+        Ok(Pbkdf2.verify_password(bytes, self.credential.as_ref().unwrap()).is_ok())
     }
 }
 
 
 #[cfg(test)]
 mod tests {
-    use super::{User, Claims};
+    use super::User;
+    use crate::middleware::Claims;
     use hex::encode;
 
     #[test]
     fn create_user () {
-        let user = User::create(
+        let user = User::new(
             "test@oceanics.io".to_string(), 
             encode("password"), 
             encode("secret")
         );
-        assert!(user.password.is_some());
-        assert!(user.secret.is_some());
+        assert!(user.credential.is_some());
     }
 
     #[test]
     fn transform_user_into_node () {
-        let user = User::create(
+        let user = User::new(
             "test@oceanics.io".to_string(),
             encode("password"),
             encode("secret")
@@ -230,7 +184,7 @@ mod tests {
     #[test]
     fn transform_user_into_claims () {
         let email = "test@oceanics.io".to_string();
-        let user = User::create(
+        let user = User::new(
             email.clone(),
             encode("password"),
             encode("secret")
@@ -254,65 +208,64 @@ mod tests {
     #[test]
     #[should_panic(expected = "SecretMissing")]
     fn user_credential_panics_with_no_secret () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("some_password")),
-            secret: None
-        };
-        let _cred = user.credential();
+        let user = User::new (
+            "test@oceanics.io".to_string(),
+            Some(encode("some_password")),
+            None
+        );
     }
 
     #[test]
     fn user_credential_panics_with_no_password () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: None,
-            secret: Some("some_secret".to_string())
-        };
+        let user = User::new( 
+            "test@oceanics.io".to_string(),
+            None,
+            Some("some_secret".to_string())
+        );
         let _cred = user.credential();
         assert!(_cred.is_err());
     }
 
     #[test]
     fn user_credential_panics_with_empty_secret () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("some_password")),
-            secret: Some(encode(""))
-        };
+        let user = User::new(
+            "test@oceanics.io".to_string(),
+            Some(encode("some_password")),
+            Some(encode(""))
+        );
         let _cred = user.credential();
         assert!(_cred.is_err());
     }
 
     #[test]
     fn user_credential_panics_with_plaintext_secret () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("some_password")),
-            secret: Some("some_secret".to_string())
-        };
+        let user = User::new(
+            "test@oceanics.io".to_string(),
+            Some(encode("some_password")),
+            Some("some_secret".to_string())
+        );
         let _cred = user.credential();
         assert!(_cred.is_err());
     }
 
     #[test]
     fn user_credential_panics_with_empty_password () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("")),
-            secret: Some(encode("some_secret".to_string()))
-        };
+        let user = User::new(
+            "test@oceanics.io".to_string(),
+            Some(encode("")),
+            Some(encode("some_secret".to_string()))
+        );
         let _cred = user.credential();
         assert!(_cred.is_err());
     }
 
     #[test]
     fn user_credential_panics_with_plaintext_password () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some("some_password".to_string()),
-            secret: Some(encode("some_secret".to_string()))
-        };
+        let user = User::new(
+            "test@oceanics.io".to_string(),
+            Some("some_password".to_string()),
+            Some(encode("some_secret".to_string()))
+        );
         let _cred = user.credential();
         assert!(_cred.is_err());
     }
@@ -320,7 +273,7 @@ mod tests {
     #[test]
     fn user_verify_credential () {
         let password = encode("password");
-        let user = User::create(
+        let user = User::new(
             "test@oceanics.io".to_string(),
             password.clone(),
             encode("secret")
@@ -331,7 +284,7 @@ mod tests {
 
     #[test]
     fn denies_bad_credentials () {
-        let user = User::create(
+        let user = User::new(
             "test@oceanics.io".to_string(),
             encode("password"),
             encode("secret")
@@ -341,7 +294,7 @@ mod tests {
 
     #[test]
     fn user_issue_token () {
-        let user = User::create(
+        let user = User::new(
             "test@oceanics.io".to_string(),
             encode("password"),
             encode("secret")

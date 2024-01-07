@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use serde_json::Value;
-use crate::middleware::authentication::Authentication;
+use crate::middleware::Authentication;
 
 /**
  * Schema for individual item in OpenAPI security object
@@ -39,7 +39,7 @@ impl From<&Security> for Authentication {
 
 #[cfg(test)]
 mod tests {
-    use crate::middleware::authentication::Authentication;
+    use crate::middleware::Authentication;
     use super::Security;
 
     #[test]

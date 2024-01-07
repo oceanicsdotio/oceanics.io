@@ -1,8 +1,10 @@
 use serde::Deserialize;
 use regex::Regex;
 
-use crate::middleware::authentication::Authentication;
-use crate::middleware::error::MiddlewareError;
+use crate::middleware::{
+    Authentication, 
+    MiddlewareError
+};
 
 /**
  * Extract Authentication information from the
@@ -64,8 +66,7 @@ impl Headers {
 
 #[cfg(test)]
 mod tests {
-    use crate::middleware::authentication::Authentication;
-    use super::Headers;
+    use crate::middleware::{Authentication, Headers};
 
     #[test]
     fn request_headers_claim_auth_method_with_bearer_auth_lowercase () {

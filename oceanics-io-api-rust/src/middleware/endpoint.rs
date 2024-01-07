@@ -2,18 +2,15 @@ use wasm_bindgen::prelude::*;
 use serde_json::json;
 use serde::Deserialize;
 
-mod specification;
-mod context;
-mod security;
-mod log_line;
-
-pub use log_line::LogLine;
-pub use context::Context;
-pub use specification::{Operation, Specification};
 
 use crate::panic_hook;
-use crate::middleware::HttpMethod;
-use crate::middleware::handler_event::HandlerEvent;
+use crate::middleware::{
+    Context,
+    HandlerEvent,
+    HttpMethod,
+    LogLine,
+    Specification
+};
 
 #[wasm_bindgen]
 #[derive(Deserialize)]

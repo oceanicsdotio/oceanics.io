@@ -1,7 +1,6 @@
 use serde::Serialize;
 
-use crate::middleware::authentication::Authentication;
-use crate::middleware::HttpMethod;
+use crate::middleware::{Authentication, HttpMethod};
 
 /**
  * Canonical log line for cloud log aggregation. 
