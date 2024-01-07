@@ -370,10 +370,14 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use hex::encode;
-    use crate::middleware::endpoint::Operation;
-    use crate::middleware::endpoint::security::Security;
-    use crate::middleware::HttpMethod;
-    use crate::middleware::handler_event::{HandlerEvent, Headers, QueryStringParameters};
+    use crate::middleware::{
+        Operation, 
+        Security, 
+        HttpMethod, 
+        HandlerEvent, 
+        Headers, 
+        QueryStringParameters
+    };
     use super::Context;
 
     #[test]

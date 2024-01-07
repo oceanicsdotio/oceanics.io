@@ -15,15 +15,11 @@ use pbkdf2::{
         Salt
     }
 };
-use crate::{
-    cypher::Node, 
-    middleware::{
-        error::{
-            unauthorized_response,
-            MiddlewareError
-        },
-        claims::Claims
-    }
+use crate::cypher::Node;
+use super::{
+    unauthorized_response,
+    MiddlewareError,
+    Claims
 };
 
 /**
@@ -32,20 +28,20 @@ use crate::{
  * apply to Nodes, so we provide methods for transforming
  * between the two. 
  */
-pub struct User<'a> {
+pub struct User {
     email: String,
-    credential: Option<PasswordHash<'a>>
+    credential: PasswordHash<'static>
 }
 
 // Control how user info is printed, prevent leaking secrets
-impl fmt::Display for User<'_> {
+impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.email)
     }
 }
 
 // Transform into claims for hash operations
-impl From<&User<'_>> for Claims {
+impl From<&User> for Claims {
     fn from(user: &User) -> Self {
         Claims::new(
             user.email.to_string(),
@@ -56,7 +52,7 @@ impl From<&User<'_>> for Claims {
 }
 
 // Transform into application user type from claims
-impl From<&Claims> for User<'_> {
+impl From<&Claims> for User {
     fn from(claims: &Claims) -> Self {
         User {
             email: claims.sub.clone(), 
@@ -65,12 +61,15 @@ impl From<&Claims> for User<'_> {
     }
 }
 
-impl<'a> User<'a> {
+impl User {
+    /**
+     * USing
+     */
     pub fn new(
         email: String, 
         password: String, 
         secret: String
-    ) -> Result<User<'a>, JsError> {
+    ) -> Result<User, JsError> {
         let mut errors: Vec<MiddlewareError> = Vec::with_capacity(10);
         let base64: Regex = Regex::new(r"^[-A-Za-z0-9+/]*={0,3}$+").unwrap();
         if password.is_none() | password.is_some_and(|p| p.len() == 0) {
@@ -138,8 +137,8 @@ impl<'a> User<'a> {
 
     // Create a JS object 
     pub fn issue_token(&self, signing_key: &str) -> Result<String, JsError> {
-        let claims = Claims::from(self).encode(signing_key);
-        Ok(claims.unwrap())
+        let claims = Claims::from(self).encode(signing_key)?;
+        Ok(claims)
     }
 
     /**
@@ -167,7 +166,7 @@ mod tests {
             encode("password"), 
             encode("secret")
         );
-        assert!(user.credential.is_some());
+        assert!(user.is_ok_and(|u| u.credential.is_some()));
     }
 
     #[test]
@@ -177,7 +176,8 @@ mod tests {
             encode("password"),
             encode("secret")
         );
-        let node = user.node().ok().unwrap();
+        assert!(user.is_ok());
+        let node = user.ok().unwrap().node().ok().unwrap();
         assert!(node.pattern().len() > 0);
     }
 
@@ -222,8 +222,7 @@ mod tests {
             None,
             Some("some_secret".to_string())
         );
-        let _cred = user.credential();
-        assert!(_cred.is_err());
+        assert!(user.is_err());
     }
 
     #[test]
@@ -233,19 +232,17 @@ mod tests {
             Some(encode("some_password")),
             Some(encode(""))
         );
-        let _cred = user.credential();
-        assert!(_cred.is_err());
+        assert!(user.is_err());
     }
 
     #[test]
     fn user_credential_panics_with_plaintext_secret () {
         let user = User::new(
             "test@oceanics.io".to_string(),
-            Some(encode("some_password")),
-            Some("some_secret".to_string())
+            encode("some_password"),
+            "some_secret".to_string()
         );
-        let _cred = user.credential();
-        assert!(_cred.is_err());
+        assert!(user.is_err());
     }
 
     #[test]
@@ -255,8 +252,7 @@ mod tests {
             Some(encode("")),
             Some(encode("some_secret".to_string()))
         );
-        let _cred = user.credential();
-        assert!(_cred.is_err());
+        assert!(user.is_err());
     }
 
     #[test]
@@ -266,8 +262,7 @@ mod tests {
             Some("some_password".to_string()),
             Some(encode("some_secret".to_string()))
         );
-        let _cred = user.credential();
-        assert!(_cred.is_err());
+        assert!(user.is_err());
     }
 
     #[test]
@@ -299,7 +294,8 @@ mod tests {
             encode("password"),
             encode("secret")
         );
-        let token = Claims::from(&user).encode("another_secret").unwrap();
+        assert!(user.is_ok());
+        let token = Claims::from(&user.ok().unwrap()).encode("another_secret").unwrap();
         assert!(token.len() > 0);
     }
 

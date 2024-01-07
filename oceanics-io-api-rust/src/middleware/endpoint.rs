@@ -1,10 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 use serde::Deserialize;
-
-
 use crate::panic_hook;
-use crate::middleware::{
+use super::{
     Context,
     HandlerEvent,
     HttpMethod,

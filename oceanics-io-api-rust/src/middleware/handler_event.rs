@@ -1,29 +1,48 @@
 use std::convert::TryFrom;
 use wasm_bindgen::JsError;
 
-use crate::middleware::{
+use super::{
     Authentication,
     Claims,
-    Headers,
     HttpMethod,
     MiddlewareError,
     Provider,
     QueryStringParameters,
-    User
+    User,
+    unauthorized_response
 };
 use crate::cypher::Node;
 
 use std::collections::HashMap;
 use serde::Deserialize;
 use serde_json::Value;
+use regex::Regex;
 
-use super::error::unauthorized_response;
+/**
+ * Extract Authentication information from the
+ * request headers. 
+ */
+#[derive(Deserialize)]
+struct Headers {
+    pub authorization: Option<String>
+}
+
+/**
+ * After passing through edge functions, API requests
+ * may have these query string parameters defined. 
+ */
+#[derive(Deserialize)]
+struct QueryStringParameters {
+    pub left: Option<String>,
+    pub uuid: Option<String>,
+    pub right: Option<String>,
+}
 
 /**
  * Data passed in from the Netlify handler. This shadows the 
  * HandlerEvent class from the JS Netlify SDK.
  */
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HandlerEvent {
     pub headers: Headers,
@@ -33,9 +52,41 @@ pub struct HandlerEvent {
 }
 
 impl HandlerEvent {
+    /**
+     * This is the auth method implied
+     * by the formatting of the request
+     * headers. Should be compared to
+     * the auth method of the specification
+     * and automatically denied on a mismatch. 
+     */
+    pub fn claim_auth_method(&self) -> Option<Authentication> {
+        let bearer: Regex = Regex::new(r"[Bb]earer:(.+)").unwrap();
+        let basic: Regex = Regex::new(r"(.+):(.+):(.+)").unwrap();
+        match &self.headers.authorization {
+            Some(auth) if bearer.is_match(auth) => {
+                Some(Authentication::BearerAuth)
+            },
+            Some(auth) if basic.is_match(auth) => {
+                Some(Authentication::BearerAuth)
+            },
+            None => {
+                Some(Authentication::NoAuth)
+            },
+            _ => {
+                None
+            }
+        }
+    }
+
+    // Hoist and wrap access to authorization headers in a usable format
+    pub fn authorization(&self) -> Vec<String> {
+        self.headers.authorization.unwrap_or_else(
+            || panic!("{}", MiddlewareError::HeaderAuthorizationMissing)
+        ).split(":").map(str::to_string).collect::<Vec<_>>()
+    }
 
     pub fn token(&self) -> Result<String, JsError> {
-        let parts = <[String; 2]>::try_from(self.headers.authorization());
+        let parts = <[String; 2]>::try_from(self.authorization());
         if parts.is_err() {
             return Err(unauthorized_response(
                 "handler_event.token".to_string(), 
@@ -66,13 +117,13 @@ impl HandlerEvent {
      * Strategy for parsing depends on the HTTP method
      */
     pub fn user(&self, signing_key: &String) -> Result<Option<User>, JsError> {
-        match self.headers.claim_auth_method() {
+        match self.claim_auth_method() {
             Some(Authentication::BearerAuth) => {
                 let claims = self.token_claims(signing_key)?;
                 Ok(Some(User::from(&claims)))
             },
             Some(Authentication::BasicAuth) => {
-                let auth_parts  =  <[String; 3]>::try_from(self.headers.authorization());
+                let auth_parts  =  <[String; 3]>::try_from(self.authorization());
                 if auth_parts.is_err() {
                     return Err(unauthorized_response(
                         "handler_event.user".to_string(), 
@@ -95,7 +146,7 @@ impl HandlerEvent {
 
     pub fn provider(&self, signing_key: &String) -> Result<Provider, JsError> {
         // Already pattern-checked using regex
-        match self.headers.claim_auth_method() {
+        match self.claim_auth_method() {
             Some(Authentication::BearerAuth) => {
                 let claims = self.token_claims(signing_key)?;
                 Ok(Provider::from(&claims))
@@ -192,13 +243,52 @@ impl HandlerEvent {
 #[cfg(test)]
 mod tests {
     use hex::encode;
-    use super::HandlerEvent;
-    use crate::middleware::{User,Authentication,Claims, HttpMethod, Headers, QueryStringParameters};
+    use super::{Headers, HandlerEvent};
+    use crate::middleware::{User,Authentication,Claims, HttpMethod, QueryStringParameters};
     const EMPTY_QUERY: QueryStringParameters = QueryStringParameters {
         left: None,
         uuid: None,
         right: None
     };
+
+
+    #[test]
+    fn request_headers_claim_auth_method_with_bearer_auth_lowercase () {
+        let headers = Headers {
+            authorization: Some("bearer:mock".to_string())
+        };
+        assert_eq!(headers.claim_auth_method(), Some(Authentication::BearerAuth));
+    }
+
+    #[test]
+    fn request_headers_claim_auth_method_with_bearer_auth_uppercase () {
+        let headers = Headers {
+            authorization: Some("Bearer:mock".to_string())
+        };
+        assert_eq!(
+            headers.claim_auth_method(), 
+            Some(Authentication::BearerAuth)
+        );
+    }
+
+    #[test]
+    fn request_headers_claim_auth_method_with_no_auth () {
+        let headers = Headers {
+            authorization: None
+        };
+        assert_eq!(headers.claim_auth_method(), Some(Authentication::NoAuth));
+    }
+
+    #[test]
+    fn request_headers_claim_auth_method_with_basic_auth () {
+        let headers = Headers {
+            authorization: Some("some:credentials:here".to_string())
+        };
+        assert_eq!(
+            headers.claim_auth_method(), 
+            Some(Authentication::BasicAuth)
+        );
+    }
 
     #[test]
     fn create_get_request_without_auth_header () {
@@ -208,9 +298,8 @@ mod tests {
             query_string_parameters: EMPTY_QUERY,
             body: None
         };
-        let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));
-        assert!(user.is_none());
-        assert!(provider.is_none());
+        let user = req.user(&String::from(encode("another_secret")));
+        assert!(user.is_ok_and(|u|u.is_none()));
     }
 
     #[test]
@@ -221,9 +310,8 @@ mod tests {
             query_string_parameters: EMPTY_QUERY,
             body: Some("data-goes-here".to_string())
         };
-        let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));
-        assert!(user.is_none());
-        assert!(provider.is_none());
+        let user = req.user(&String::from(encode("another_secret")));
+        assert!(user.is_ok_and(|u|u.is_none()));
     }
 
     #[test]
@@ -269,7 +357,7 @@ mod tests {
             String::from("testing@oceanics.io"),
             String::from("some_password"),
             String::from("some_secret")
-        );
+        ).ok().unwrap();
         
         let token = Claims::from(&_user).encode(&signing_key).unwrap();
         let authorization = format!("Bearer:{}", token);
@@ -282,10 +370,8 @@ mod tests {
         let auth = req.headers.claim_auth_method();
         assert_eq!(auth, Some(Authentication::BearerAuth));
 
-        let (user, provider) = req.parse_auth(&signing_key);
-        assert!(user.is_some());
-        assert!(provider.is_some());
-        assert_eq!(provider.unwrap().domain, String::from(""))
+        let user = req.user(&signing_key);
+        assert!(user.is_ok_and(|u| u.is_some()));
     }
 
     #[test]
@@ -296,8 +382,7 @@ mod tests {
             query_string_parameters: EMPTY_QUERY,
             body: None
         };
-        let (user, provider) = req.parse_auth(&String::from(encode("another_secret")));
-        assert!(user.is_some());
-        assert!(provider.is_none());
+        let user = req.user(&String::from(encode("another_secret")));
+        assert!(user.is_ok_and(|u| u.is_some()));
     }
 }
