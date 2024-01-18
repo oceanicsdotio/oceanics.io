@@ -1,12 +1,11 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 use serde::Deserialize;
-use crate::panic_hook;
+use crate::{panic_hook, LogLine};
 use super::{
     Context,
     HandlerEvent,
     HttpMethod,
-    LogLine,
     Specification
 };
 
@@ -37,7 +36,7 @@ impl Endpoint {
             return Err(JsError::new(&error));
         }
         let mut _methods: Vec<HttpMethod> = methods.iter().map(
-            |item| HttpMethod::from_str(item).unwrap()
+            |item| item.parse::<HttpMethod>().unwrap()
         ).collect();
         _methods.push(HttpMethod::OPTIONS);
         Ok(Self {
@@ -48,10 +47,12 @@ impl Endpoint {
     }
 
     #[wasm_bindgen(js_name = "logLine")]
-    pub fn log_line(&self, user: String, http_method: HttpMethod, status_code: u16) -> Result<JsValue, JsError> {
+    pub fn log_line(&self, user: String, http_method: String, status_code: u16) -> Result<JsValue, JsError> {
+        let _http_method = http_method.parse::<HttpMethod>().unwrap();
+        
         let line = LogLine {
             user, 
-            http_method, 
+            http_method: _http_method, 
             status_code, 
             elapsed_time: 0.0, 
             auth: None
@@ -122,7 +123,7 @@ impl Endpoint {
      */
     #[wasm_bindgen(getter)]
     pub fn options(&self) -> String {
-        let keys: Vec<&str> = self.methods.iter().map(|x| x.to_str()).collect();
+        let keys: Vec<String> = self.methods.iter().map(|x| x.to_string()).collect();
         let response = json!({
             "statusCode": 204,
             "headers": {

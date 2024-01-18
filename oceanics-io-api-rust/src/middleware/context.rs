@@ -1,16 +1,14 @@
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
 
+use crate::LogLine;
 use crate::cypher::{Node,Links};
 use crate::middleware::{
-    HttpMethod,
-    LogLine, 
-    Operation,
     HandlerEvent,
-    Provider,
     server_error_response, 
     unauthorized_response, 
-    MiddlewareError
+    MiddlewareError,
+    Operation
 };
 
 /**
@@ -29,8 +27,6 @@ pub struct Context {
     pub left: Option<Node>,
     #[wasm_bindgen(getter_with_clone)]
     pub right: Option<Node>,
-    #[wasm_bindgen(getter_with_clone)]
-    pub provider: Option<Provider>
 }
 
 impl Context {
@@ -39,21 +35,14 @@ impl Context {
         request: HandlerEvent,
         signing_key: &String
     ) -> Result<Context, JsError> {
-        let (left, right) = request.nodes(request.data());
+        let (left, right) = request.query_string_parameters.nodes(request.data());
         // user more likely, try first then check provider
-        let user = request.user(signing_key);
-        let mut provider: Option<Provider> = None;
-        if user.is_err() || user.is_ok_and(|u|u.is_none()) {
-            let _provider = request.provider(signing_key);
-        }
+        let user = request.headers.user(signing_key);
         let this = Context {
-            handler_event: request,
             start: Local::now(),
             left,
             right,
             operation,
-            user: user.ok().expect("user-not-ok"),
-            provider
         };
         Ok(this)
     }
@@ -61,19 +50,10 @@ impl Context {
 
 impl Context {
 
-    
     fn check_user(&self) -> Vec<MiddlewareError> {
         let mut errors: Vec<MiddlewareError> = Vec::with_capacity(3);
         if self.user.is_none() {
             errors.push(MiddlewareError::NoHandlerEventContextUser);
-        }
-        errors
-    }
-
-    fn check_user_and_provider(&self) -> Vec<MiddlewareError> {
-        let mut errors: Vec<MiddlewareError> = self.check_user();
-        if self.provider.is_none() {
-            errors.push(MiddlewareError::NoHandlerEventContextProvider);
         }
         errors
     }
@@ -107,8 +87,8 @@ impl Context {
 
     #[wasm_bindgen(getter)]
     #[wasm_bindgen(js_name = "httpMethod")]
-    pub fn http_method(&self) -> HttpMethod {
-        self.handler_event.http_method
+    pub fn http_method(&self) -> String {
+        self.handler_event.http_method.to_string()
     }
 
     #[wasm_bindgen(getter)]
@@ -370,6 +350,7 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use hex::encode;
+    use serde_json::json;
     use crate::middleware::{
         Operation, 
         Security, 
@@ -386,19 +367,21 @@ mod tests {
             bearer_auth: Some(Vec::from([])), 
             basic_auth: None
         };
-        let specification = Operation {
-            security: vec![sec],
-        };
-        let request = HandlerEvent {
-            headers: Headers { authorization: None },
-            http_method: HttpMethod::GET,
-            query_string_parameters: QueryStringParameters { 
-                left: None, 
-                uuid: None, 
-                right: None 
+        let specification = Operation::new(json!({
+            "security": [
+                "BearerAuth": []
+            ]
+        }));
+        
+  
+        let request = HandlerEvent::new(json!({
+            "headers": {
+                "authorization": "::"
             },
-            body: None
-        };
+            "http_method": "GET",
+            "queryStringParameters": {}
+        }));
+         
         let signing_key = String::from(encode("some_secret"));
         let context = Context::new(
             specification,
