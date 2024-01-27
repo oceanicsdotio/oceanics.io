@@ -3,10 +3,7 @@ use serde_json::{json, Value};
 use serde::Deserialize;
 extern crate console_error_panic_hook;
 use super::{
-    Context,
-    HandlerEvent,
-    HttpMethod,
-    Authentication
+    internal_server_error_response, Authentication, Context, HandlerEvent, HttpMethod, MiddlewareError
 };
 
 /// Schema for individual item in OpenAPI 
@@ -41,7 +38,7 @@ impl Operation {
     /// be a security definition for the spec
     /// to be considered valid. Empty array 
     /// is OK, but not a missing key.
-    pub fn authentication(&self) -> Result<Authentication, JsError> {
+    pub fn authentication(&self) -> Result<Authentication, String> {
         match self.security[..] {
             [Security {
                 bearer_auth: Some(_),
@@ -51,14 +48,29 @@ impl Operation {
                 bearer_auth: None,
                 basic_auth: Some(_)
             }] => Ok(Authentication::BasicAuth),
-            [] => Ok(Authentication::NoAuth),
-            _ => panic!("Invalid Security Specification")
+            _ => {
+                let error = internal_server_error_response(
+                    "Operation::new".to_string(), 
+                    vec![
+                        MiddlewareError::MultipleCredentialResolutions
+                    ],
+                    None
+                );
+                return Err(error)
+            }
         }
     }
 
     /// Deserialize from JSON value.
-    pub fn new(value: Value) -> Result<Operation, serde_json::Error> {
-        serde_json::from_value(value)
+    pub fn new(value: Value) -> Result<Operation, String> {
+        let operation = serde_json::from_value::<Operation>(value);
+        match operation {
+            Err(error) => Err(error.to_string()),
+            Ok(op) => {
+                let _ = op.authentication()?;
+                return Ok(op)
+            }
+        }
     }
 }
 
@@ -166,7 +178,10 @@ impl Endpoint {
             self.http_methods.contains(&event.http_method)
         ) {
             (Some(operation), true) => {
-                Context::new(operation, event, &signing_key)
+                match Context::new(operation, event, &signing_key) {
+                    Err(error) => Err(JsError::new(&error)),
+                    Ok(ctx) => Ok(ctx)
+                }
             }
             (None, false) => {
                 let error = json!({
@@ -239,33 +254,32 @@ mod tests {
                 "BasicAuth": [], 
             }]
         })).unwrap();
-        assert_eq!(operation.authentication().ok().unwrap(), Authentication::BearerAuth)
+        assert_eq!(operation.authentication().ok().unwrap(), Authentication::BasicAuth)
     }
 
     #[test]
-    fn create_operation_with_no_auth_json() {
+    fn create_operation_error_no_auth_json() {
         let operation = Operation::new(json!({
             "security": []
-        })).unwrap();
-        assert_eq!(operation.authentication().ok().unwrap(), Authentication::NoAuth)
+        }));
+        assert!(operation.is_err());
     }
 
     #[test]
-    #[should_panic]
-    fn create_operation_panics_with_no_security_json() {
-        let operation = Operation::new(json!({})).unwrap();
-        assert_eq!(operation.authentication().ok().unwrap(), Authentication::NoAuth)
+    fn create_operation_error_with_no_security_json() {
+        let operation = Operation::new(json!({}));
+        assert!(operation.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn create_operation_panics_with_multiple_security_json() {
-        let _operation = Operation::new(json!({
+        let operation = Operation::new(json!({
             "security": [{
                 "BasicAuth": [], 
             }, {
                 "BearerAuth": []
             }]
-        })).unwrap();
+        }));
+        assert!(operation.is_err());
     }
 }

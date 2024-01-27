@@ -7,6 +7,8 @@ use crate::middleware::{
     Operation
 };
 
+use super::{bad_request_response, Authentication};
+
 /// The Outer Function level context produces
 /// an inner Context that provides an API 
 /// for authentication and response handling.
@@ -14,7 +16,7 @@ use crate::middleware::{
 pub struct Context {
     start: DateTime<Local>,
     #[wasm_bindgen(getter_with_clone)]
-    pub user: Option<Node>,
+    pub user: Node,
     #[wasm_bindgen(getter_with_clone)]
     pub left: Option<Node>,
     #[wasm_bindgen(getter_with_clone)]
@@ -38,28 +40,40 @@ impl Context {
 /// the Context has been created whether or
 /// not a user, left, or right node are 
 /// needed by the handler.
+/// 
+/// The Operation will be checked for correctness
+/// in advance. Same for handler event, so both should
+/// guarantee either basic or bearer auth by convention.
 impl Context {
     pub fn new(
         operation: &Operation,
         handler_event: &HandlerEvent,
         signing_key: &String
-    ) -> Result<Context, JsError> {
+    ) -> Result<Context, String> {
         let start = Local::now();
         let (left, right) = handler_event.nodes();
-        let user = handler_event.headers.bearer_auth(signing_key).ok();
+        let supplied = handler_event.headers.authentication();
+        let user = match operation.authentication() {
+            Ok(auth) if supplied.is_some_and(|a|a.eq(&auth)) => {
+                match auth {
+                    Authentication::BearerAuth => handler_event.headers.bearer_auth(signing_key),
+                    Authentication::BasicAuth => handler_event.headers.basic_auth(),
+                    Authentication::NoAuth => panic!("NoAuth") // shouldn't occur
+                }
+            },
+            Ok(_) => {
+                let error = bad_request_response("Context::new".to_string(), vec![MiddlewareError::HeaderAuthorizationInvalid]);
+                return Err(error)
+            },
+            Err(error) => {
+                return Err(error)
+            }
+        }?;
         Ok(Context{start, user, left, right})
     }
 
-    pub fn check_user(&self) -> Vec<MiddlewareError> {
-        let mut errors: Vec<MiddlewareError> = Vec::with_capacity(3);
-        if self.user.is_none() {
-            errors.push(MiddlewareError::NoHandlerEventContextUser);
-        }
-        errors
-    }
-
-    pub fn check_user_and_left(&self) -> Vec<MiddlewareError> {
-        let mut errors = self.check_user();
+    pub fn check_left(&self) -> Vec<MiddlewareError> {
+        let mut errors = vec![];
         if self.left.is_none() {
             errors.push(MiddlewareError::NoHandlerEventContextLeftNode);
         }
@@ -67,7 +81,7 @@ impl Context {
     }
 
     pub fn check_user_left_and_right(&self) -> Vec<MiddlewareError> {
-        let mut errors = self.check_user_and_left();
+        let mut errors = self.check_left();
         if self.right.is_none() {
             errors.push(MiddlewareError::NoHandlerEventContextRightNode);
         }
@@ -77,33 +91,48 @@ impl Context {
 
 #[cfg(test)]
 mod tests {
+    use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
     use hex::encode;
     use serde_json::json;
     use crate::middleware::{HandlerEvent, HttpMethod, Operation};
     use super::Context;
+
+    const SUB: &str = "test@oceanics.io";
+    const PASSWORD: &str = "some_password";
+    const SECRET: &str = "another_secret";
+
+    fn valid_basic_auth() -> String {
+        format!(
+            "{}:{}:{}", 
+            SUB, 
+            STANDARD_NO_PAD.encode(PASSWORD), 
+            STANDARD_NO_PAD.encode(SECRET)
+        )
+    }
 
     #[test]
     fn create_context () {
   
         let operation = Operation::new(json!({
             "security": [{
-                "BearerAuth": []
+                "BasicAuth": []
             }]
         })).ok().unwrap();
 
-        let handler_event = HandlerEvent::new(json!({
+        let event = HandlerEvent::new(json!({
             "headers": {
-                "authorization": "::"
+                "authorization": valid_basic_auth()
             },
-            "http_method": HttpMethod::GET,
+            "httpMethod": HttpMethod::GET,
             "queryStringParameters": {}
-        })).ok().unwrap();
+        }));
+        assert!(event.is_ok());
          
         let signing_key = String::from(encode("some_secret"));
         
         let context = Context::new(
             &operation,
-            &handler_event,
+            event.ok().as_ref().unwrap(),
             &signing_key
         );
         assert!(context.is_ok());

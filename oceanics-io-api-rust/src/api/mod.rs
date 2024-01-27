@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use crate::cypher::{Node,Links};
 use crate::middleware::{
-    server_error_response, 
+    internal_server_error_response, 
     unauthorized_response, 
     MiddlewareError,
     Context,
@@ -13,12 +13,12 @@ use crate::middleware::{
 pub fn join_nodes_query(ctx: &Context, label: Option<String>) -> Result<String, JsError> {
     let errors = ctx.check_user_left_and_right();
     if errors.len() > 0 {
-        let error = server_error_response(
+        let error = internal_server_error_response(
             "joinNodesQuery".to_string(),
             errors,
             None
         );
-        return Err(error);
+        return Err(JsError::new(&error));
     }
     let cypher = Links::new(
         label,
@@ -37,12 +37,12 @@ pub fn join_nodes_query(ctx: &Context, label: Option<String>) -> Result<String, 
 pub fn drop_link_query(ctx: &Context, label: Option<String>) -> Result<String, JsError> {
     let errors = ctx.check_user_left_and_right();
     if errors.len() > 0 {
-        let error = server_error_response(
+        let error = internal_server_error_response(
             "dropLinkQuery".to_string(),
             errors,
             None
         );
-        return Err(error);
+        return Err(JsError::new(&error));
     }
     let cypher = Links::with_label(label).drop(
         ctx.left.as_ref().unwrap(), 
@@ -54,15 +54,6 @@ pub fn drop_link_query(ctx: &Context, label: Option<String>) -> Result<String, J
 /// The /auth DELETE method
 #[wasm_bindgen(js_name = "dropAllLinkedNodesQuery")]
 pub fn drop_all_linked_nodes_query(ctx: &Context) -> Result<String, JsError> {
-    let errors = ctx.check_user();
-    if errors.len() > 0 {
-        let error = server_error_response(
-            "dropAllLinkedNodesQuery".to_string(),
-            errors,
-            None
-        );
-        return Err(error);
-    }
     let wildcard = Node::new(None, None, None);
     let cypher = crate::cypher::links::Links::new(
         None,
@@ -70,7 +61,7 @@ pub fn drop_all_linked_nodes_query(ctx: &Context) -> Result<String, JsError> {
         None,
         None
     ).drop(
-        ctx.user.as_ref().unwrap(), 
+        &ctx.user, 
         &wildcard
     );
     Ok(cypher.query)
@@ -79,17 +70,17 @@ pub fn drop_all_linked_nodes_query(ctx: &Context) -> Result<String, JsError> {
 /// The DELETE /{type} or /{type}/{uuid}
 #[wasm_bindgen(js_name = "dropOneLinkedNodeQuery")]
 pub fn drop_one_linked_node_query(ctx: &Context) -> Result<String, JsError> {
-    let errors = ctx.check_user_and_left();
+    let errors = ctx.check_left();
     if errors.len() > 0 {
-        let error = server_error_response(
+        let error = internal_server_error_response(
             "dropOneLinkedNodeQuery".to_string(),
             errors,
             None
         );
-        return Err(error);
+        return Err(JsError::new(&error));
     }
     let cypher = crate::cypher::links::Links::blank().drop(
-        ctx.user.as_ref().unwrap(), 
+        &ctx.user, 
         ctx.left.as_ref().unwrap()
     );
     Ok(cypher.query)
@@ -98,18 +89,18 @@ pub fn drop_one_linked_node_query(ctx: &Context) -> Result<String, JsError> {
 /// The /{type} POST handler.
 #[wasm_bindgen(js_name = "insertLinkedNodeQuery")]
 pub fn insert_linked_node_query(ctx: &Context, label: Option<String>) -> Result<String, JsError> {
-    let errors = ctx.check_user_and_left();
+    let errors = ctx.check_left();
     if errors.len() > 0 {
-        let error = server_error_response(
+        let error = internal_server_error_response(
             "insertLinkedNodeQuery".to_string(),
             errors,
             None
         );
-        return Err(error);
+        return Err(JsError::new(&error));
     }
     let link = Links::new(label, Some(0), Some(0.0), Some("".to_string()));
     let cypher = link.insert(
-        ctx.user.as_ref().unwrap(),
+        &ctx.user,
         ctx.left.as_ref().unwrap()
     );
     Ok(cypher.query)
@@ -119,25 +110,25 @@ pub fn insert_linked_node_query(ctx: &Context, label: Option<String>) -> Result<
 /// middleware
 #[wasm_bindgen(js_name = "registerQuery")]
 pub fn register_query(ctx: &Context, label: Option<String>) -> Result<String, JsError> {
-    let cypher = ctx.user.as_ref().unwrap().create();
+    let cypher = ctx.user.create();
     Ok(cypher.query)
 }
 
 #[wasm_bindgen(js_name = "metadataQuery")]
 pub fn metadata_query(ctx: &Context) -> Result<String, JsError> {
     let link = Links::new(None, None, None, None);
-    let errors = ctx.check_user_and_left();
+    let errors = ctx.check_left();
     if errors.len() > 0 {
-        let error = server_error_response(
+        let error = internal_server_error_response(
             "metadataQuery".to_string(),
             errors,
             None
         );
-        return Err(error);
+        return Err(JsError::new(&error));
     }
     let left = ctx.left.as_ref().unwrap();
     let cypher = link.query(
-        ctx.user.as_ref().unwrap(), 
+        &ctx.user, 
         left, 
         left.symbol()
     );
@@ -150,16 +141,7 @@ pub fn metadata_query(ctx: &Context) -> Result<String, JsError> {
 /// should only be called when issuing a JWT.
 #[wasm_bindgen(js_name = "basicAuthQuery")]
 pub fn basic_auth_query(ctx: &Context) -> Result<String, JsError> {
-    let errors = ctx.check_user();
-    if errors.len() > 0 {
-        let error = unauthorized_response(
-            "basicAuthQuery".to_string(),
-            errors,
-            None
-        );
-        return Err(error);
-    }
-    let cypher = ctx.user.as_ref().unwrap().load(None);
+    let cypher = ctx.user.load(None);
     Ok(cypher.query)
 }
 
@@ -171,20 +153,22 @@ pub fn all_labels_query() -> Result<String, JsError> {
 
 #[wasm_bindgen(js_name="unauthorizedMultipleMatchingCredentials")]
 pub fn unauthorized_multiple_matching_credentials(operation: String) -> JsError {
-    unauthorized_response(
+    let error = unauthorized_response(
         operation,
         vec![MiddlewareError::MultipleCredentialResolutions],
         None
-    )
+    );
+    JsError::new(&error)
 }
 
 #[wasm_bindgen(js_name="unauthorizedNoMatchingCredentials")]
 pub fn unauthorized_no_matching_credentials(operation: String) -> JsError {
-    unauthorized_response(
+    let error = unauthorized_response(
         operation,
         vec![MiddlewareError::NoCredentialResolution],
         None
-    )
+    );
+    JsError::new(&error)
 }
 
 /// Called only after auth flow has a valid 
@@ -192,20 +176,10 @@ pub fn unauthorized_no_matching_credentials(operation: String) -> JsError {
 /// user from database after basic auth.
 #[wasm_bindgen(js_name = "issueUserToken")]
 pub fn issue_token(ctx: &Context, sub: &str, signing_key: &str) -> Result<String, JsError> {
-    let errors = ctx.check_user();
-    if errors.len() > 0 {
-        let error = server_error_response(
-            "issueUserToken".to_string(),
-            errors,
-            None
-        );
-        return Err(error);
-    }
     let claims = Claims::new(
         sub.to_string(),
         "oceanics.io".to_string(),
         3600
     );
-    
     Ok(claims.encode(signing_key).unwrap())
 }

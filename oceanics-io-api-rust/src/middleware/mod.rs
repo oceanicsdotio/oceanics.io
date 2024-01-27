@@ -9,7 +9,6 @@ use std::str::FromStr;
 use std::fmt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use wasm_bindgen::JsError;
 
 /// Authentication matching enum. 
 #[derive(Debug, Serialize, PartialEq, Copy, Clone)]
@@ -136,28 +135,28 @@ fn error_detail(
     }).to_string()
 }
 
-pub fn error_detail_event(status_code: u16, message: String, operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> JsError {
-    let error = error_detail(status_code, message, operation, errors, data);
-    JsError::new(&error)
+pub fn bad_request_response(operation: String, errors: Vec<MiddlewareError>) -> String {
+    let message = String::from("Bad Request");
+    error_detail(400, message, operation, errors, None)
 }
 
-pub fn unauthorized_response(operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> JsError {
+pub fn unauthorized_response(operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> String {
     let message = String::from("Unauthorized");
-    error_detail_event(401, message, operation, errors, data)
+    error_detail(401, message, operation, errors, data)
 }
 
-pub fn invalid_method_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {
+pub fn invalid_method_response(operation: String, errors: Vec<MiddlewareError>) -> String {
     let message = String::from("Invalid HTTP method");
-    error_detail_event(405, message, operation, errors, None)
+    error_detail(405, message, operation, errors, None)
 }
 
-pub fn not_implemented_response(operation: String, errors: Vec<MiddlewareError>) -> JsError {
+pub fn not_implemented_response(operation: String, errors: Vec<MiddlewareError>) -> String {
     let message = String::from("Not implemented");
-    error_detail_event(501, message, operation, errors, None)
+    error_detail(501, message, operation, errors, None)
 }
 
-pub fn server_error_response(operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> JsError {
-    let message = String::from("Server error");
-    error_detail_event(500, message, operation, errors, data)
+pub fn internal_server_error_response(operation: String, errors: Vec<MiddlewareError>, data: Option<String>) -> String {
+    let message = String::from("Internal Server error");
+    error_detail(500, message, operation, errors, data)
 }
 
