@@ -2,6 +2,14 @@
 import * as db from "./shared/queries";
 import { paths, Router } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
+import {
+  registerQuery,
+  basicAuthQuery,
+  issueUserToken,
+  dropAllLinkedNodesQuery,
+  unauthorizedMultipleMatchingCredentials,
+  unauthorizedNoMatchingCredentials
+} from "oceanics-io-api-wasm";
 
 /**
  * Create a new account using email address. We don't perform
@@ -9,12 +17,12 @@ import type { ApiHandler } from "./shared/middleware";
  * excluded passwords. Assume this is delegated to frontend. 
  */
 const POST: ApiHandler = async (context) => {
-  const query = context.registerQuery("Register");
+  const query = registerQuery(context, "Register");
   const records = await db.writeAndParse(query);
   if (records.length === 0) {
-    throw context.unauthorizedNoMatchingCredentials("auth.post");
+    throw unauthorizedNoMatchingCredentials("auth.post");
   } else if (records.length > 1) {
-    throw context.unauthorizedMultipleMatchingCredentials("auth.post");
+    throw unauthorizedMultipleMatchingCredentials("auth.post");
   }
   
   const [{domain}] = records as {domain: string}[];
@@ -32,15 +40,15 @@ const POST: ApiHandler = async (context) => {
  * information needed when validating access to data. 
  */
 const GET: ApiHandler = async (context) => {
-  const query = context.basicAuthQuery();
+  const query = basicAuthQuery(context);
   console.log({query})
   const records = await db.readAndParse(query);
   if (records.length === 0) {
-    throw context.unauthorizedNoMatchingCredentials("auth.get");
+    throw unauthorizedNoMatchingCredentials("auth.get");
   } else if (records.length > 1) {
-    throw context.unauthorizedMultipleMatchingCredentials("auth.get");
+    throw unauthorizedMultipleMatchingCredentials("auth.get");
   }
-  const token = context.issueUserToken(process.env.SIGNING_KEY);
+  const token = issueUserToken(process.env.SIGNING_KEY);
   return {
     statusCode: 200,
     data: { token }
@@ -61,7 +69,7 @@ const PUT: ApiHandler = async () => {
  * Nodes like Provider from being dropped.
  */
 const DELETE: ApiHandler = async (context) => {
-  await db.write(context.dropAllLinkedNodesQuery());
+  await db.write(dropAllLinkedNodesQuery(context));
   return {
     statusCode: 204
   }

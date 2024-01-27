@@ -26,6 +26,7 @@ console_error_panic_hook = "0.1.7"
 chrono = { version = "0.4.31", features = ["serde"] }
 pbkdf2 = { version = "0.12.2", features = ["simple"] }
 rand_core = { version = "0.6.4", features = ["std"] }
+base64 = "0.21.7"
 
 # Transitive dependency requires feature:
 # https://docs.rs/getrandom/latest/getrandom/#webassembly-support

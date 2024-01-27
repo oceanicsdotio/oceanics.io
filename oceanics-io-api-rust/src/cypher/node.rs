@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use super::{Cypher, READ_ONLY, WRITE, constraint::Constraint};
 
-// Convenience function for getting a String from Option.
+/// Convenience function for getting a String from Option.
 fn string_or(value: &Option<String>, default: String) -> String {
     match &value {
         None => default,
@@ -15,10 +15,8 @@ fn string_or(value: &Option<String>, default: String) -> String {
     }
 }
 
-/**
- * The Node data structure encapsulates logic needed for
- * representing entities in the Cypher query language.
- */
+/// The Node data structure encapsulates logic needed for
+/// representing entities in the Cypher query language.
 #[wasm_bindgen]
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -28,20 +26,14 @@ pub struct Node {
     label: Option<String>,
 }
 
-/**
- * Methods used internally, but without JavaScript bindings. 
- */
+/// Methods used internally, but without JavaScript bindings. 
 impl Node {
-    /**
-     * Convenience method for return correct type. 
-     */
+    /// Convenience method for return correct type. 
     fn format(key: &String, value: &Value) -> Option<String> {
         Some(format!("{}: '{}'", key, value))
     }
 
-    /**
-     * Use when the property is an Array or Object.
-     */
+    /// Use when the property is an Array or Object.
     fn format_nested(key: &String, value: &Value) -> Option<String> {
         let decode = serde_json::to_string(value);
         match decode {
@@ -52,10 +44,7 @@ impl Node {
         }
     }
 
-    /**
-     * Format a key and value as a Cypher compatible property
-     * string.
-     */
+    /// Format a key and value as a Cypher compatible property string.
     fn format_pair(key: &String, value: &Value) -> Option<String> {
         match value {
             Value::Object(_) | Value::Array(_) => {
@@ -100,10 +89,7 @@ impl Node {
     }
 }
 
-/**
- * Format the cypher query representation of the Node 
- * data structure.
- */
+/// Format the cypher query representation of the Node data structure.
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let label = match &self.label {
@@ -121,10 +107,7 @@ impl fmt::Display for Node {
     }
 }
 
-/**
- * Public web bindings for Node. These are tested
- * from JavaScript side. 
- */
+/// Public web bindings for Node. These are tested from JavaScript side.
 #[wasm_bindgen]
 impl Node {
     #[wasm_bindgen(constructor)]
@@ -144,7 +127,7 @@ impl Node {
         }
     }
 
-    // Always return a plain string
+    /// Always return a plain string
     #[wasm_bindgen(getter)]
     pub fn pattern(&self) -> String {
         match &self.properties {
@@ -156,19 +139,19 @@ impl Node {
         }
     }
 
-    // Always return a plain string
+    /// Always return a plain string
     #[wasm_bindgen(getter)]
     pub fn symbol(&self) -> String {
         string_or(&self.symbol, String::from("n"))
     }
 
-    // Always return a plain string
+    /// Always return a plain string
     #[wasm_bindgen(getter)]
     pub fn label(&self) -> String {
         string_or(&self.label, String::from(""))
     }
 
-    // Often accessed by UUID
+    /// Often accessed by UUID
     #[wasm_bindgen(getter)]
     pub fn uuid(&self) -> String {
         let null = String::from("");
@@ -183,14 +166,10 @@ impl Node {
     }
 }
 
-/**
- * Implement Cypher Query generation methods.
- */
+/// Implement Cypher Query generation methods.
 #[wasm_bindgen]
 impl Node {
-    /**
-     * Get unique node labels in the database. 
-     */
+    /// Get unique node labels in the database.
     #[allow(unused)]
     #[wasm_bindgen(js_name = allLabels)]
     #[wasm_bindgen(static_method_of = Node)]
@@ -203,13 +182,12 @@ impl Node {
         Cypher::new(query, READ_ONLY)
     }
 
-    /**
-     * Count instances of the node label. You can
-     * match properties, but you must match by labels.
-     * This can be used for query planning, or existence
-     * checks without returning potentially sensitive
-     * data to the middleware layer
-     */
+    /// Count instances of the node label. 
+    /// You can  match properties, but must 
+    /// match by labels. This can be used 
+    /// for query planning, or existence
+    /// checks without returning potentially 
+    /// sensitive data to the middleware layer
     pub fn count(&self) -> Cypher {
         match &self.label {
             Some(_) => {},
@@ -225,10 +203,8 @@ impl Node {
         Cypher::new(query, READ_ONLY)
     }
 
-    /**
-     * Apply new label to the node set matching 
-     * the node pattern.
-     */
+    /// Apply new label to the node 
+    /// set matching the node pattern.
     fn _add_label(&self, label: String) -> Cypher {
         let query = format!(
             "MATCH {} SET {}:{}",
@@ -239,17 +215,14 @@ impl Node {
         Cypher::new(query, WRITE)
     }
 
-    /**
-     * Delete a node pattern from the graph. This
-     * explicitly prevents Provider nodes from 
-     * being deleted.
-     * 
-     * This otherwise has no constraints, so the
-     * query can delete a single node, or everything.
-     * Generally you want the topological delete
-     * query for use cases other than draining a 
-     * database.
-     */
+    /// Delete a node pattern from the graph.
+    /// This explicitly prevents Provider 
+    /// nodes from being deleted.
+    /// This otherwise has no constraints, 
+    /// so the query can delete a single node, 
+    /// or everything. Generally you want the 
+    /// topological delete query for use cases 
+    /// other than draining a database.
     pub fn delete(&self) -> Cypher {
         let query = format!(
             "MATCH {} WHERE NOT {}:Provider DETACH DELETE {}",
@@ -260,16 +233,14 @@ impl Node {
         Cypher::new(query, WRITE)
     }
 
-    /**
-     * Format a query that will merge a pattern 
-     * into all matching nodes. Both the target
-     * and the update Node must have some 
-     * properties. 
-     * 
-     * We also panic on queries without label,
-     * because there aren't common reasons to
-     * be applying generic mutations at this time. 
-     */
+    /// Format a query that will merge a 
+    /// pattern into all matching nodes. 
+    /// Both the target and the update Node 
+    /// must have some properties. 
+    /// We also panic on queries without label,
+    /// because there aren't common reasons to
+    /// be applying generic mutations at this 
+    /// time.
     pub fn mutate(&self, updates: &Node) -> Cypher {
         match (self, updates) {
             (Node{properties: Some(_), label: Some(self_label), ..}, Node{properties: Some(_), label: Some(insert_label), ..}) => {
@@ -291,11 +262,10 @@ impl Node {
         Cypher::new(query, WRITE)
     }
 
-    /**
-     * Generate a query to load data from the database.
-     * We require a label to prevent potential leaks of
-     * internal node data from a generic query.
-     */
+    /// Generate a query to load data from the
+    /// database. We require a label to 
+    /// prevent potential leaks of internal 
+    /// node data from a generic query.
     pub fn load(&self, key: Option<String>) -> Cypher {
         match &self.label {
             None => {
@@ -316,15 +286,16 @@ impl Node {
         Cypher::new(query, READ_ONLY)
     }
 
-    /**
-     * Create or update a node. Throw an error if the node
-     * has no properties. Should in no case create an
-     * instance without uuid or other indexed identifier.
-     * 
-     * The query itself will fail if no label, but we 
-     * should check early, rather than hitting the 
-     * database.
-     */
+    /// Create or update a node. 
+    /// 
+    /// Throw an error if the node has no 
+    /// properties. Should in no case create 
+    /// an instance without uuid or other 
+    /// indexed identifier.
+    /// 
+    /// The query itself will fail if no 
+    /// label, but we should check early, 
+    /// rather than hitting the database.
     pub fn create(&self) -> Cypher {
         match self {
             Node {properties: Some(_), label: Some(_), ..} => Cypher::new(format!("MERGE {}", self), WRITE),
@@ -332,9 +303,8 @@ impl Node {
         }
     }
 
-    /**
-     * Produce a query that will set a uniqueness constraint on the Node.
-     */
+    /// Produce a query that will set a 
+    /// uniqueness constraint on the Node.
     #[wasm_bindgen(js_name = uniqueConstraintQuery)]
     pub fn unique_constraint_query(self, key: String) -> Cypher {
         match self.label {

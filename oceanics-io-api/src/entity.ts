@@ -1,13 +1,17 @@
 import * as db from "./shared/queries";
 import { Router, paths } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-
+import {
+  metadataQuery, 
+  dropOneLinkedNodeQuery
+} from "oceanics-io-api-wasm";
 /**
  * Retrieve one or more entities of a single type. This may be filtered
  * by any single property. 
  */
 const GET: ApiHandler = async (context) => {
-  const value = await db.readAndParse(context.metadataQuery());
+  const query = metadataQuery(context)
+  const value = await db.readAndParse(query);
   return {
       statusCode: 200,
       data: {
@@ -27,7 +31,7 @@ const GET: ApiHandler = async (context) => {
  * labels.
  */
 const DELETE: ApiHandler = async (context) => {
-  await db.write(context.dropOneLinkedNodeQuery());
+  await db.write(dropOneLinkedNodeQuery(context));
   return {
     statusCode: 204
   }

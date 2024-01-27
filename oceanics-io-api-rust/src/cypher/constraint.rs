@@ -1,9 +1,9 @@
 use super::{Cypher, WRITE};
-/**
- * Data structure representing a Node Index, which can be used to
- * to create index on node property to speed up retrievals and enforce
- * unique constraints.
- */
+
+/// Data structure representing a Node Index, 
+/// which can be used to  to create index on 
+/// node property to speed up retrievals and 
+/// enforce unique constraints.
 pub struct Constraint {
     pub label: String,
     pub key: String,
@@ -11,10 +11,9 @@ pub struct Constraint {
 
 // Rust-only methods
 impl Constraint {
-    /**
-     * Indexes add a unique constraint as well as 
-     * speeding up queries on the graph database.
-     */
+    /// Indexes add a unique constraint as 
+    /// well as speeding up queries on the 
+    /// graph database.
     fn _create_index(&self) -> Cypher {
         let query = format!(
             "CREATE INDEX IF NOT EXISTS FOR (n:{}) ON (n.{})",
@@ -23,9 +22,7 @@ impl Constraint {
         Cypher::new(query, WRITE)
     }
 
-    /**
-     * Remove the index.
-     */
+    /// Remove the index.
     fn _drop_index(&self) -> Cypher {
         let query = format!("DROP INDEX ON : {}({})", self.label, self.key);
         Cypher::new(query, WRITE)
@@ -33,14 +30,10 @@ impl Constraint {
 
 }
 
-/**
- * Public implementation for NodeIndex
- */
+/// Public implementation for NodeIndex
 impl Constraint {
-    /**
-     * Apply a unique constraint, without creating 
-     * an index.
-     */
+    /// Apply a unique constraint, without 
+    /// creating an index.
     pub fn unique_constraint(&self) -> Cypher {
         let query = format!(
             "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{}) REQUIRE n.{} IS UNIQUE",

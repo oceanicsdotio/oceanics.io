@@ -1,13 +1,18 @@
 import * as db from "./shared/queries";
 import { Router, paths } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
+import {
+    metadataQuery,
+    insertLinkedNodeQuery
+} from "oceanics-io-api-wasm";
 
 /**
  * Retrieve one or more entities of a single type. This may be filtered
  * by any single property. 
  */
 const GET: ApiHandler = async (context) => {
-    const value = await db.readAndParse(context.metadataQuery());
+    const query = metadataQuery(context);
+    const value = await db.readAndParse(query);
     return {
         statusCode: 200,
         data: {
@@ -28,7 +33,8 @@ const GET: ApiHandler = async (context) => {
  * Location data receives additional processing logic internally.
  */
 const POST: ApiHandler = async (context) => {
-    db.write(context.insertLinkedNodeQuery("Create"))
+    const query = insertLinkedNodeQuery(context, "Create");
+    db.write(query)
     return {
         statusCode: 204
     }

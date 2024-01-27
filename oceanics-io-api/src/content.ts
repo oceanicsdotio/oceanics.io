@@ -1,4 +1,3 @@
-
 import matter from "gray-matter";
 import type { Input } from "gray-matter";
 import type { Handler } from "@netlify/functions";

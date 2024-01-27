@@ -2,6 +2,10 @@
 import * as db from "./shared/queries";
 import { Router, paths } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
+import {
+  joinNodesQuery, 
+  dropLinkQuery
+} from "oceanics-io-api-wasm";
 
 // Don't currently pass custom label through the API (but should)
 const DEFAULT_LABEL = "Link"
@@ -10,7 +14,8 @@ const DEFAULT_LABEL = "Link"
  * Connect two nodes.
  */
 const POST: ApiHandler = async (context) => {
-  await db.write(context.joinNodesQuery(DEFAULT_LABEL));
+  const query = joinNodesQuery(context, DEFAULT_LABEL);
+  await db.write(query);
   return {
     statusCode: 204
   }
@@ -20,7 +25,8 @@ const POST: ApiHandler = async (context) => {
  * Drop connection between two nodes. 
  */
 const DELETE: ApiHandler = async (context) => {
-  await db.write(context.dropLinkQuery(DEFAULT_LABEL));
+  const query = dropLinkQuery(context, DEFAULT_LABEL);
+  await db.write(query);
   return {
     statusCode: 204
   }

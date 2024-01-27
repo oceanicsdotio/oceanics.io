@@ -71,8 +71,7 @@ export function Router(
     // Pre-populate with assigned handlers & transform. 
     const endpoint: Endpoint = new Endpoint(
         Object.keys(methods),
-        specification, 
-        process.env.SIGNING_KEY
+        specification
     );
     /**
      * Inner handler will receive Netlify function event.
@@ -87,10 +86,8 @@ export function Router(
     return async function (event: HandlerEvent): Promise<IResponse> {
         let context: Context;
         try {
-            context = endpoint.context(event);
-            const response = await methods[context.httpMethod](context);
-            // const logData = context.logLine(null, response.statusCode)
-            // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
+            context = endpoint.context(event, process.env.SIGNING_KEY);
+            const response = await methods[event.httpMethod](context);
             return {
                 ...response,
                 headers: {
@@ -101,10 +98,7 @@ export function Router(
             }
         } catch (error) {
             try {
-                const response = JSON.parse(error.message);
-                // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
-                // log.error(error.message, logData);
-                return response
+                return JSON.parse(error.message);
             } catch (inner) {
                 return {
                     statusCode: 500,

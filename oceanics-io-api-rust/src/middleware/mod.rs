@@ -2,19 +2,16 @@
 pub mod context;
 pub use context::Context;
 pub mod endpoint;
-mod handler_event;
-pub use handler_event::HandlerEvent;
-mod specification;
-pub use specification::{Operation, Specification};
+pub use endpoint::Operation;
+pub mod handler_event;
+pub use handler_event::{HandlerEvent,Claims};
 use std::str::FromStr;
 use std::fmt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use wasm_bindgen::JsError;
 
-/**
- * Authentication matching enum. 
- */
+/// Authentication matching enum. 
 #[derive(Debug, Serialize, PartialEq, Copy, Clone)]
 pub enum Authentication {
     BearerAuth,
@@ -39,10 +36,7 @@ impl fmt::Display for Authentication {
     }
 }
 
-
-/**
- * For request matching. 
- */
+/// For request matching.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Copy, Clone, Eq, Hash)]
 pub enum HttpMethod {
     POST,
@@ -76,7 +70,16 @@ impl fmt::Display for HttpMethod {
     }
 }
 
-
+/// Canonical log line for cloud log aggregation. 
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct LogLine {
+    pub user: String,
+    pub http_method: HttpMethod,
+    pub status_code: u16,
+    pub elapsed_time: f64,
+    pub auth: Option<Authentication>
+}
 
 #[derive(Debug)]
 pub enum MiddlewareError {
