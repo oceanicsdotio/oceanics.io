@@ -86,11 +86,6 @@ WWW_API_JSON = $(WWW)/public/bathysphere.json
 $(WWW_API_JSON): $(API_JSON)
 	cp $< $@
 
-# Build OpenAPI docs page from specification
-DOCS_PAGE = $(WWW)/public/bathysphere.html
-$(DOCS_PAGE): $(SPEC_FILE) node_modules
-	yarn run redocly build-docs $< --output $@
-
 # Build WWW storybook pages
 STORYBOOK = public/dev/storybook
 $(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
@@ -108,7 +103,7 @@ www-lint: $(WWW_SRC) $(WWW_SRC_FILES) $(WWW_PAGES) $(WWW_PAGES_FILES)
 
 # Compile WWW
 OUT_DIR = build
-$(WWW)/$(OUT_DIR): node_modules www-lint $(WWW_CACHE) $(WWW_API_JSON) $(DOCS_PAGE)
+$(WWW)/$(OUT_DIR): node_modules www-lint $(WWW_CACHE) $(WWW_API_JSON)
 	yarn workspace $(WWW) run next build
 	touch -m $@
 
