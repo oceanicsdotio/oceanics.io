@@ -129,5 +129,3 @@ You'll have to create the root provider by executing a query like:
 ```cypher
 MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 ```
-
-Running automated tests populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`.

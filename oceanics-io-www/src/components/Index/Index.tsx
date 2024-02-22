@@ -18,7 +18,7 @@ export const Index = ({className, ...props}: ApplicationType) => {
             {isClient ? <Oceanside {...props}/> : <StyledCanvasPlaceholder/>}
             <p>To protect our Ocean, you need to draw on community knowledge and make data-driven decisions for the future. Whether watching your surf or seeking opportunity.</p>
             <p>We analyze public and proprietary data and serve you synthetic and aggregate products to manage risk and conflict.</p>
-            <p><a href="/bathysphere">Learn more about our API.</a></p>
+            <p><a href="https://data.oceanics.io">Learn more about Bathysphere, our Ocean Data API.</a></p>
         </div>
     )
 };
