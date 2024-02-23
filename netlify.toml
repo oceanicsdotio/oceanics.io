@@ -1,7 +1,7 @@
 [build]
   base = "/"
   publish = "/oceanics-io-www/build"
-  functions = "/oceanics-io-api/src"
+  functions = "/functions/src"
   command = "make ."
 
 [build.environment]
@@ -9,10 +9,8 @@
   AWS_LAMBDA_JS_RUNTIME = "nodejs18.x"
   NETLIFY_USE_YARN = "true"
   NETLIFY_YARN_WORKSPACES = "true"
-  YARN_VERSION="1.22.17"
 
 [[plugins]]
-  # https://www.netlify.com/blog/general-availability-content-security-policy-csp-nonce-integration/ 
   package = "@netlify/plugin-csp-nonce"
 
 [dev]
@@ -21,134 +19,4 @@
 
 [functions]  
   node_bundler = "esbuild"
-  included_files = ["oceanics-io-api/src/shared/bathysphere.json"]
- 
-[functions.auth]
-  external_node_modules = ["oceanics-io-api-wasm"]
-
-[functions.collection]
-  external_node_modules = ["oceanics-io-api-wasm"]
-
-[functions.entity]
-  external_node_modules = ["oceanics-io-api-wasm"]
-
-[functions.index]
-  external_node_modules = ["oceanics-io-api-wasm"]
-
-[functions.topology]
-  external_node_modules = ["oceanics-io-api-wasm"]
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-
-    
-[[redirects]]
-  from = "/api/auth"
-  to = "/.netlify/functions/auth"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/:left/:right"
-  to = "/.netlify/functions/topology"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Things"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Sensors"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/ObservedProperties"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Observations"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Locations"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/HistoricalLocations"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/FeaturesOfInterest"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Actuators"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Tasks"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/TaskingCapabilties"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/DataStreams"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/DataStreams*"
-  to = "/.netlify/functions/entity"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/:left"
-  to = "/.netlify/functions/entity"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/"
-  to = "/.netlify/functions/index"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/functions/:splat"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/dev/storybook:splat"
-  to = "/dev/storybook/:splat"
-  status = 200
-  headers = {X-From = "Netlify"}
 

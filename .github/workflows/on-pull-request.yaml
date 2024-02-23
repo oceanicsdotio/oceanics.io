@@ -101,15 +101,3 @@ jobs:
 
       - name: Build all dependencies
         run: make .
-
-      - name: Run dev server
-        run: make dev &
-
-      - name: Test auth
-        run: make api-test-auth
-
-      - name: Test collections
-        run: make api-test-collection
-
-      - name: Test idempotent
-        run: make api-test-idempotent

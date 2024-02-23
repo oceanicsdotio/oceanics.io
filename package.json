@@ -4,19 +4,17 @@
         "oceanics-io-www",
         "oceanics-io-www-wasm",
         "oceanics-io-api",
-        "oceanics-io-api-wasm",
         "oceanics-io-native"
     ],
     "type": "module",
-    "packageManager": "yarn@4.0.1",
+    "packageManager": "yarn@4.1.0",
     "description": "Build environment",
     "devDependencies": {
         "@netlify/plugin-csp-nonce": "^1.2.5",
-        "@redocly/cli": "^1.5.0",
         "@typescript-eslint/eslint-plugin": "^6.13.2",
         "@typescript-eslint/parser": "^6.13.2",
+        "depcheck": "^1.4.7",
         "eslint": "^8.55.0",
-        "js-yaml": "^4.1.0",
         "netlify-cli": "^17.2.2",
         "typescript": "^5.3.2"
     },

@@ -13,7 +13,7 @@ import {parseAllDocuments} from "yaml";
 
 // Command-line args
 const [
-  API_SPECIFICATION,
+  _,
   CACHE
 ] = process.argv.slice(2)
 
@@ -22,7 +22,7 @@ const ENCODING = "utf8";
 const ASSETS = "./oceanics-io-www/public/assets";
 const ICON_METADATA = `${ASSETS}/oceanside.yml`;
 const FORMAT = ".mdx";
-const REFERENCES = path.join(process.cwd(), "./oceanics-io-content"); 
+const REFERENCES = path.join(process.cwd(), "./content"); 
 
 
 // Concurrently load all of the MDX files
@@ -65,17 +65,12 @@ const schemaToLookup = ([label, { examples = [] }]) => {
 const [
   _icons,
   _references,
-  _assets,
-  _text
+  _assets
 ] = await Promise.all([
   fs.readFile(path.join(process.cwd(), ICON_METADATA), ENCODING),
   fs.readdir(REFERENCES),
-  fs.readdir(path.join(process.cwd(), ASSETS)),
-  fs.readFile(API_SPECIFICATION, ENCODING)
+  fs.readdir(path.join(process.cwd(), ASSETS))
 ]);
-
-// Parse schema examples
-const nodes = Object.entries(JSON.parse(_text).components.schemas).flatMap(schemaToLookup);
 
 // Utility functions for chaining
 const filterPng = (name) => name.endsWith(".png");
@@ -83,7 +78,6 @@ const wrapSlug = (slug) => Object({ slug });
 
 // Structure cache data
 const data = {
-  nodes,
   content: await readContent(_references),
   icons: {
       sources: _assets.filter(filterPng).map(wrapSlug),
