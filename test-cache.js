@@ -72,16 +72,12 @@ const [
   fs.readdir(path.join(process.cwd(), ASSETS))
 ]);
 
-// Parse schema examples
-const nodes = Object.entries(JSON.parse(_text).components.schemas).flatMap(schemaToLookup);
-
 // Utility functions for chaining
 const filterPng = (name) => name.endsWith(".png");
 const wrapSlug = (slug) => Object({ slug });
 
 // Structure cache data
 const data = {
-  nodes,
   content: await readContent(_references),
   icons: {
       sources: _assets.filter(filterPng).map(wrapSlug),
