@@ -22,7 +22,7 @@ const ENCODING = "utf8";
 const ASSETS = "./oceanics-io-www/public/assets";
 const ICON_METADATA = `${ASSETS}/oceanside.yml`;
 const FORMAT = ".mdx";
-const REFERENCES = path.join(process.cwd(), "./oceanics-io-content"); 
+const REFERENCES = path.join(process.cwd(), "./content"); 
 
 
 // Concurrently load all of the MDX files
