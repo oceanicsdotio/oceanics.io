@@ -2,7 +2,7 @@
  * Endpoint allows bulk upload of content metadata. 
  */
 import { describe, expect, test } from '@jest/globals';
-import { getContent } from './test-utils';
+import { getContent } from '../../oceanics-io-api/test/test-utils';
 import fetch from "node-fetch";
 
 const url = "http://localhost:8888/.netlify/functions/content"

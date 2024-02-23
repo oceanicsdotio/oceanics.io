@@ -2,7 +2,7 @@
 import matter from "gray-matter";
 import type { Input } from "gray-matter";
 import type { Handler } from "@netlify/functions";
-import * as db from "./shared/queries";
+import * as db from "../oceanics-io-api/src/shared/queries";
 import { Links, Node } from "oceanics-io-api-wasm";
 
 /**

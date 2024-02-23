@@ -1,6 +1,6 @@
-import { Router } from "./shared/middleware";
-import type { ApiHandler } from "./shared/middleware";
-import apiSpec from "./shared/bathysphere.json";
+import { Router } from "../oceanics-io-api/src/shared/middleware";
+import type { ApiHandler } from "../oceanics-io-api/src/shared/middleware";
+import apiSpec from "../oceanics-io-api/src/shared/bathysphere.json";
 
 import { Endpoint, S3 } from "aws-sdk";
 

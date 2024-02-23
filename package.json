@@ -4,7 +4,6 @@
         "oceanics-io-www",
         "oceanics-io-www-wasm",
         "oceanics-io-api",
-        "oceanics-io-api-wasm",
         "oceanics-io-native"
     ],
     "type": "module",

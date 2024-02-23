@@ -2,8 +2,6 @@ build/
 web-build/
 node_modules/
 oceanics-io-rust/
-oceanics-io-api-rust/
-oceanics-io-api-wasm/
 .expo/
 .next/
 .yarn/
@@ -14,5 +12,4 @@ oceanics-io-api-wasm/
 oceanics-io-www/public/dev/storybook/
 oceanics-io-www-rust/
 oceanics-io-www-wasm/
-
 oceanics-io-www/src/components/Simulation/useSimulation.tsx
