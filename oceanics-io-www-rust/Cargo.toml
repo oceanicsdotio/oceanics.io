@@ -11,7 +11,7 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-js-sys = "0.3.66"
+js-sys = "0.3.68"
 wasm-bindgen-futures = "0.4.39"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_derive = "1.0.193"
