@@ -7,7 +7,7 @@
         "oceanics-io-native"
     ],
     "type": "module",
-    "packageManager": "yarn@4.0.1",
+    "packageManager": "yarn@4.1.0",
     "description": "Build environment",
     "devDependencies": {
         "@netlify/plugin-csp-nonce": "^1.2.5",
