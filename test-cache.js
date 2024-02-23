@@ -13,7 +13,7 @@ import {parseAllDocuments} from "yaml";
 
 // Command-line args
 const [
-  API_SPECIFICATION,
+  _,
   CACHE
 ] = process.argv.slice(2)
 
@@ -65,13 +65,11 @@ const schemaToLookup = ([label, { examples = [] }]) => {
 const [
   _icons,
   _references,
-  _assets,
-  _text
+  _assets
 ] = await Promise.all([
   fs.readFile(path.join(process.cwd(), ICON_METADATA), ENCODING),
   fs.readdir(REFERENCES),
-  fs.readdir(path.join(process.cwd(), ASSETS)),
-  fs.readFile(API_SPECIFICATION, ENCODING)
+  fs.readdir(path.join(process.cwd(), ASSETS))
 ]);
 
 // Parse schema examples
