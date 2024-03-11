@@ -45,7 +45,8 @@ tsconfig.tsbuildinfo
 # Local Netlify folder
 .netlify
 target/
-oceanics-io-api-wasm/
-oceanics-io-www-wasm/
-./nodes.json
 nodes.json
+.next
+out/
+build/
+next-env.d.ts

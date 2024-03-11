@@ -7,82 +7,21 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  lock:
-    name: Lock dependencies
-    if: ${{ github.actor == 'dependabot[bot]' }}
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Hash lockfile
-        id: lockfile
-        run: echo "hash=${{ hashFiles('./yarn.lock') }}" >> $GITHUB_OUTPUT
-
-      - uses: actions/setup-node@v3
-        name: Configure Node cache
-        id: node-cache
-        with:
-          node-version: 18
-          cache: 'yarn'
-
-      - name: Configure Next cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/oceanics-io-www/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
-          restore-keys: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
-        
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
-      - name: Update lockfile
-        env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: false
-        run: make node_modules
-
-      - name: Hash lockfile
-        id: hash-lockfile
-        run: echo "hash=${{ hashFiles('./yarn.lock') }}" >> $GITHUB_OUTPUT
-
-      - name: Commit lockfile
-        if: steps.hash-lockfile.outputs.hash != steps.lockfile.outputs.hash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
-          git add yarn.lock
-          git commit -m "Lockfile change"
-          git push origin HEAD:${GITHUB_REF##*/}
-        
-
   build:
     name: Build site
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' }}
-    env:
-      SERVICE_PROVIDER_API_KEY: ${{ secrets.SERVICE_PROVIDER_API_KEY }}
-      SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
-      SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
-      SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
-      LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
-      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-      NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
-      NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
 
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Hash lockfile
         id: lockfile
         run: echo "hash=${{ hashFiles('./yarn.lock') }}" >> $GITHUB_OUTPUT
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         name: Configure Node cache
         id: node-cache
         with:
@@ -92,12 +31,11 @@ jobs:
       - name: Configure Next cache
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/oceanics-io-www/.next/cache
+          path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
           restore-keys: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
-        
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build all dependencies
+        env:
+            YARN_ENABLE_IMMUTABLE_INSTALLS: false
         run: make .
