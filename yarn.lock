@@ -2240,13 +2240,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/plugin-csp-nonce@npm:^1.2.5":
-  version: 1.2.5
-  resolution: "@netlify/plugin-csp-nonce@npm:1.2.5"
-  checksum: 10/ae3a33f772a3e1b4232cba8b55f410026b6042b2569d73f202b5613b32a64bff91bea15b379773bbae2d03752d2e41b985716782a7990c01b4bfa6ed3261b34c
-  languageName: node
-  linkType: hard
-
 "@netlify/plugins-list@npm:^6.72.0":
   version: 6.72.0
   resolution: "@netlify/plugins-list@npm:6.72.0"
@@ -14702,7 +14695,6 @@ __metadata:
   resolution: "oceanics-io-www@workspace:."
   dependencies:
     "@apidevtools/swagger-parser": "npm:^10.1.0"
-    "@netlify/plugin-csp-nonce": "npm:^1.2.5"
     "@oceanics-io/wasm": "file:lib"
     "@types/geojson": "npm:^7946.0.13"
     "@types/jest": "npm:^29.5.11"
