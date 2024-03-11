@@ -2443,8 +2443,8 @@ __metadata:
 
 "@oceanics-io/wasm@file:lib::locator=oceanics-io-www%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/wasm@file:lib#lib::hash=045bb1&locator=oceanics-io-www%40workspace%3A."
-  checksum: 10/f1976727b31b72cfda49fda0dc52f556a101b0f7b1833156c15cccf112a6187f4744bd042c4c762fe74cf9ff73790f6a8575c0d97523cb0390046743179d5375
+  resolution: "@oceanics-io/wasm@file:lib#lib::hash=4d88df&locator=oceanics-io-www%40workspace%3A."
+  checksum: 10/5293c0bf7e1882c6a0eee16a4a7ee902360b04470c1b02a9444492153259e9130997790f75c7310d0dbbf112b74399318251f27a28c92f09f6e998001fc529b9
   languageName: node
   linkType: hard
 
@@ -19441,9 +19441,9 @@ __metadata:
   linkType: hard
 
 "word-wrap@npm:~1.2.3":
-  version: 1.2.3
-  resolution: "word-wrap@npm:1.2.3"
-  checksum: 10/08a677e1578b9cc367a03d52bc51b6869fec06303f68d29439e4ed647257411f857469990c31066c1874678937dac737c9f8f20d3fd59918fb86b7d926a76b15
+  version: 1.2.5
+  resolution: "word-wrap@npm:1.2.5"
+  checksum: 10/1ec6f6089f205f83037be10d0c4b34c9183b0b63fca0834a5b3cee55dd321429d73d40bb44c8fc8471b5203d6e8f8275717f49a8ff4b2b0ab41d7e1b563e0854
   languageName: node
   linkType: hard
 
