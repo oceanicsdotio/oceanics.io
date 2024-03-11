@@ -1,30 +1,29 @@
 ## WWW targets
-WWW = oceanics-io-www
-WWW_SRC = $(shell find $(WWW)/src -type d)
-WWW_SRC_FILES = $(shell find $(WWW)/src -type f -name '*')
-WWW_PAGES = $(shell find $(WWW)/pages -type d)
-WWW_PAGES_FILES = $(shell find $(WWW)/pages -type f -name '*')
-WWW_RUST = $(WWW)-rust
-WWW_WASM = $(WWW)-wasm
+SRC = $(shell find src -type d)
+SRC_FILES = $(shell find src -type f -name '*')
+PAGES = $(shell find pages -type d)
+PAGES_FILES = $(shell find pages -type f -name '*')
+RUST = $(shell find rust -type f -name '*')
+
+WASM = lib
 WWW_OUT = $(WWW)/build
 WWW_CACHE = $(WWW)/public/nodes.json
-CACHE_SCRIPT = test-cache.js
+CACHE_SCRIPT = cache.js
 STORYBOOK = public/dev/storybook
 OUT_DIR = build
 
-# Build WASM for web bunder (default --target)
-$(WWW_WASM): $(WWW_RUST)/src/**/* $(WWW_RUST)/Cargo*
-	wasm-pack build $(WWW_RUST) \
+$(WASM): $(RUST)
+	@ wasm-pack build rust \
 		--out-dir ../$@ \
 		--out-name index
-	touch -m $@
+	@ touch -m $@
 
-$(WWW_CACHE): $(API_JSON) $(CACHE_SCRIPT)
-	yarn exec node $(CACHE_SCRIPT) $< $@
+$(CACHE): cache.ts
+	@ yarn exec tsx $^ $@
 
 # Build WWW storybook pages
-$(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
-	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
+$(STORYBOOK): $(SRC_FILES) $(wildcard /.storybook/*)
+	yarn build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
 	touch -m $@
 
 lint: $(WWW_SRC) $(WWW_SRC_FILES) $(WWW_PAGES) $(WWW_PAGES_FILES)
@@ -33,7 +32,7 @@ lint: $(WWW_SRC) $(WWW_SRC_FILES) $(WWW_PAGES) $(WWW_PAGES_FILES)
 
 # Compile WWW
 $(WWW)/$(OUT_DIR): node_modules lint $(WWW_CACHE)
-	yarn workspace $(WWW) run next build
+	yarn run next build
 	touch -m $@
 
 .: $(WWW)/$(OUT_DIR)
@@ -49,7 +48,7 @@ node_modules: $(WWW_WASM) package.json **/package.json yarn.lock
 
 # Serve the storybook docs in dev mode for manual testing
 storybook:
-	yarn workspace oceanics-io-www storybook dev \
+	yarn storybook dev \
 		--port ${STORYBOOK_PORT} \
 		--debug
 		--debug-webpack
