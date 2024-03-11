@@ -12,23 +12,19 @@ import {parseAllDocuments} from "yaml";
 
 // Command-line args
 const [
-  _,
   CACHE
 ] = process.argv.slice(2)
 
 const ENCODING = "utf8";
 const ASSETS = "./oceanics-io-www/public/assets";
 const ICON_METADATA = `${ASSETS}/oceanside.yml`;
-const REFERENCES = path.join(process.cwd(), "./content"); 
 
 // Concurrently load all of the idempotent data for processing
 const [
   _icons,
-  _references,
   _assets
 ] = await Promise.all([
   fs.readFile(path.join(process.cwd(), ICON_METADATA), ENCODING),
-  fs.readdir(REFERENCES),
   fs.readdir(path.join(process.cwd(), ASSETS))
 ]);
 

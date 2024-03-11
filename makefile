@@ -7,8 +7,7 @@ RUST = $(shell find rust -type f -name '*')
 
 WASM = lib
 WWW_OUT = $(WWW)/build
-WWW_CACHE = $(WWW)/public/nodes.json
-CACHE_SCRIPT = cache.js
+CACHE = public/nodes.json
 STORYBOOK = public/dev/storybook
 OUT_DIR = build
 
@@ -18,8 +17,14 @@ $(WASM): $(RUST)
 		--out-name index
 	@ touch -m $@
 
-$(CACHE): cache.ts
-	@ yarn exec tsx $^ $@
+# Local dependencies need to be built before we can install
+# touching the directory updates timestamp for make
+node_modules: $(WASM) package.json
+	@ yarn install
+	@ touch -m $@
+
+$(CACHE): cache.ts node_modules
+	@ yarn exec tsx $< $@
 
 # Build WWW storybook pages
 $(STORYBOOK): $(SRC_FILES) $(wildcard /.storybook/*)
@@ -40,11 +45,7 @@ $(WWW)/$(OUT_DIR): node_modules lint $(WWW_CACHE)
 dev: .
 	yarn netlify dev --filter=oceanics-io-www
 
-# Local dependencies need to be built before we can install
-# touching the directory updates timestamp for make
-node_modules: $(WWW_WASM) package.json **/package.json yarn.lock
-	yarn install
-	touch -m $@
+
 
 # Serve the storybook docs in dev mode for manual testing
 storybook:

@@ -45,13 +45,10 @@ tsconfig.tsbuildinfo
 # Local Netlify folder
 .netlify
 target/
-wasm/
 nodes.json
-.next
 .next
 out/
 build/
 public/dev/*
 public/*.html
 next-env.d.ts
-bathysphere.json
