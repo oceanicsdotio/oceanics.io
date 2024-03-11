@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import useWasmRuntime from "../../hooks/useWasmRuntime";
-import type { InteractiveDataStream } from "oceanics-io-www-wasm";
+import type { InteractiveDataStream } from "@oceanics-io/wasm";
 
 export interface IDataStream {
     /**

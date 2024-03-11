@@ -1,16 +1,8 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
-// https://www.npmjs.com/package/@next/bundle-analyzer
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE_BUNDLE === 'true',
-  openAnalyzer: false,
-})
-
 // https://nextjs.org/docs/basic-features/typescript#type-checking-nextconfigjs
 /**
  * @type {import('next').NextConfig}
  **/
-const config = {
+export const nextConfig = {
   output: "export",
   distDir: "build",
   compiler: {
@@ -18,12 +10,12 @@ const config = {
     styledComponents: true,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
     // Dangerously allow production builds to successfully complete even if
     // your project has type errors.
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   webpack(config) {
     // Ensures that web workers can import scripts.
@@ -33,9 +25,8 @@ const config = {
     // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
     config.experiments = {
       ...config.experiments,
-      syncWebAssembly: true,
+      syncWebAssembly: true
     };
-
     config.module.rules.push({
       test: /\.wasm$/,
       type: "webassembly/sync",
@@ -48,4 +39,4 @@ const config = {
   },
 };
 
-module.exports = withBundleAnalyzer(config)
+export default nextConfig;

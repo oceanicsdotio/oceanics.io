@@ -1,8 +1,4 @@
-// @ts-ignore 
-// eslint-disable-next-line
 import type { MutableRefObject, MouseEventHandler } from "react";
-// @ts-ignore 
-// eslint-disable-next-line
 import { Map, Popup } from "mapbox-gl";
 import { useRef, useState, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
@@ -55,7 +51,6 @@ export const pulsingDot = ({ size }: { size: number }) => {
     context: canvas.getContext("2d"),
 
     // get rendering context for the map canvas when layer is added to the map
-    /* eslint-disable @typescript-eslint/no-empty-function */
     onAdd: () => {},
 
     // called once before every frame where the icon will be used

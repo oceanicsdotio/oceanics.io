@@ -1,16 +1,15 @@
 const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("oceanics-io-www-wasm");
-import { Memo } from "oceanics-io-www-wasm";
+type ModuleType = typeof import("@oceanics-io/wasm");
 
 let runtime: ModuleType;
 async function start() {
-  runtime = await import("oceanics-io-www-wasm");
+  runtime = await import("@oceanics-io/wasm");
   runtime.panic_hook();
 }
 
-let cache: Memo[];
-const getDocuments = async (documents: Memo[]) => {
-  cache = documents.map(each => new Memo(each));
+let cache: any[];
+const getDocuments = async (documents: any[]) => {
+  cache = documents;
   return cache;
 }
 

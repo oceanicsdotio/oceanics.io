@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   renderPipelineStage,
   useShaderContext,
@@ -121,11 +121,11 @@ export const useSimulation = ({
     [0.0, "#deababff"],
     [1.0, "#660066ff"],
   ],
-  opacity = 0.92, // how fast the particle trails fade on each frame
-  speed = 0.00007, // how fast the particles move
-  diffusivity = 0.004,
-  pointSize = 1.0,
-  drop = 0.01, // how often the particles move to a random place
+  // opacity = 0.92,
+  // speed = 0.00007, 
+  // diffusivity = 0.004,
+  // pointSize = 1.0,
+  // drop = 0.01, 
 }: ISimulation) => {
   /**
    * Background web worker. Uses dedicated message interface to do

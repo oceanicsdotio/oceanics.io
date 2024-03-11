@@ -42,25 +42,26 @@ const _particles = (res?: number) => {
 
 const getJsonData = async (source: string) => {
   try {
-    const response = await fetch(source);
-    const metadata = await response.json();
+    // const response = await fetch(source);
+    // const metadata = await response.json();
     return {
       type: "init",
       data: {
-        u_screen: ["i", 2],
-        u_opacity: ["f", opacity],
-        u_wind: ["i", 0],
-        u_particles: ["i", 1],
-        u_color_ramp: ["i", 2],
-        u_particles_res: ["f", res],
-        u_point_size: ["f", pointSize],
-        u_wind_max: ["f", [metadata.u.max, metadata.v.max]],
-        u_wind_min: ["f", [metadata.u.min, metadata.v.min]],
-        speed: ["f", speed],
-        diffusivity: ["f", diffusivity],
-        drop: ["f", drop],
-        seed: ["f", Math.random()],
-        u_wind_res: ["f", [ref.current.width, ref.current.height]],
+        source
+        // u_screen: ["i", 2],
+        // u_opacity: ["f", opacity],
+        // u_wind: ["i", 0],
+        // u_particles: ["i", 1],
+        // u_color_ramp: ["i", 2],
+        // u_particles_res: ["f", res],
+        // u_point_size: ["f", pointSize],
+        // u_wind_max: ["f", [metadata.u.max, metadata.v.max]],
+        // u_wind_min: ["f", [metadata.u.min, metadata.v.min]],
+        // speed: ["f", speed],
+        // diffusivity: ["f", diffusivity],
+        // drop: ["f", drop],
+        // seed: ["f", Math.random()],
+        // u_wind_res: ["f", [ref.current.width, ref.current.height]],
       }
     }
   } catch {

@@ -16,7 +16,7 @@ const [
 ] = process.argv.slice(2)
 
 const ENCODING = "utf8";
-const ASSETS = "./oceanics-io-www/public/assets";
+const ASSETS = "./public/assets";
 const ICON_METADATA = `${ASSETS}/oceanside.yml`;
 
 // Concurrently load all of the idempotent data for processing

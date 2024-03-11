@@ -3,8 +3,8 @@ import type { MouseEvent } from "react";
 import { eventCoordinates } from "../../shared";
 import type { EventLocation } from "../../shared";
 import useWorker from "../../hooks/useWorker";
-import type { MiniMap } from "oceanics-io-www-wasm";
-export type ModuleType = typeof import("oceanics-io-www-wasm");
+import type { MiniMap } from "@oceanics-io/wasm";
+export type ModuleType = typeof import("@oceanics-io/wasm");
 
 const ACTIONS = {
   parseIconSet: "parseIconSet"

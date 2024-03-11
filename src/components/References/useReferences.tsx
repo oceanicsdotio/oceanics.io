@@ -1,10 +1,9 @@
 import { useMemo, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
- import { Memo } from "oceanics-io-www-wasm";
- export type ModuleType = typeof import("oceanics-io-www-wasm");
+ export type ModuleType = typeof import("@oceanics-io/wasm");
 
 interface IMemoCache {
-  documents: Memo[]
+  documents: any[]
 }
 
 type Edge = {
@@ -77,7 +76,7 @@ const useMemoCache = ({documents}: IMemoCache) => {
    * List of pointers to document objects in WASM runtime memory
    */
   const deserialized = useMemo(() => {
-    return documents.map((doc) => new Memo(doc.metadata, doc.content, doc.slug));
+    return documents;
   }, []);
 
   /**

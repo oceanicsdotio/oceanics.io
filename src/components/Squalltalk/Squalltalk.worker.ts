@@ -1,7 +1,7 @@
 import { DOMParser } from "@xmldom/xmldom";
 import type { FileObject, FileSystem } from "./useSqualltalk";
 const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("oceanics-io-www-wasm");
+type ModuleType = typeof import("@oceanics-io/wasm");
 
 // Possible types of message
 const COMMANDS = {
@@ -79,7 +79,7 @@ async function getFileSystem(url: string): Promise<FileSystem> {
  * thread for troubleshooting.
  */
 async function start() {
-  runtime = await import("oceanics-io-www-wasm");
+  runtime = await import("@oceanics-io/wasm");
   runtime.panic_hook();
 }
 

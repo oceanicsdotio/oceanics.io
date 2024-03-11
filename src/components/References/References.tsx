@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import type { MouseEventHandler } from "react";
 import styled from "styled-components";
-import type { Memo, QueryType } from "oceanics-io-www-wasm";
+// import type { Memo, QueryType } from "@oceanics-io/wasm";
 import { orange, ghost } from "../../palette";
 
 /**
@@ -15,11 +15,11 @@ export interface IReferences {
   /**
    * Articles to cross-reference and render
    */
-  documents: Memo[];
+  documents: any[];
   /**
    * Page query string parameters
    */
-  query: QueryType;
+  query: any;
   /**
    * Show more handler passed in from parent
    */
@@ -59,14 +59,14 @@ const References = ({
    * Filters based on selected tag from user interface, removes work in progress ("wip")
    * and "internal" labels.
    */
-  const available: Memo[] = useMemo(() => {
-    const compare = (first: Memo, second: Memo) => {
+  const available: any[] = useMemo(() => {
+    const compare = (first: any, second: any) => {
       return (
         second.metadata.published.getTime() - first.metadata.published.getTime()
       );
     };
 
-    const labelOrPublic = ({ metadata }: Memo): boolean => {
+    const labelOrPublic = ({ metadata }: any): boolean => {
       const matchTag: string[] = metadata.labels.map(({ value }: any) => value);
       const matchRef: string[] = metadata.references?.map((ref: any) => ref.hash)??[];
       const selectedTag: string = query.label ?? "";
@@ -85,7 +85,7 @@ const References = ({
    * We need to know the total number visible, and the total number possible,
    * in other words after the filter but before the slice.
    */
-  const visible: Memo[] = useMemo(() => {
+  const visible: any[] = useMemo(() => {
     return available.slice(0, query.items ?? pagingIncrement);
   }, [available, query, pagingIncrement]);
 
@@ -106,7 +106,7 @@ const References = ({
   return (
     <div className={className}>
       {visible.map(({slug, metadata}) => (
-        <article className={className}>
+        <article key={slug} className={className}>
         <header>
           <a href={slug}>{metadata.title}</a>
           <p>{metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "")}</p>

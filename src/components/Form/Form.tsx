@@ -131,12 +131,12 @@ export const Form = ({
                 <div key={key}>
                     <label htmlFor={props.id}>{props.name}</label>
                     <select {...props}>
-                        {options.map((props) => 
-                            <option {...props}>{props.value}</option>)}
+                        {options.map(({key, ...props}) => 
+                            <option key={key} {...props}>{props.value}</option>)}
                     </select>
                 </div>)}
-            {actions.map(_buttons).map((action) => 
-                <button {...action}>{action.name}</button>)}
+            {actions.map(_buttons).map(({key, ...action}) => 
+                <button key={key} {...action}>{action.name}</button>)}
         </form>
     )
 }

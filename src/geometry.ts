@@ -15,25 +15,6 @@ export type Feature = {
     geometry: unknown
 }
 
-// Convert from ESRI into canonical GeoJSON
-export const reKeyFeatures = ({
-    attributes: { 
-        TOWN, 
-        COUNTY, 
-        GlobalId, 
-        ["Shape.STArea()"]: area 
-    }, 
-    geometry 
-}) => Object({
-    properties: {
-        area,
-        town: TOWN,
-        county: COUNTY,
-        uuid: GlobalId
-    },
-    geometry
-})
-
 // Custom serializer for JSON that emits a fixed precision for numeric types
 export const withPrecision = (precision: number) =>
     function(key: number|string, val: number) {
@@ -68,7 +49,7 @@ export type Variable = {
 export const readVariables = (text: string) => {
     const {variables} = JSON.parse(text);
     const keys = {"lon": 0, "lat": 1, "h": 2};
-    return variables.filter(({name}) => name in keys);
+    return variables.filter(({name}: {name: string}) => name in keys);
 }
 
 export const fromNetcdfBytes = async (

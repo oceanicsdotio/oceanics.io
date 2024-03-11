@@ -30,7 +30,7 @@ export type ProgramSourceMap = { [key: string]: [string, string] };
 
 // WASM bindings
 type WasmPackage =
-  typeof import("/Users/keeney/oceanics.io/oceanics-io-www-wasm/index");
+  typeof import("@oceanics-io/wasm");
 
 // Convenience type for string key value store
 type Lookup = { [key: string]: string };
