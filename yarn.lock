@@ -2443,8 +2443,8 @@ __metadata:
 
 "@oceanics-io/wasm@file:lib::locator=oceanics-io-www%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/wasm@file:lib#lib::hash=99d028&locator=oceanics-io-www%40workspace%3A."
-  checksum: 10/d494070bcf3881442d24f1c5460d18a5e0baec28f254193e9bbb429ea1f1efeaef3802848583bad71b9449e84426db9c0804a435640b4f4e7b0fd88a3e5c35d2
+  resolution: "@oceanics-io/wasm@file:lib#lib::hash=4d88df&locator=oceanics-io-www%40workspace%3A."
+  checksum: 10/5293c0bf7e1882c6a0eee16a4a7ee902360b04470c1b02a9444492153259e9130997790f75c7310d0dbbf112b74399318251f27a28c92f09f6e998001fc529b9
   languageName: node
   linkType: hard
 
@@ -9048,23 +9048,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0":
-  version: 1.15.1
-  resolution: "follow-redirects@npm:1.15.1"
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.15.0":
+  version: 1.15.5
+  resolution: "follow-redirects@npm:1.15.5"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 10/a57f93ce566d4602fe7b2f6cef8f8d3d053891b3d8f2feae7e97eec18aa0003d23aeec8e857801d93887eee27e1617276a16f6a3d5c9d78e45882346612462d5
-  languageName: node
-  linkType: hard
-
-"follow-redirects@npm:^1.15.0":
-  version: 1.15.3
-  resolution: "follow-redirects@npm:1.15.3"
-  peerDependenciesMeta:
-    debug:
-      optional: true
-  checksum: 10/60d98693f4976892f8c654b16ef6d1803887a951898857ab0cdc009570b1c06314ad499505b7a040ac5b98144939f8597766e5e6a6859c0945d157b473aa6f5f
+  checksum: 10/d467f13c1c6aa734599b8b369cd7a625b20081af358f6204ff515f6f4116eb440de9c4e0c49f10798eeb0df26c95dd05d5e0d9ddc5786ab1a8a8abefe92929b4
   languageName: node
   linkType: hard
 
