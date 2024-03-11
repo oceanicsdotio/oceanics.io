@@ -22,6 +22,11 @@ use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit,
 
 // Better error reporting
 extern crate console_error_panic_hook;
+use std::mem;
+use std::os::raw::c_void;
+use std::ops::{Index, Mul, SubAssign};
+
+
 
 #[wasm_bindgen]
 pub fn panic_hook() {
@@ -168,4 +173,90 @@ pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, 
     let n = -1.0;
 
     return transformation_matrix(ox, oy, oz, ax, ay, az, s, d, f, n, aspect);
+}
+
+
+
+
+pub struct Array {
+    data: Vec<f64>
+}
+
+impl Index<usize> for Array {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        return &self.data[index]
+    }
+}
+
+impl Mul<f64> for &Array {
+    type Output = Array;
+    fn mul(self, rhs: f64) -> Array {
+        let mut v = Vec::with_capacity(self.data.len());
+        for value in &self.data {
+            v.push(value * rhs);
+        }
+        Array{ data: v }
+    }
+}
+
+impl Mul<f64> for Array {
+    type Output = Array;
+    fn mul(self, rhs: f64) -> Array {
+        let mut v = Vec::with_capacity(self.data.len());
+        for value in self.data {
+            v.push(value * rhs);
+        }
+        Array{ data: v }
+    }
+}
+
+impl SubAssign<f64> for Array {
+    fn sub_assign(&mut self, rhs: f64) {
+        for ii in 0..self.data.len() {
+            self.data[ii] += rhs;
+        }
+    }
+}
+
+impl Array {
+    pub fn mean(axis: usize) -> f64 {
+        0.0
+    }
+
+    pub fn len(&self) -> usize {
+        0
+    }
+}
+
+pub struct Limit {
+    lower: f64,
+    upper: f64
+}
+
+impl Limit {
+    pub fn new(lower: f64, upper: f64) -> Limit {
+        Limit {
+            lower,
+            upper
+        }
+    }
+}
+
+
+
+#[wasm_bindgen]
+pub fn alloc(size: usize) -> *mut c_void {
+    let mut buf = Vec::with_capacity(size);
+    let ptr = buf.as_mut_ptr();
+    mem::forget(buf);
+    return ptr as *mut c_void;
+}
+
+#[wasm_bindgen]
+pub fn dealloc(ptr: *mut c_void, cap: usize) {
+    unsafe  {
+        let _buf = Vec::from_raw_parts(ptr, 0, cap);
+    }
 }
