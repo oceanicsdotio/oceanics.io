@@ -40,7 +40,6 @@
         "yaml": "^2.3.4"
     },
     "devDependencies": {
-        "@netlify/plugin-csp-nonce": "^1.2.5",
         "@types/geojson": "^7946.0.13",
         "@types/jest": "^29.5.11",
         "@types/katex": "^0.16.7",
