@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 path = "lib.rs"
 
 [dependencies]
-js-sys = "0.3.66"
+js-sys = "0.3.69"
 wasm-bindgen-futures = "0.4.39"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_derive = "1.0.193"
