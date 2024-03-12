@@ -39,7 +39,7 @@
     "src/**/*.js",
     ".next/types/**/*.ts",
     "build/types/**/*.ts"
-  ],
+, "app/Index.tsx"  ],
   "exclude": [
     "node_modules",
     "src/components/Shaders/Shaders.context.tsx",
