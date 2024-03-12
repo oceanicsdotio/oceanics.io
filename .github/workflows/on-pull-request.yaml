@@ -24,4 +24,4 @@ jobs:
       - name: Build all dependencies
         env:
             YARN_ENABLE_IMMUTABLE_INSTALLS: false
-        run: make .
+        run: make build
