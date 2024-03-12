@@ -1,0 +1,84 @@
+.form {
+    display: block;
+    max-width: 65ch;
+    padding: 1rem 1rem;
+    margin: 0;
+    border-radius: 5px;
+    background-color: #222222;
+    color: #cccccc;
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.form h1 {
+    text-transform: capitalize;
+}
+
+.form div {
+    margin: 1rem 0;
+}
+
+.form input {
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    padding: 0.25rem;
+    margin: 0.5rem 0;
+    appearance: none;
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: lightgray;
+    border: 1px dashed grey;
+    border-radius: 5px;
+    background-color: darkgrey;
+}
+
+.form label {
+    display: block;
+    font-size: smaller;
+    font-style: italic;
+    text-transform: lowercase;
+    margin: 0;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    padding: 0.25rem;
+    appearance: none;
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: lightgray;
+    border: 1px dashed grey;
+    border-radius: 5px;
+    background-color: darkgrey;
+}
+
+.api {
+    max-width: 65ch;
+    display: block;
+    padding: 1rem 1rem;
+    margin: 0;
+    border-radius: 5px;
+    background-color: darkgrey;
+    color: grey;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.api h3 {
+text-transform: capitalize;
+font-size: inherit;
+font-style: inherit;
+}
+
+.api code {
+    border: 1px dashed orange;
+    border-radius: 5px;
+    background-color: black;
+    padding: 5px;
+}

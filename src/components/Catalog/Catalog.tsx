@@ -1,8 +1,8 @@
 import React, {Dispatch, SetStateAction} from "react";
 import styled from "styled-components";
 
-import Channel, {ChannelType} from "../Channel/Channel";
-import Trifold from "../Trifold/Trifold";
+import Channel, {ChannelType} from "./Channel";
+import Trifold from "./Trifold";
 import { grey, orange } from "../../palette";
 
 
@@ -99,10 +99,6 @@ export const Catalog = ({
     
     return (
         <div className={className}>
-            <Trifold 
-                stroke={orange}
-                onClick={()=>{console.log("on-click-trifold")}}
-            />
             <Channel 
                 zoomLevel={zoomLevel}
                 id="home"

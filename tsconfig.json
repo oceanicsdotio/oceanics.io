@@ -39,10 +39,10 @@
     "src/**/*.js",
     ".next/types/**/*.ts",
     "build/types/**/*.ts"
-, "app/Index.tsx"  ],
+, "app/Index.tsx", "app/canvas/Account.tsx", "app/canvas/Account.worker.ts", "src/components/References/Document.tsx", "app/canvas/data-stream/DataStream.tsx", "app/canvas/data-stream/useDataStream.tsx", "app/catalog/PopUpContent.tsx", "app/catalog/Squalltalk.tsx", "app/catalog/Squalltalk.worker.ts", "app/catalog/useSqualltalk.tsx", "app/canvas/data-stream/Histogram.tsx", "app/canvas/data-stream/worker.ts", "app/canvas/data-stream/useHistogram.tsx"  ],
   "exclude": [
     "node_modules",
-    "src/components/Shaders/Shaders.context.tsx",
+    "src/components/Simulation/Shaders.context.tsx",
     ".next"
   ]
 }

@@ -1,15 +1,9 @@
----
-title: Convex hull
-published: "2020-02-08T12:00:00.000Z"
-description: |
-    Building spatial relationships based on topology can be a good way to store 
-    information and speed up queries and analysis. The next level of sophistication
-    after bounding boxes are convex hulls. 
-    
-labels: ["algorithms", "spatial", "topology", "indexing", "python"]
-authors: [Keeney]
-references: []
----
+export const meta = {
+    title: "Convex hull",
+    published: "2020-02-08T12:00:00.000Z",
+    description: "Building spatial relationships based on topology can be a good way to store information and speed up queries and analysis. The next level of sophistication after bounding boxes are convex hulls.",
+    labels: ["algorithms", "spatial", "topology", "indexing", "python"]
+}
 
 ## Algorithm
 
@@ -33,8 +27,6 @@ The following is a Python function that does this, and saves an image:
 
 ```python
 from numpy import random, argmax, argmin, cross, argwhere, arange, array, hstack, vstack
-from matplotlib import pyplot as plt
-
 
 def segment(u, v, indices, points):
 
@@ -75,32 +67,9 @@ hullsUnion = vstack(tuple(group[hi, :] for hi, group in zip(hulls, groups)))
 union = convex_hull(hullsUnion)
 pts = vstack(groups)
 subset = convex_hull(pts)
-
-fig, ax = plt.subplots(1, 2)
-ax[0].set_title("Convex hull of all points")
-ax[0].axis("equal")
-ax[0].scatter(pts[:, 0], pts[:, 1], color="black")
-ax[0].plot(pts[subset, 0], pts[subset, 1], color="black")
-
-ax[1].set_title("Convex hull of hulls")
-ax[1].axis("equal")
-ax[1].plot(hullsUnion[union, 0], hullsUnion[union, 1], color="black")
-for hull, group in zip(hulls, groups):
-    ax[1].plot(group[hull, 0], group[hull, 1], color="black")
-
-fig.tight_layout()
-fig.savefig(fname="convex-hull.png", bgcolor="none")
 ```
 
-This can be used as a library, to help handle a lot of polygon data. The convex hull of the union of hulls, is also the convex hull of all points contained. This means you write nice `map()` and `reduce()` functions to sort and associate complex shapes without needing to do point-in-polygon calculations.
-
-<img 
-    src="assets/convex-hull.png" 
-    alt="Example of a convex hull"
-    style={{
-        filter: "invert(1)",
-    }}
-/>
+The convex hull of the union of hulls, is also the convex hull of all points contained. This means you write nice `map()` and `reduce()` functions to sort and associate complex shapes without needing to do point-in-polygon calculations.
 
 However, only aggregation works this way, and not removing convex hulls. If a polygon is going to be removed, the union will need to be recalculated from the source data.
 

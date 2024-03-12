@@ -15,6 +15,8 @@ export default function Page() {
         src={"/assets/dagan-sprite.gif"}
         alt="Sea creature seeking answers"
         unoptimized={true}
+        width={450}
+        height={300}
       />
     </>
   );

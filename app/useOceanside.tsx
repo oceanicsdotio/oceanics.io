@@ -166,7 +166,7 @@ export const useOceanside = ({
   useEffect(() => {
     if (!map || !worker.current) return;
     let handle: Worker = worker.current
-    let callback = ({ data }) => {
+    let callback = ({ data }: any) => {
       switch (data.type) {
         case ACTIONS.parseIconSet:
           (data.data as any[]).forEach((x: unknown) => {

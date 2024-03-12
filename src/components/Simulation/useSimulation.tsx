@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from "react";
 import {
   renderPipelineStage,
   useShaderContext,
-} from "../Shaders/Shaders.context";
+} from "./Shaders.context";
 import type {
   BufferTriple,
   IRenderStage,
   TextureOptions,
-} from "../Shaders/Shaders.context";
-import useCanvasContext from "../../hooks/useCanvasContext";
+} from "./Shaders.context";
+import useCanvasContext from "./useCanvasContext";
 import useWorker from "../../hooks/useWorker";
 /**
  * Known message types
