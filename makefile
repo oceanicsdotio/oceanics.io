@@ -1,8 +1,8 @@
 SRC = \
 	$(shell find src -type d) \
 	$(shell find src -type f -name '*') \
-	$(shell find pages -type d) \
-	$(shell find pages -type f -name '*')
+	$(shell find app -type d) \
+	$(shell find app -type f -name '*')
 RUST = \
 	$(shell find rust -type d) \
 	$(shell find rust -type f -name '*')

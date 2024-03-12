@@ -1,62 +1,75 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import type { MouseEvent } from "react";
-import { eventCoordinates } from "../../shared";
-import type { EventLocation } from "../../shared";
-import useWorker from "../../hooks/useWorker";
-import type { MiniMap } from "@oceanics-io/wasm";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useReducer,
+  useCallback,
+  useMemo,
+  type MouseEvent,
+  type KeyboardEvent,
+  type MutableRefObject,
+} from "react";
+import {
+  eventCoordinates,
+  type EventLocation,
+  rotatePath,
+  inverse,
+} from "../src/shared";
+import type { MiniMap, PrismCursor } from "@oceanics-io/wasm";
 export type ModuleType = typeof import("@oceanics-io/wasm");
 
+import { lichen, orange } from "../src/palette";
+
 const ACTIONS = {
-  parseIconSet: "parseIconSet"
-}
+  parseIconSet: "parseIconSet",
+};
 const DEFAULT_BLENDING = "#000000FF";
 
+enum KeyEvents {
+  KeyUp = "keyup",
+  KeyDown = "keydown",
+}
+
 export interface IWorldType {
+  worker: MutableRefObject<Worker | undefined>;
   /**
    * Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`,
    * so scores are higher for larger.
    */
   grid: {
-    tiles?: number[][]
-    size: number
-  }
+    tiles?: number[][];
+    size: number;
+  };
   /**
    * Pixel size of the canvas element
    */
   view: {
-    size: number
-  }
+    size: number;
+  };
   /**
    * Integer height and width of global grid. The total number of tiles,
    * and therefore the probability of finding certain features, is the square of `worldSize`.
    */
-  size: number
+  size: number;
   /**
    * Fraction of tidal evolution. Each tile has an elevation value.
    * Tiles above `waterLevel` are always land, and therefore worth nothing.
    * Other wet tiles become mud depending on the tidal cycle and their elevation.
    */
-  datum: number
+  datum: number;
   /**
    * color of animation loop blending
    */
-  backgroundColor?: string
+  backgroundColor?: string;
   /**
    * WASM package, already initialized
    */
-  runtime: ModuleType | null
+  runtime: ModuleType | null;
   /**
    * Rendering data
    */
-  src: string
+  src: string;
 }
-
-// This has to be defined in global scope to force Webpack to bundle the script. 
-const createWorker = () => 
-  new Worker(
-    new URL("./Oceanside.worker.ts", import.meta.url), 
-    { type: 'module' }
-  );
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -72,6 +85,7 @@ const createWorker = () =>
  * sprite data for animations.
  */
 export const useOceanside = ({
+  worker,
   grid,
   size,
   datum,
@@ -84,11 +98,15 @@ export const useOceanside = ({
    */
   const ref = useRef<HTMLCanvasElement | null>(null);
 
-  /**
-   * Dedicated background worker for number crunching and text
-   * analysis.
-   */
-  const worker = useWorker(createWorker);
+   // Start if we get a worker on load.
+   useEffect(() => {
+    if (typeof worker.current === "undefined") return;
+    let handle: Worker = worker.current;
+    handle.postMessage({ type: "status" });
+    return () => {
+      handle.terminate();
+    };
+  }, [worker]);
 
   /**
    * When the runtime loads, create a pixel map
@@ -113,7 +131,7 @@ export const useOceanside = ({
     }
     const offset = (size - grid.size) / 2;
     return new runtime.MiniMap(offset, offset / 2, size, datum, ctx, grid.size);
-  }, [runtime, ref.current]);
+  }, [runtime, datum, grid.size, size]);
 
   /**
    * Currently visible tiles from map view.
@@ -123,7 +141,7 @@ export const useOceanside = ({
   /**
    * Populate the register of currently visible tiles.
    */
-  const populate = () => {
+  const populate = useCallback(() => {
     if (!map) throw TypeError("MiniMap reference is Null");
     const diagonals = grid.size * 2 - 1;
     const build: number[][] = [];
@@ -138,7 +156,7 @@ export const useOceanside = ({
       build[row] = build[row].reverse();
     }
     setTiles(build);
-  };
+  }, [map, grid.size]);
 
   /**
    * When we get a message back from the worker that matches
@@ -146,9 +164,9 @@ export const useOceanside = ({
    * into the map's probability table for world-building.
    */
   useEffect(() => {
-    if (!map || !worker.ref.current) return;
-    // start listener
-    const remove = worker.listen(({ data }) => {
+    if (!map || !worker.current) return;
+    let handle: Worker = worker.current
+    let callback = ({ data }) => {
       switch (data.type) {
         case ACTIONS.parseIconSet:
           (data.data as any[]).forEach((x: unknown) => {
@@ -160,9 +178,14 @@ export const useOceanside = ({
           console.log(data.type, data.data);
           return;
       }
-    });
-    return remove;
-  }, [worker.ref.current, map]);
+    };
+    // start listener
+
+    handle.addEventListener("message", callback, { passive: true });
+    return () => {
+      handle.removeEventListener("message", callback);
+    };
+  }, [worker, map, populate]);
 
   /**
    * When we have a worker ready, we can start sending
@@ -173,12 +196,12 @@ export const useOceanside = ({
    * insert the feature into the visualization.
    */
   useEffect(() => {
-    if (!map || !worker.ref.current) return;
-    worker.ref.current.postMessage({
+    if (!map || !worker.current) return;
+    worker.current.postMessage({
       type: ACTIONS.parseIconSet,
-      data: {src, size},
+      data: { src, size },
     });
-  }, [worker.ref.current, map]);
+  }, [worker, map, size, src]);
 
   /**
    * Re-populate the currently visible tiles when a mouse event fires
@@ -199,7 +222,7 @@ export const useOceanside = ({
       map.clear();
       populate();
     },
-    [map]
+    [map, populate]
   );
 
   /**
@@ -256,9 +279,179 @@ export const useOceanside = ({
     return () => {
       if (requestId) cancelAnimationFrame(requestId);
     };
-  }, [map, tiles, runtime]);
+  }, [map, tiles, runtime, backgroundColor]);
+
+  /**
+   * Canvas reference.
+   */
+  const overlay = useRef<HTMLCanvasElement | null>(null);
+
+  /**
+   * Complex cursor handled in Rust
+   */
+  const [cursor, setCursor] = useState<PrismCursor | null>(null);
+
+  /**
+   * When runtime loads, create a cursor instance.
+   */
+  useEffect(() => {
+    if (!runtime) return;
+    setCursor(
+      new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, grid.size)
+    );
+  }, [runtime, grid.size]);
+
+  /**
+   * Clamp custom cursor to the discrete grid.
+   */
+  const [clamp, setClamp] = useState(false);
+
+  /**
+   * Toggle the key state when it is pressed and released.
+   * There is technically no need for the default case.
+   *
+   * The initial value of the state is taken from the second
+   * arg to `useReducer`.
+   *
+   *Add and remove keypress listeners as necessary. These
+   * will call the `setKeys` method generated by `useReducer`
+   * to logicaly update the array of pressed keys.
+   */
+  const [keys, setKeys] = useReducer(
+    (
+      state: { [index: string]: string | boolean },
+      { type, key }: { type: string; key: string }
+    ) => {
+      switch (type) {
+        case "keydown":
+          return { ...state, [key]: true };
+        case "keyup":
+          return { ...state, [key]: false };
+        default:
+          return state;
+      }
+    },
+    ["Shift", "C"].reduce((acc, key) => {
+      return {
+        ...acc,
+        [key.toLowerCase()]: false,
+      };
+    }, {})
+  );
+
+  useEffect(() => {
+    const listeners = [KeyEvents.KeyUp, KeyEvents.KeyDown].map(
+      (type: KeyEvents) => {
+        const listen = (event: KeyboardEvent<Element>) => {
+          const symbol = event.key.toLowerCase();
+          if (event.repeat) return;
+          if (keys[symbol] === (KeyEvents.KeyUp === type))
+            setKeys({ type, key: symbol });
+        };
+        //@ts-ignore
+        document.addEventListener(type, listen, true);
+        return [type, listen];
+      }
+    );
+
+    return () => {
+      listeners.forEach(([type, listen]) =>
+        //@ts-ignore
+        document.removeEventListener(type, listen, true)
+      );
+    };
+  }, [keys]);
+
+  useEffect(() => {
+    if (Object.values(keys).every((x) => x)) setClamp(!clamp);
+  }, [keys, clamp]);
+
+  //
+  useEffect(() => {
+    if (!overlay || !overlay.current || !cursor) return;
+    const canvas: HTMLCanvasElement = overlay.current;
+    canvas.addEventListener("mousemove", (event) => {
+      const xy = eventCoordinates(event, canvas);
+      cursor.update(...xy);
+    });
+  }, [cursor, overlay]);
+
+  /**
+   * Draw the visible area to the board canvas using the
+   * tile set object.
+   */
+  useEffect(() => {
+    if (!overlay || !overlay.current || !cursor || !runtime) return;
+
+    const canvas: HTMLCanvasElement = overlay.current;
+    const ctx = canvas.getContext(`2d`);
+    if (!ctx) throw TypeError("Rendering Context is Null");
+
+    [canvas.width, canvas.height] = ["width", "height"]
+      .map((dim) => getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2))
+      .map((x) => Number(x) * window.devicePixelRatio);
+    const { width, height } = canvas;
+
+    runtime.clear_rect_blending(ctx, width, height, backgroundColor);
+
+    const Δx = 1;
+    const Δy = 1;
+    const [x, y]: [number, number] = [cursor.x(), cursor.y()];
+
+    const cellSize = width / grid.size;
+    const [inverted] = inverse(
+      [[x * cellSize, y * cellSize]],
+      width,
+      grid.size
+    ).map((pt) => pt.map((x) => x / cellSize));
+
+    [
+      { upperLeft: [x, y], color: orange },
+      { upperLeft: inverted, color: lichen },
+    ].map(({ color, upperLeft }) => {
+      const [x, y] = upperLeft.map((dim) => (clamp ? Math.floor(dim) : dim));
+
+      const cellA: [number, number][] = [
+        [x, y],
+        [x + Δx, y],
+        [x + Δx, y + Δy],
+        [x, y + Δy],
+      ].map(([x, y]) => [x * cellSize, y * cellSize]);
+
+      const cellB: [number, number][] = rotatePath(
+        cellA.map(([x, y]) => [x / Math.sqrt(2), y / Math.sqrt(2)]),
+        Math.PI / 4
+      ).map(([x, y]) => [
+        x + ((Math.floor(0.5 * grid.size) + 1.25) * cellSize) / Math.sqrt(2),
+        0.5 * y,
+      ]);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.0;
+
+      [cellA, cellB].forEach((cell) => {
+        ctx.beginPath();
+        ctx.moveTo(...cell[0]);
+        cell.slice(1, 4).forEach((pt) => ctx.lineTo(...pt));
+        ctx.closePath();
+        ctx.stroke();
+      });
+
+      ctx.beginPath();
+      for (let ii = 0; ii < 4; ii++) {
+        ctx.moveTo(...cellA[ii]);
+        ctx.lineTo(...cellB[ii]);
+      }
+      ctx.stroke();
+    });
+  }, [clamp, cursor, grid.size, runtime, backgroundColor]);
 
   return {
+    overlay: {
+      canvas: {
+        ref,
+      },
+    },
     world: {
       canvas: {
         width: size,

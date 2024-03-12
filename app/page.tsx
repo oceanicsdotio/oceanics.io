@@ -1,7 +1,6 @@
-import React from "react";
-import Index from "./Index";
+import React, { Suspense } from "react";
+import Oceanside from "./Oceanside";
 import { Metadata } from "next";
-
 import styles from "./index.module.css";
 
 export const metadata: Metadata = {
@@ -12,20 +11,23 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <Index
-        {...{
-          size: 96,
-          view: {
-            size: 9,
-          },
-          grid: {
-            size: 7,
-          },
-          datum: 0.8,
-          runtime: null,
-          src: "/nodes.json",
-        }}
-      />
+      <Suspense fallback={<div className={styles.placeholder}></div>}>
+        <Oceanside
+          {...{
+            size: 96,
+            view: {
+              size: 9,
+            },
+            grid: {
+              size: 7,
+            },
+            datum: 0.8,
+            runtime: null,
+            src: "/nodes.json",
+          }}
+        />
+      </Suspense>
+
       <p className={styles.large}>
         To protect our Ocean, you need to draw on community knowledge and make
         data-driven decisions for the future. Whether watching your surf or
