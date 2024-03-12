@@ -3927,7 +3927,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:>=16, @types/react@npm:^18.2.42":
+"@types/react@npm:>=16":
   version: 18.2.42
   resolution: "@types/react@npm:18.2.42"
   dependencies:
@@ -3935,6 +3935,17 @@ __metadata:
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
   checksum: 10/b6ee1873ba551ca7bf87cefff00a615aa4322cd68d425858a2e09be260d8037d7fc68865739d2b05cc88cefa7acd009afdaea43e9856fc6302b322cc8c19464e
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.2.64":
+  version: 18.2.64
+  resolution: "@types/react@npm:18.2.64"
+  dependencies:
+    "@types/prop-types": "npm:*"
+    "@types/scheduler": "npm:*"
+    csstype: "npm:^3.0.2"
+  checksum: 10/e82bd16660030c9aabdb5027bb9bf69570a90813e4a894c17bfb288978c2b80251def5754e455d72aa3485d99136e1b11b694f78c586e5918e10b3bb09b91b3c
   languageName: node
   linkType: hard
 
@@ -14689,7 +14700,7 @@ __metadata:
     "@types/mapbox-gl": "npm:^2.7.19"
     "@types/node": "npm:^20.10.3"
     "@types/prop-types": "npm:^15.7.11"
-    "@types/react": "npm:^18.2.42"
+    "@types/react": "npm:^18.2.64"
     "@types/react-dom": "npm:^18.2.17"
     "@types/react-pdf": "npm:^7.0.0"
     "@types/styled-components": "npm:^5.1.32"
