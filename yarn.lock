@@ -2445,10 +2445,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oceanics-io/wasm@file:wasm::locator=oceanics-io-www%40workspace%3A.":
+"@oceanics-io/wasm@file:wasm::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/wasm@file:wasm#wasm::hash=46dccd&locator=oceanics-io-www%40workspace%3A."
-  checksum: 10/3891eac06d3b3248f2d5e6c563e54e217ab8a6e22bb86f7fb879d49fab746601a0f35be1ff76ddb4e15f2a6f35645c26441d4caaa1f73321828cf154f11fbdd7
+  resolution: "@oceanics-io/wasm@file:wasm#wasm::hash=347fa8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/d4e5392f97053a00ceb17feb5bd0faa85bbbcf480c53f1037d6cad74298800ddc2514811e9021a8aa5211836adfd17c8a3d7bc616ae52c151899784d371bfaa0
   languageName: node
   linkType: hard
 
@@ -14688,57 +14688,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oceanics-io-www@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "oceanics-io-www@workspace:."
-  dependencies:
-    "@apidevtools/swagger-parser": "npm:^10.1.0"
-    "@oceanics-io/wasm": "file:wasm"
-    "@types/geojson": "npm:^7946.0.14"
-    "@types/jest": "npm:^29.5.12"
-    "@types/katex": "npm:^0.16.7"
-    "@types/mapbox-gl": "npm:^2.7.19"
-    "@types/node": "npm:^20.10.3"
-    "@types/prop-types": "npm:^15.7.11"
-    "@types/react": "npm:^18.2.64"
-    "@types/react-dom": "npm:^18.2.21"
-    "@types/react-pdf": "npm:^7.0.0"
-    "@types/styled-components": "npm:^5.1.32"
-    "@types/typography": "npm:^0.16.7"
-    "@types/xmldom": "npm:^0.1.31"
-    "@typescript-eslint/eslint-plugin": "npm:^6.13.2"
-    "@typescript-eslint/parser": "npm:^6.13.2"
-    "@xmldom/xmldom": "npm:^0.8.10"
-    depcheck: "npm:^1.4.7"
-    eslint: "npm:^8.57.0"
-    eslint-config-next: "npm:^14.0.3"
-    http-proxy-middleware: "npm:^2.0.6"
-    jest: "npm:^29.7.0"
-    katex: "npm:^0.16.9"
-    mapbox-gl: "npm:^3.0.1"
-    netlify-cli: "npm:^17.2.2"
-    next: "npm:^14.1.3"
-    next-mdx-remote: "npm:^4.4.1"
-    openapi-types: "npm:^12.1.3"
-    prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    react-is: "npm:^18.2.0"
-    react-markdown: "npm:^9.0.1"
-    react-pdf: "npm:^7.5.1"
-    rehype: "npm:^13.0.1"
-    rehype-highlight: "npm:^7.0.0"
-    rehype-stringify: "npm:^10.0.0"
-    styled-components: "npm:^6.1.1"
-    tsconfig-paths-webpack-plugin: "npm:^4.0.0"
-    tsx: "npm:^4.7.1"
-    typescript: "npm:^5.3.2"
-    typography: "npm:^0.16.24"
-    webpack: "npm:^5.89.0"
-    yaml: "npm:^2.3.4"
-  languageName: unknown
-  linkType: soft
-
 "ofetch@npm:^1.1.1, ofetch@npm:^1.3.3":
   version: 1.3.3
   resolution: "ofetch@npm:1.3.3"
@@ -19498,6 +19447,57 @@ __metadata:
   checksum: 10/3be1f5508a46c190619d5386b1ac8f3af3dbe951ed0f7b0b4a0961eed6fc626bd84b50cf4be768dabc0a05b672f5d0c5ee7f42daa557b14415d18c3a13c7d246
   languageName: node
   linkType: hard
+
+"www-oceanics-io@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "www-oceanics-io@workspace:."
+  dependencies:
+    "@apidevtools/swagger-parser": "npm:^10.1.0"
+    "@oceanics-io/wasm": "file:wasm"
+    "@types/geojson": "npm:^7946.0.14"
+    "@types/jest": "npm:^29.5.12"
+    "@types/katex": "npm:^0.16.7"
+    "@types/mapbox-gl": "npm:^2.7.19"
+    "@types/node": "npm:^20.10.3"
+    "@types/prop-types": "npm:^15.7.11"
+    "@types/react": "npm:^18.2.64"
+    "@types/react-dom": "npm:^18.2.21"
+    "@types/react-pdf": "npm:^7.0.0"
+    "@types/styled-components": "npm:^5.1.32"
+    "@types/typography": "npm:^0.16.7"
+    "@types/xmldom": "npm:^0.1.31"
+    "@typescript-eslint/eslint-plugin": "npm:^6.13.2"
+    "@typescript-eslint/parser": "npm:^6.13.2"
+    "@xmldom/xmldom": "npm:^0.8.10"
+    depcheck: "npm:^1.4.7"
+    eslint: "npm:^8.57.0"
+    eslint-config-next: "npm:^14.0.3"
+    http-proxy-middleware: "npm:^2.0.6"
+    jest: "npm:^29.7.0"
+    katex: "npm:^0.16.9"
+    mapbox-gl: "npm:^3.0.1"
+    netlify-cli: "npm:^17.2.2"
+    next: "npm:^14.1.3"
+    next-mdx-remote: "npm:^4.4.1"
+    openapi-types: "npm:^12.1.3"
+    prop-types: "npm:^15.8.1"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    react-is: "npm:^18.2.0"
+    react-markdown: "npm:^9.0.1"
+    react-pdf: "npm:^7.5.1"
+    rehype: "npm:^13.0.1"
+    rehype-highlight: "npm:^7.0.0"
+    rehype-stringify: "npm:^10.0.0"
+    styled-components: "npm:^6.1.1"
+    tsconfig-paths-webpack-plugin: "npm:^4.0.0"
+    tsx: "npm:^4.7.1"
+    typescript: "npm:^5.3.2"
+    typography: "npm:^0.16.24"
+    webpack: "npm:^5.89.0"
+    yaml: "npm:^2.3.4"
+  languageName: unknown
+  linkType: soft
 
 "xdg-basedir@npm:^5.0.1, xdg-basedir@npm:^5.1.0":
   version: 5.1.0
