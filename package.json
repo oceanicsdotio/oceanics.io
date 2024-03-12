@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "@apidevtools/swagger-parser": "^10.1.0",
-        "@oceanics-io/wasm": "file:lib",
+        "@oceanics-io/wasm": "file:wasm",
         "@xmldom/xmldom": "^0.8.10",
         "katex": "^0.16.9",
         "mapbox-gl": "^3.0.1",

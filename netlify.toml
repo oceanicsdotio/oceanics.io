@@ -1,11 +1,12 @@
 [build]
   base = "/"
   publish = "/build"
-  command = "make ."
+  command = "make next"
 
 [build.environment]
   NODE_VERSION = "20"
   AWS_LAMBDA_JS_RUNTIME = "nodejs20.x"
+  UV_THREADPOOL_SIZE = 16
 
 [dev]
   port = 8888

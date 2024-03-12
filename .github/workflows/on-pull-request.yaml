@@ -10,7 +10,6 @@ jobs:
   build:
     name: Build site
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' }}
 
     steps:
 
@@ -25,7 +24,7 @@ jobs:
         name: Configure Node cache
         id: node-cache
         with:
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
 
       - name: Configure Next cache
