@@ -2447,8 +2447,8 @@ __metadata:
 
 "@oceanics-io/wasm@file:wasm::locator=oceanics-io-www%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/wasm@file:wasm#wasm::hash=99d028&locator=oceanics-io-www%40workspace%3A."
-  checksum: 10/d494070bcf3881442d24f1c5460d18a5e0baec28f254193e9bbb429ea1f1efeaef3802848583bad71b9449e84426db9c0804a435640b4f4e7b0fd88a3e5c35d2
+  resolution: "@oceanics-io/wasm@file:wasm#wasm::hash=4d88df&locator=oceanics-io-www%40workspace%3A."
+  checksum: 10/5293c0bf7e1882c6a0eee16a4a7ee902360b04470c1b02a9444492153259e9130997790f75c7310d0dbbf112b74399318251f27a28c92f09f6e998001fc529b9
   languageName: node
   linkType: hard
 
@@ -3898,12 +3898,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.2.17":
-  version: 18.2.17
-  resolution: "@types/react-dom@npm:18.2.17"
+"@types/react-dom@npm:^18.2.21":
+  version: 18.2.21
+  resolution: "@types/react-dom@npm:18.2.21"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/fe0dbb3224b48515da8fe25559e3777d756a27c3f22903f0b1b020de8d68bd57eb1f0af62b52ee65d9632637950afed8cbad24d158c4f3d910d083d49bd73fba
+  checksum: 10/5c714bc69c3cf979dbf3fb8c66fc42b5b740af54d98c1037c593ac9ad54e5107cfc39fcba8c550f8df924670f55b411898d53c6166a2b15b4ed44a248a358590
   languageName: node
   linkType: hard
 
@@ -14701,7 +14701,7 @@ __metadata:
     "@types/node": "npm:^20.10.3"
     "@types/prop-types": "npm:^15.7.11"
     "@types/react": "npm:^18.2.64"
-    "@types/react-dom": "npm:^18.2.17"
+    "@types/react-dom": "npm:^18.2.21"
     "@types/react-pdf": "npm:^7.0.0"
     "@types/styled-components": "npm:^5.1.32"
     "@types/typography": "npm:^0.16.7"
