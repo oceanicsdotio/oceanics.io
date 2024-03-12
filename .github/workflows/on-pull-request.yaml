@@ -16,23 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Hash lockfile
-        id: lockfile
-        run: echo "hash=${{ hashFiles('./yarn.lock') }}" >> $GITHUB_OUTPUT
-
       - uses: actions/setup-node@v4
         name: Configure Node cache
         id: node-cache
         with:
           node-version: 20
           cache: 'yarn'
-
-      - name: Configure Next cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
-          restore-keys: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
 
       - name: Build all dependencies
         env:
