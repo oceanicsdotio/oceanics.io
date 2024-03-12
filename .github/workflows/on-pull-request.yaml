@@ -10,7 +10,7 @@ jobs:
   build:
     name: Build site
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
 
       - name: Checkout
@@ -24,4 +24,6 @@ jobs:
       - name: Build all dependencies
         env:
             YARN_ENABLE_IMMUTABLE_INSTALLS: false
+            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: make build
