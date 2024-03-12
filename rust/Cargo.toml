@@ -11,6 +11,9 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 path = "lib.rs"
 
+[profile.release]
+opt-level = "s"
+
 [dependencies]
 js-sys = "0.3.69"
 wasm-bindgen-futures = "0.4.42"
@@ -20,17 +23,8 @@ serde-wasm-bindgen = "0.6.5"
 console_error_panic_hook = "0.1.7"
 regex = "1.10.3"
 chrono = { version = "0.4.35", features = ["serde"] }
-
-[profile.release]
-opt-level = "s"
-
-[dependencies.wasm-bindgen]
-version = "0.2.92"
-features = ["serde-serialize"]
-
-[dependencies.web-sys]
-version = "0.3.69"
-features = [
+wasm-bindgen = { version = "0.2.92", features = ["serde-serialize"] }
+web-sys = { version = "0.3.69", features = [
     'CanvasGradient',
     'CanvasRenderingContext2d',
     'Document',
@@ -55,6 +49,4 @@ features = [
     'WebGlTexture',
     'Window',
     'console'
-]
-
-
+]}

@@ -1,19 +1,12 @@
 {
-    "name": "oceanics-io-www",
+    "name": "www-oceanics-io",
     "private": true,
     "type": "module",
     "packageManager": "yarn@4.1.0",
     "description": "Blue computing",
-    "version": "0.4.0",
+    "version": "1.0.0",
     "author": "Oceanicsdotio LLC <business@oceanics.io>",
     "homepage": "https://www.oceanics.io",
-    "keywords": [
-        "ocean data",
-        "water quality",
-        "remote sensing",
-        "simulation",
-        "web assembly"
-    ],
     "license": "MIT",
     "main": "n/a",
     "repository": {
