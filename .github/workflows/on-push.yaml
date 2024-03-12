@@ -1,7 +1,9 @@
 name: Build
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
 
 env: 
   CARGO_TERM_COLOR: always
@@ -9,21 +11,23 @@ env:
 jobs:
   build:
     name: Build site
-    runs-on: ubuntu-latest
     environment: production
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+
     steps:
 
       - name: Checkout
         uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        name: Configure Node
+        name: Configure build environment
         with:
           node-version: 20
 
-      - name: Build all dependencies
+      - name: Build and deploy to Netlify
         env:
             YARN_ENABLE_IMMUTABLE_INSTALLS: false
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        run: make build
+        run: make deploy

@@ -45,6 +45,7 @@ tsconfig.tsbuildinfo
 # Local Netlify folder
 .netlify
 target/
+wasm/
 nodes.json
 .next
 out/
