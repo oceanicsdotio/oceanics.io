@@ -1,6 +1,6 @@
 import React from "react";
 import "./layout.css";
-import styles from "@styles/layout.module.css"
+import styles from "@app/layout.module.css"
 
 export default function RootLayout({
     children,

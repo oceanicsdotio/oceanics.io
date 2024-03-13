@@ -4,7 +4,7 @@ import type {
   ICurrentEvent,
   ICurrentEventDataRaw,
 } from "app/upcoming-events/Event";
-import styles from "@styles/layout.module.css";
+import styles from "@app/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Out of the Blue | Upcoming Events",

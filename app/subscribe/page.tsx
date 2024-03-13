@@ -1,7 +1,7 @@
 import Subscribe from "./Subscribe";
 import { Metadata } from "next";
 import Link from "next/link";
-import styles from "@styles/layout.module.css";
+import styles from "@app/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Out of the Blue | Calendar",

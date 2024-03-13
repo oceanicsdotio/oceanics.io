@@ -1,6 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
-import styles from "@styles/layout.module.css";
+import styles from "@app/layout.module.css";
 import Link from "next/link";
 
 export const metadata: Metadata = {

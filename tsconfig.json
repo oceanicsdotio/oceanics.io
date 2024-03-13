@@ -12,12 +12,9 @@
       "@glsl/*": [
         "glsl/*"
       ],
-      "@components/*": [
-        "src/components/*"
+      "@app/*": [
+        "app/*"
       ],
-      "@styles/*": [
-        "styles/*"
-      ]
     },
     "allowJs": true,
     "skipLibCheck": true,

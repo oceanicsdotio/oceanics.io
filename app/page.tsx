@@ -3,7 +3,7 @@ import Oceanside from "./Oceanics";
 import { Metadata } from "next";
 import styles from "./index.module.css";
 import Link from "next/link";
-import _styles from "@styles/layout.module.css";
+import _styles from "@app/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Oceanics.io",

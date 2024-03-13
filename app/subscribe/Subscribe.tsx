@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, Suspense, useState, useEffect } from "react";
 import type { FormEventHandler } from "react";
-import styles from "@styles/layout.module.css";
+import styles from "@app/layout.module.css";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
