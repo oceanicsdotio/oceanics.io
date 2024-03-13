@@ -8,6 +8,7 @@ const nextConfig = {
   output: "export",
   distDir: "build",
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  trailingSlash: true,
   compiler: {
     // https://nextjs.org/docs/advanced-features/compiler#styled-components
     styledComponents: true,

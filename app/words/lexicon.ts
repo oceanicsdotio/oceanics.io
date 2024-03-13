@@ -1,8 +1,6 @@
-import type {Handler} from "@netlify/functions";
 import {readFileSync} from "fs";
 
-const WELL_KNOWN_TEXT: string[] = readFileSync(require.resolve("./words.txt"), "utf8").split("\n");
-
+export const WELL_KNOWN_TEXT: string[] = readFileSync(require.resolve("./words.txt"), "utf8").split("\n");
 
 interface RowAccumulation {
     previous: number[];
@@ -172,27 +170,3 @@ export function recurse({
         return self + Object.entries(node.children??{}).map(mapNodes)
     }
 }
-
-/**
- * HTTP method
- */
-const handler: Handler = async ({
-    body
-}) => {
-
-    try {    
-        const {pattern, maxCost} = JSON.parse(body??"");
-        return {
-            statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
-        }; 
-    } catch ({statusCode = 500, message = ""}) {
-        return { 
-            statusCode: statusCode as number, 
-            body: message as string
-        };
-    }
-}
-
-export {handler}

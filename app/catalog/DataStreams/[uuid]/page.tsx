@@ -1,12 +1,17 @@
 import React, { Suspense } from "react";
 import DataStream from "./DataStream";
-import Histogram from "./Histogram";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Data Stream",
   description: "Access streaming time series data.",
 };
+
+export async function generateStaticParams() { 
+  return [{
+    uuid: "example"
+  }]
+}
 
 export default function Page() {
   return (

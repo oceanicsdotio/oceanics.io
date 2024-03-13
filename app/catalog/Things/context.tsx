@@ -54,13 +54,13 @@ export const useWasmRuntime = () => {
 /**
  * Pre-import all shaders. This is a bit fragile.
  */
-import noiseVertex from "../../glsl/noise-vertex.glsl";
-import noiseFragment from "../../glsl/noise-fragment.glsl";
-import quadVertex from "../../glsl/quad-vertex.glsl";
-import updateFragment from "../../glsl/update-fragment-test.glsl";
-import screenFragment from "../../glsl/screen-fragment.glsl";
-import drawVertex from "../../glsl/draw-vertex-test.glsl";
-import drawFragment from "../../glsl/draw-fragment-test.glsl";
+import noiseVertex from "@glsl/noise-vertex.glsl";
+import noiseFragment from "@glsl/noise-fragment.glsl";
+import quadVertex from "@glsl/quad-vertex.glsl";
+import updateFragment from "@glsl/update-fragment-test.glsl";
+import screenFragment from "@glsl/screen-fragment.glsl";
+import drawVertex from "@glsl/draw-vertex-test.glsl";
+import drawFragment from "@glsl/draw-fragment-test.glsl";
 
 // Mapping of program name to shader names
 export type ProgramSourceMap = { [key: string]: [string, string] };

@@ -1,15 +1,9 @@
 "use client";
 import Markdown from "react-markdown";
-import React, {
-  useRef,
-  useEffect,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import React, { useRef, useEffect, type MouseEventHandler } from "react";
 import useCatalog from "./useCatalog";
 import styles from "./catalog.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
-import Channel, { ChannelType } from "./Channel";
 
 interface ICatalog {
   /**
@@ -18,21 +12,9 @@ interface ICatalog {
    */
   src: string;
   /**
-   * Metadata about data sources
-   */
-  channels: ChannelType[];
-  /**
    * Current zoom level
    */
   zoomLevel: number;
-  /**
-   * Pass in an existing queue
-   */
-  queue: ChannelType[];
-  /**
-   * Replace me a reducer
-   */
-  setQueue: Dispatch<SetStateAction<ChannelType[]>>;
 }
 
 const DEFAULT_MAP_PROPS = {
@@ -89,6 +71,83 @@ const DEFAULT_MAP_PROPS = {
     ],
   },
 };
+
+export type ChannelType = {
+    id: string,
+    /**
+     * Source of the raw data
+     */
+    url: string,
+    /**
+     * The type of the data. 
+     */
+    type: string,
+    /**
+     * Hook for Styled Components to apply CSS
+     */
+    className?: string,
+    /**
+     * How to render the data
+     */
+    component: string,
+    /**
+     * Does not appear when zoomed in further
+     */
+    maxzoom: number,
+    /**
+     * Not rendered when zoomed further out
+     */
+    minzoom: number,
+    /**
+     * Current zoom level passed in for rendering in cards
+     * whether or not the channel is currently visible
+     */
+    zoomLevel: number,
+    /**
+     * The provider and legal owner of the data
+     */
+    attribution?: string,
+    /**
+     * URL that links to the provider
+     */
+    info: string,
+    /**
+     * Render and update view on click
+     */
+    onClick: MouseEventHandler
+}
+
+/**
+ * A channel abstracts access to a data source. 
+ */
+function Channel ({
+    id,
+    url,
+    type,
+    className,
+    component="default",
+    maxzoom=21,
+    minzoom=1,
+    zoomLevel,
+    info="",
+    onClick,
+}: ChannelType) {
+    const inView = (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)
+    return (
+        <div className={className}>
+            <h1>{id.replace(/-/g, ' ')}</h1>
+            <div className={"zoom"}>
+                <div className={inView?"visible":""}>
+                    {`zoom: ${minzoom}-${maxzoom}`}
+                </div>
+            </div>
+            <a onClick={onClick}>{`< render as ${type} with <${component}/> popup`}</a>
+            <a href={url}>{"> download"}</a>
+            <a href={info}>{"> attribution"}</a>
+        </div>
+    )
+}
+
 
 /**
  * The OpenApi component uses an OpenAPI specification for a

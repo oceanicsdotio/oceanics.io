@@ -2,6 +2,8 @@ import React, { Suspense } from "react";
 import Oceanside from "./Oceanics";
 import { Metadata } from "next";
 import styles from "./index.module.css";
+import Link from "next/link";
+import _styles from "@styles/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Oceanics.io",
@@ -41,6 +43,16 @@ export default function Page() {
         <a href="https://data.oceanics.io">
           Learn more about Bathysphere, our Ocean Data API.
         </a>
+      </p>
+      <p>
+        <Link className={_styles.link} href="/subscribe">
+          Subscribe to News & Events
+        </Link>
+      </p>
+      <p>
+        <Link className={_styles.link} href="/upcoming-events">
+          See Upcoming Events
+        </Link>
       </p>
     </>
   );

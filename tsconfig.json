@@ -7,6 +7,18 @@
       "dom.iterable",
       "esnext"
     ],
+    "baseUrl": "./",
+    "paths": {
+      "@glsl/*": [
+        "glsl/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@styles/*": [
+        "styles/*"
+      ]
+    },
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -33,15 +45,19 @@
   },
   "include": [
     "next-env.d.ts",
+    "typings.d.ts",
     "app/**/*",
     "src/**/*.tsx",
     "src/**/*.ts",
     "glsl",
     ".next/types/**/*.ts",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
     "build/types/**/*.ts", "mdx-components.tsx", "palette.ts"],
   "exclude": [
     "node_modules",
-    "app/catalog/Things/Shaders.context.tsx",
+    "app/catalog/Things/context.tsx",
     ".next"
   ]
 }

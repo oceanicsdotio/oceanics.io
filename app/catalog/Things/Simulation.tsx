@@ -1,14 +1,27 @@
-import React from "react";
-import useSimulation from  "./useSimulation";
-import type { ISimulation } from "./useSimulation";
+"use client";
+import React, { useEffect, useRef } from "react";
+import useSimulation, { type ISimulation } from "./useSimulation";
 
-const Simulation = (args: ISimulation) => {
-    const {ref, preview, message} = useSimulation(args);
-    return (<div>
-        <p>{message}</p>
-        <canvas ref={ref}/>
-        <canvas ref={preview.ref}/>
-    </div>)
+export default function Simulation(args: Omit<ISimulation, "worker">) {
+  const worker = useRef<Worker | undefined>();
+  useEffect(() => {
+    worker.current = new Worker(
+      new URL("./worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+  }, []);
+
+  const simulation = useSimulation({
+    worker, ...args
+  });
+  return (
+    <div>
+      <p>{simulation.message}</p>
+      <p>{simulation.noise.message}</p>
+      <canvas ref={simulation.ref} />
+      <canvas ref={simulation.preview.ref} />
+    </div>
+  );
 }
-
-export default Simulation

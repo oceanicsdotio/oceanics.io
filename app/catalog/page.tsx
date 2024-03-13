@@ -11,7 +11,7 @@ export default function Page() {
   return (
     <>
       <Suspense>
-        <Catalog src="/"></Catalog>
+        <Catalog src="/" zoomLevel={10}></Catalog>
         </Suspense>
     </>
   );

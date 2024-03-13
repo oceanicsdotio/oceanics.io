@@ -24,11 +24,6 @@
     "standalone",
     "xticklabels"
   ],
-  "python.pythonPath": "/usr/bin/python3.7",
-  "python.linting.pylintUseMinimalCheckers": false,
-  "python.linting.enabled": true,
-  "python.linting.pylintEnabled": true,
-  "python.languageServer": "Jedi",
   "cSpell.words": [
     "cyanobacteria",
     "katex",
@@ -45,5 +40,11 @@
   "deno.unstable": true,
   "deno.importMap": ".netlify/edge-functions-import-map.json",
   "deno.path": "/Users/keeney/Library/Preferences/netlify/deno-cli/deno",
-  "rust-analyzer.showUnlinkedFileNotification": false
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

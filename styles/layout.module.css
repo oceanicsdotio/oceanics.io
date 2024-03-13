@@ -1,0 +1,129 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow-y: scroll;
+}
+
+.content {
+  color: black;
+  width: 100%;
+  width: 65ch;
+  font-size: x-large;
+}
+
+.waves {
+  --skewness: -40deg;
+}
+.waves div {
+  display: inline-block;
+  letter-spacing: -0.26rem;
+  padding: 0;
+  animation-name: transform;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-delay: calc((0.5 + 0.5*sin((2.0 * var(--phase) + 0.5) * 3.14159 * 1rad)) * 4s);
+  animation-duration: 12s;
+  animation-timing-function: ease-in;
+  transform: skew(0) scaleY(0.1);
+  border-bottom: 1px solid lightblue;
+  border-top: 1px dashed lightblue;
+  color: navy;
+}
+
+@keyframes transform {
+  0% { 
+    transform: skew(0) scaleY(0);
+  }
+  50% { 
+    transform: skew(calc(2.0 * (var(--phase) - 0.5) * var(--skewness))) scaleY(calc(0.5 + abs(var(--phase) - 0.5)));
+  }
+  100% { 
+    transform: skew(0) scaleY(0);
+  }
+}
+
+.waves {
+  /* Specificity matters */
+  text-align: center !important;
+  width: 100%;
+}
+
+.content p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.content strong {
+  color: navy;
+}
+
+.footer {
+  display: block;
+  position: relative;
+  font-size: x-large;
+  border-top: 1px dashed navy;
+  color: navy;
+  text-align: center;
+}
+
+.link {
+  color: navy;
+  text-decoration: underline wavy lightblue;
+  text-underline-offset: 3px;
+}
+
+
+
+.subscribe {
+  color: black;
+  scroll-snap-align: start;
+}
+
+.input{
+  padding: 1rem;
+  font-size: larger;
+  border-radius: 0.1rem;
+  margin: 1rem 0;
+  width: auto;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px lightblue;
+}
+
+.submit {
+  padding: 1rem;
+  font-size: larger;
+  border-radius: 0.5rem;
+  margin: 1rem auto 1rem 0;
+  min-width: 300px;
+  color: black;
+  background-color: lightblue;
+  border: none;
+  box-shadow: 3px 3px 2px 0px grey;
+}
+
+.submit:disabled {
+  color: gray;
+  background-color: lightgray;
+}
+
+.form {
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

@@ -1,15 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type MutableRefObject,
+} from "react";
 import {
   renderPipelineStage,
   useShaderContext,
-} from "./Shaders.context";
-import type {
-  BufferTriple,
-  IRenderStage,
-  TextureOptions,
-} from "./Shaders.context";
-import useCanvasContext from "./useCanvasContext";
-import useWorker from "../../hooks/useWorker";
+  type BufferTriple,
+  type IRenderStage,
+  type TextureOptions
+} from "./context";
+
 /**
  * Known message types
  */
@@ -17,8 +20,8 @@ export const MESSAGES = {
   status: "status",
   error: "error",
   texture: "texture",
-  attribute: "attribute"
-}
+  attribute: "attribute",
+};
 
 /**
  * Mapping of uniforms to program components. Requires
@@ -38,68 +41,59 @@ const PARAMETER_MAP = {
   color: ["u_color_ramp", "u_opacity"],
 };
 
-
-/**
- * Metadata about how to source data from an image
- * that encodes position or velocity data
- */
-type IImageData = {
-  /**
-   * Source of RGB image encoding velocity field
-   */
-  source: string;
-  /**
-   * Precalculated ranges for data
-   */
-  metadataFile: string;
-};
-
 /**
  * Input to the lagrangian simulation hook
  */
 export type ISimulation = {
   /**
+   * Map of program name to vertex and fragment source
+   * names.
+   */
+  worker: MutableRefObject<Worker | undefined>;
+  /**
    * Where to obtain velocity data for particle simulation
    */
-  velocity: IImageData;
+  velocity: {
+    /**
+     * Source of RGB image encoding velocity field
+     */
+    source: string;
+    /**
+     * Precalculated ranges for data
+     */
+    metadataFile: string;
+  };
   /**
    * Particle vector tile resolution
    */
-  res: number;
+  res?: number;
   /**
    * Blending colors
    */
-  colors: [number, string][];
+  colors?: [number, string][];
   /**
    * How quickly to blend layers
    */
-  opacity: number;
+  opacity?: number;
   /**
    * Particle speed multiplier
    */
-  speed: number;
+  speed?: number;
   /**
    * Randomness component
    */
-  diffusivity: number;
+  diffusivity?: number;
   /**
    * How large to draw particles on canvas
    */
-  pointSize: number;
+  pointSize?: number;
   /**
    * Dropout rate determines how often stuck particles
    * are re-seeded at a new position
    */
-  drop: number;
+  drop?: number;
 };
 
-/**
- * This has to be defined in global scope to force Webpack to bundle the script.
- */
-const createWorker = () =>
-  new Worker(new URL("./Simulation.worker.ts", import.meta.url), {
-    type: "module",
-  });
 
 /**
  * Use WebGL to calculate particle trajectories from velocity data.
@@ -114,45 +108,62 @@ const createWorker = () =>
  *
  * This is one way to implement fast lookups of piece-wise functions.
  */
-export const useSimulation = ({
-  velocity: { source, metadataFile }, // passed on to Hook as args
+export default function useSimulation({
+  worker,
+  velocity: { metadataFile, ...velocity }, // passed on to Hook as args
   res = 16,
   colors = [
     [0.0, "#deababff"],
     [1.0, "#660066ff"],
   ],
-  // opacity = 0.92,
-  // speed = 0.00007, 
+   // opacity = 0.92,
+  // speed = 0.00007,
   // diffusivity = 0.004,
   // pointSize = 1.0,
-  // drop = 0.01, 
-}: ISimulation) => {
+  // drop = 0.01,
+}: ISimulation) {
   /**
-   * Background web worker. Uses dedicated message interface to do
-   * numerical calculations and map/reduce in background.
+   * Hold reference to temporary canvas element.
    */
-  const worker = useWorker(createWorker);
-  /**
-   * Hold reference to temporary canvas element. This is available
-   * for specific cases that reuse the canvas.
-   */
-  const colorMap = useCanvasContext("2d");
-  /**
-   * Exported ref to draw textures to a secondary HTML canvas component.
-   * Generally not needed except when doing end-to-end testing or debugging.
-   */
-  const preview = useCanvasContext("2d");
+  const colorMapRef: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
+  const previewRef: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
+  const webglRef: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
+
+  const [colorMapContext, setColorMapContext] = useState<CanvasRenderingContext2D | null>(
+    null
+  );
+  const [previewContext, setPreviewContext] = useState<CanvasRenderingContext2D | null>(
+    null
+  );
+  const [webglContext, setWebglContext] = useState<WebGLRenderingContext | null>(
+    null
+  );
+  useEffect(() => {
+    if (!colorMapRef.current) return;
+    setColorMapContext(colorMapRef.current.getContext("2d"));
+  }, [colorMapRef]);
+  useEffect(() => {
+    if (!previewRef.current) return;
+    setPreviewContext(previewRef.current.getContext("2d"));
+  }, [previewRef]);
+  useEffect(() => {
+    if (!webglRef.current) return;
+    setWebglContext(webglRef.current.getContext("webgl"));
+  }, [webglRef]);
+
   /**
    * All WebGL related setup is relegated to the context
    * provider.
    */
-  const {
-    shaders: { webgl, ref, setProgramSourceMap, textures, ...shaders },
-  } = useShaderContext();
+  const { shaders } = useShaderContext();
+
   /**
-   * Limit worker listener to firing once.
+   * Debugging level report on the compiled program.
    */
-  const [listening, setListening] = useState(false);
+  useEffect(() => {
+    if (shaders.programs) console.debug("programs", shaders.programs);
+  }, [shaders.programs]);
+
   /**
    * Container for handles to GPU interface. Image data is loaded
    * and then handed off as a Texture.
@@ -178,7 +189,7 @@ export const useSimulation = ({
         [name]: attribute,
       });
     },
-    []
+    [attributes]
   );
   /**
    * Set the program source map triggers hooks that will
@@ -186,12 +197,12 @@ export const useSimulation = ({
    * about how to bind real data to the textures and arrays.
    */
   useEffect(() => {
-    setProgramSourceMap({
+    shaders.setProgramSourceMap({
       screen: ["quad-vertex", "screen-fragment"],
       draw: ["draw-vertex", "draw-fragment"],
       update: ["quad-vertex", "update-fragment"],
     });
-  }, []);
+  }, [shaders]);
   /**
    * Create a temporary canvas element to paint a color
    * map to. This will be an orphan, and we need to make
@@ -202,13 +213,13 @@ export const useSimulation = ({
    */
   useEffect(() => {
     const COLOR_MAP_SIZE = 16 * 16;
-    colorMap.ref.current = document.createElement("canvas");
-    [colorMap.ref.current.width, colorMap.ref.current.height] = [
+    colorMapRef.current = document.createElement("canvas");
+    [colorMapRef.current.width, colorMapRef.current.height] = [
       COLOR_MAP_SIZE,
       1,
     ];
-    if (!colorMap.validContext) return;
-    const ctx = colorMap.validContext as CanvasRenderingContext2D;
+    if (!colorMapContext) return;
+    const ctx = colorMapContext as CanvasRenderingContext2D;
     // Create `CanvasGradient` and add color stops
     ctx.fillStyle = ctx.createLinearGradient(0, 0, COLOR_MAP_SIZE, 0);
     colors.forEach(([offset, color]) => {
@@ -223,17 +234,18 @@ export const useSimulation = ({
       filter: "LINEAR",
       shape: [16, 16],
     });
-    colorMap.ref.current?.remove();
-    colorMap.ref.current = null;
-  }, []);
+    colorMapRef.current?.remove();
+    colorMapRef.current = null;
+  }, [colorMapRef, colorMapContext, colors, shaders]);
   /**
-   * When we get a message back from the worker that matches a specific pattern, 
+   * When we get a message back from the worker that matches a specific pattern,
    * report or act on that info. The worker will push buffers and texture data
-   * that the frontend needs to send to the webgl rendering context. 
+   * that the frontend needs to send to the webgl rendering context.
    */
   useEffect(() => {
-    if (!worker.ref.current || !ref.current || listening) return;
-    worker.listen(({ data }) => {
+    if (!worker.current) return;
+    const handle = worker.current;
+    const callback = ({ data }: any) => {
       const _data = data.data as any;
       switch (data.type) {
         case "status":
@@ -275,15 +287,18 @@ export const useSimulation = ({
           console.warn(data.type, data.data);
           return;
       }
-    });
-    setListening(true);
-  }, [worker.ref.current, ref.current]);
+    };
+    handle.addEventListener("message", callback, { passive: true });
+    return () => {
+      handle.removeEventListener("message", callback);
+    };
+  }, [worker, createAttribute, shaders]);
   /**
    * Use external data as a velocity field to force movement of particles.
    *
    */
   useEffect(() => {
-    if (!source) return;
+    if (!velocity.source) return;
     const data = new Image();
     const onLoad = () => {
       // setVelocity(
@@ -295,9 +310,9 @@ export const useSimulation = ({
       setImageData(data);
     };
     data.addEventListener("load", onLoad, { capture: true, once: true });
-    data.crossOrigin = source.includes(".") ? "" : null;
-    data.src = source;
-  }, []);
+    data.crossOrigin = velocity.source.includes(".") ? "" : null;
+    data.src = velocity.source;
+  }, [velocity.source]);
   /**
    * Display the wind data in a secondary 2D HTML canvas, for debugging
    * and interpretation. Broken out as a separate hook so that the
@@ -305,21 +320,21 @@ export const useSimulation = ({
    * flow of the data loading hook.
    */
   useEffect(() => {
-    if (!preview.ref.current || !preview.validContext || !imageData) return;
-    (preview.validContext as CanvasRenderingContext2D).drawImage(
+    if (!previewRef.current || !previewContext || !imageData) return;
+    (previewContext as CanvasRenderingContext2D).drawImage(
       imageData,
       0,
       0,
-      preview.ref.current.width,
-      preview.ref.current.height
+      previewRef.current.width,
+      previewRef.current.height
     );
-  }, [preview.validContext, imageData]);
+  }, [previewContext, imageData]);
   /**
    * Fire startup messages
    */
   useEffect(() => {
-    if (!listening || !webgl) return;
-    worker.post({
+    if (!webglRef.current || typeof worker.current === "undefined") return;
+    worker.current.postMessage({
       type: "init",
       data: {
         metadata: {
@@ -327,15 +342,15 @@ export const useSimulation = ({
         },
       },
     });
-    worker.post({
+    worker.current.postMessage({
       type: "texture",
       data: {
-        width: ref.current?.width,
-        height: ref.current?.height,
+        width: webglRef.current.width,
+        height: webglRef.current.height,
         res,
       },
     });
-  }, [listening, webgl]);
+  }, [webglRef, res, worker, metadataFile]);
 
   /**
    * Set pipeline value to signal ready for rendering. The saved object
@@ -349,7 +364,9 @@ export const useSimulation = ({
    */
   useEffect(() => {
     if (
-      !webgl ||
+      !webglContext ||
+      typeof webglRef.current === "undefined" ||
+      !webglRef.current ||
       !shaders.programs ||
       !shaders.framebuffer ||
       !shaders.runtime ||
@@ -363,33 +380,33 @@ export const useSimulation = ({
         {
           program: shaders.programs.screen,
           textures: [
-            [textures.uv, 0],
-            [textures.state, 1], // variable
-            [textures.back, 2], // variable
+            [shaders.textures.uv, 0],
+            [shaders.textures.state, 1], // variable
+            [shaders.textures.back, 2], // variable
           ],
           attributes: [attributes.quad],
           parameters: PARAMETER_MAP.screen,
           framebuffer: [shaders.framebuffer, screen], // variable
-          topology: [webgl.TRIANGLES, 0, 6],
-          viewport: [0, 0, ref.current?.width, ref.current?.height],
+          topology: [webglContext.TRIANGLES, 0, 6],
+          viewport: [0, 0, shaders.ref.current?.width, shaders.ref.current?.height],
         },
         {
           program: shaders.programs.draw,
-          textures: [[textures.color, 2]],
+          textures: [[shaders.textures.color, 2]],
           attributes: [attributes.index],
           parameters: [...PARAMETER_MAP.wind, "u_point_size"],
           framebuffer: [shaders.framebuffer, screen], // variable
-          topology: [webgl.POINTS, 0, res * res],
-          viewport: [0, 0, ref.current?.width, ref.current?.height],
+          topology: [webglContext.POINTS, 0, res * res],
+          viewport: [0, 0, webglRef.current?.width, webglRef.current?.height],
         },
         {
           program: shaders.programs.screen,
-          textures: [[textures.screen, 2]], // variable
+          textures: [[shaders.textures.screen, 2]], // variable
           parameters: PARAMETER_MAP.color,
           attributes: [attributes.quad],
           framebuffer: [null, null],
-          topology: [webgl.TRIANGLES, 6],
-          viewport: [0, 0, ref.current?.width, ref.current?.height],
+          topology: [webglContext.TRIANGLES, 6],
+          viewport: [0, 0, webglRef.current.width, webglRef.current.height],
           // callback: () => {
           //   textures.current = {
           //     ...shaders.textures.current,
@@ -400,11 +417,11 @@ export const useSimulation = ({
         },
         {
           program: shaders.programs.update,
-          textures: [[textures.color, 2]],
+          textures: [[shaders.textures.color, 2]],
           parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
           attributes: [attributes.quad],
-          framebuffer: [shaders.framebuffer, textures.previous], // re-use the old data buffer
-          topology: [webgl.TRIANGLES, 0, 6],
+          framebuffer: [shaders.framebuffer, shaders.textures.previous], // re-use the old data buffer
+          topology: [webglContext.TRIANGLES, 0, 6],
           viewport: [0, 0, res, res],
           // callback: () => {
           //   shaders.textures.current = {
@@ -419,7 +436,7 @@ export const useSimulation = ({
       pipeline.forEach((stage) => {
         if (!shaders.runtime || !shaders.uniforms) return;
         renderPipelineStage({
-          webgl,
+          webgl: webglContext,
           runtime: shaders.runtime,
           uniforms: shaders.uniforms,
           ...stage,
@@ -431,14 +448,78 @@ export const useSimulation = ({
       cancelAnimationFrame(requestId);
     };
   }, [shaders.programs, shaders.runtime]);
+
+  
+  // useEffect(() => {
+  //     if (!ctx || !ref.current) return;
+  //     const { width, height } = ref.current;
+  //     setAssets({
+  //         textures:
+  //             Object.fromEntries(Object.entries({
+  //                 screen: screenBuffer(width, height),
+  //                 back: screenBuffer(width, height)
+  //             }).map(([k, v]) => [k, createTexture({ctx, ...v})])),
+  //         buffers: VertexArrayBuffers(ctx),
+  //         framebuffer: ctx.createFramebuffer(),
+  //         uniforms: {
+  //             "u_screen" : ["i", 2],
+  //             "u_opacity": ["f", 1.0]
+  //         }
+  //     });
+
+  // }, [ref]);
+
+  // useEffect(() => {
+
+  //     const ctx = validContext();
+
+  //     if (!fractal || !runtime || !ctx || !assets || !programs) return;
+
+  //     const viewport = [0, 0, ref.current.width, ref.current.height];
+
+  //     setPipeline([
+  //         {
+  //             program: programs.screen,
+  //             textures: [
+  //                 [assets.textures.state, 1],
+  //                 [assets.textures.back, 2]
+  //             ],
+  //             parameters: ["u_screen", "u_opacity"],
+  //             attributes: [assets.buffers.quad],
+  //             framebuffer: [assets.framebuffer, assets.textures.screen],
+  //             topology: [ctx.TRIANGLES, 6],
+  //             viewport
+  //         },
+  //         {
+  //             program: programs.draw,
+  //             attributes: [assets.buffers.quad],
+  //             framebuffer: [assets.framebuffer, assets.textures.screen],
+  //             topology: [ctx.TRIANGLES, 6],
+  //             viewport
+  //         },
+  //         {
+  //             program: programs.screen,
+  //             textures: [[assets.textures.screen, 2]],
+  //             parameters: ["u_opacity"],
+  //             attributes: [assets.buffers.quad],
+  //             framebuffer: [null, null],
+  //             topology: [ctx.TRIANGLES, 6],
+  //             viewport
+  //         }
+  //     ]);
+  // }, [programs]);
+
   /**
    * Resources available to parent Component or Hook.
    */
-  return { ref, message, preview };
-};
-
-/**
- * Hook is used in the display component to provide
- * data loading and interactivity options.
- */
-export default useSimulation;
+  return {
+    ref: webglRef,
+    message,
+    preview: {
+      ref: previewRef
+    },
+    noise: {
+      message: "",
+    },
+  };
+}
