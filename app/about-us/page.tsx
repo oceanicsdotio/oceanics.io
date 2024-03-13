@@ -13,50 +13,35 @@ export const metadata: Metadata = {
  */
 export default function Page() {
   return (
-    <>
+    <div className={`${styles.subscribe}`}>
       <h2>
-        We Are So <strong>Glad</strong> You Asked!
+        We are so <strong>glad</strong> you asked!
       </h2>
-      <h3>What is this?</h3>
       <p>
-        Innovative business models that increase equity for Maine
-        workers are cool. They could encourage a blue economy culture of{" "}
+        Oceanicsdotio LLC is a Rockland Maine business developing digital tools for civilian marine operators. We think innovative business models that increase equity for
+        workers are cool, and nuture{" "}
         <strong>autonomy</strong>, <strong>prosperity</strong>, and{" "}
-        <strong>accountability</strong>.
-        Needing to start somewhere, we{" "}
-        <Link className={styles.link} href="/upcoming-events">
-          organize social events
-        </Link>
-        , and hope these lead to friends, partners, art, and
-        industry.
+        <strong>accountability</strong> in the blue economy.
       </p>
-      <h3>Who are you?</h3>
       <p>
-        The websites{" "}
-        <Link className={styles.link} href="/">
-          outoftheblue.today
-        </Link>{" "}
-        and{" "}
-        <Link className={styles.link} href="https://www.oceanics.io">
-          oceanics.io
-        </Link>{" "}
-        are projects of Oceanicsdotio LLC. We are a Rockland ME business
-        developing digital tools for civilian marine operators.
-        Whether or not that is your thing,{" "}
         <Link
           className={styles.link}
-          href="mailto:person@outoftheblue.today?subject=Out of the Blue"
+          href="mailto:business@oceanics.io?subject=Out of the Blue"
           target="_blank"
         >
-          we would love to hear from you
+          🛟 We would love to hear from you
         </Link>
-        .
       </p>
       <p>
-        <Link className={styles.link} href="/subscribe">
-          🛟 Subscribe to News & Events
+        <Link className={styles.link} href="/about-us/brand">
+          🛟 Brand use guidelines
         </Link>
       </p>
-    </>
+      <p>
+        <Link className={styles.link} href="/about-us/lottery">
+          🛟 Buoy lottery service
+        </Link>
+      </p>
+    </div>
   );
 }

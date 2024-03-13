@@ -1,9 +1,11 @@
 import ValidateToken from "./ValidateToken";
 import { Suspense } from "react";
 import { Metadata } from "next";
+import Link from "next/link";
+import styles from "@app/layout.module.css"
 
 export const metadata: Metadata = {
-  title: "Out of the Blue | Verify e-mail",
+  title: "Oceanics.io | Verify e-mail",
   description: "Check your e-mail for a verification link.",
 };
 
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
  */
 export default function Page() {
   return (
+    <>
     <Suspense>
       <ValidateToken
         verify={{
@@ -20,5 +23,6 @@ export default function Page() {
         }}
       />
     </Suspense>
+    </>
   );
 }

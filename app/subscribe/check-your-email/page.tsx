@@ -3,7 +3,7 @@ import Link from "next/link";
 import styles from "@app/layout.module.css";
 
 export const metadata: Metadata = {
-  title: "Out of the Blue | E-mail verification still needed",
+  title: "Oceanics.io | E-mail verification still needed",
   description: "Check your e-mail for a verification link.",
 };
 
@@ -33,11 +33,6 @@ export default function Page() {
       <p>
         <Link className={styles.link} href="/about-us">
           🛟 Find Out More or Get in Touch
-        </Link>
-      </p>
-      <p>
-        <Link className={styles.link} href="/upcoming events">
-          🛟 See Upcoming Events
         </Link>
       </p>
     </>

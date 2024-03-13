@@ -54,7 +54,7 @@ export const inverse = (points: Points, width: number, gridSize: number): Points
 const ACTIONS = {
   parseIconSet: "parseIconSet",
 };
-const DEFAULT_BLENDING = "#000000FF";
+const DEFAULT_BLENDING = "#222222FF";
 
 enum KeyEvents {
   KeyUp = "keyup",

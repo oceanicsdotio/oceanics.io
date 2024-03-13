@@ -1,9 +1,8 @@
 import React, { Suspense } from "react";
 import Oceanside from "./Oceanics";
 import { Metadata } from "next";
-import styles from "./index.module.css";
+import styles from "./layout.module.css";
 import Link from "next/link";
-import _styles from "@app/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Oceanics.io",
@@ -13,6 +12,11 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
+      <h1>
+        <Link className={styles.link} href="/">
+          Oceanics.io
+        </Link>
+      </h1>
       <Suspense fallback={<div className={styles.placeholder}></div>}>
         <Oceanside
           {...{
@@ -36,22 +40,21 @@ export default function Page() {
         seeking opportunity.
       </p>
       <p className={styles.large}>
-        We analyze public and proprietary data and serve you synthetic and
-        aggregate products to manage risk and conflict.
+        We analyze public and proprietary data and serve you synthetic and aggregate products to manage risk and conflict.
       </p>
-      <p className={styles.large}>
-        <a href="https://data.oceanics.io">
-          Learn more about Bathysphere, our Ocean Data API.
+      <p>
+        <a className={styles.link} href="https://data.oceanics.io">
+          🛟 Explore our ocean data service
         </a>
       </p>
       <p>
-        <Link className={_styles.link} href="/subscribe">
-          Subscribe to News & Events
+        <Link className={styles.link} href="/subscribe">
+          🛟 Subscribe to our community newsletter
         </Link>
       </p>
       <p>
-        <Link className={_styles.link} href="/upcoming-events">
-          See Upcoming Events
+        <Link className={styles.link} href="/about-us">
+          🛟 Learn more about us or get in touch
         </Link>
       </p>
     </>

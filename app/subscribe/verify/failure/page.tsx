@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from "next/link";
  
 export const metadata: Metadata = {
-  title: 'Out of the Blue | E-mail verification failed',
+  title: 'Oceanics.io | E-mail verification failed',
   description: 'Something about your request does not add up.',
 }
 

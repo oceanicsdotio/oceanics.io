@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import useOceanics, { type IWorldType } from "./useOceanics";
-import styles from "./index.module.css";
+import styles from "./layout.module.css";
 type ModuleType = typeof import("@oceanics-io/wasm");
 
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 import styles from "@app/layout.module.css"
 
 export const metadata: Metadata = {
-  title: "Out of the Blue | E-mail verification error",
+  title: "Oceanics.io | E-mail verification error",
   description: "There was a problem with our servers.",
 };
 

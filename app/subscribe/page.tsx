@@ -4,31 +4,23 @@ import Link from "next/link";
 import styles from "@app/layout.module.css";
 
 export const metadata: Metadata = {
-  title: "Out of the Blue | Calendar",
-  description: "Contact information and frequently asked questions.",
+  title: "Oceanics.io | Subscribe",
+  description: "Subscribe to newsletter.",
 };
 
 export default function Page() {
   return (
-    <div className={`${styles.subscribe} ${styles.frame}`}>
+    <div className={styles.subscribe}>
       <h2>
-        <strong>Out of the Blue</strong> News & Events
+        Subscribe to <strong>Out of the Blue</strong>, our community newsletter and calendar
       </h2>
-      <p>
-        When you press <strong>subscribe</strong> you agree we can save and
-        use your email to verify that you are a person and to notify you about
-        news and events.
-        </p>
       <p>You will receive messages no more than once per week, 
         except as needed to verify your email.
         We will not share your contact information. You can
         unsubscribe and have your data deleted at any time
-        by sending us an email.
-      </p>
-      <p>
-        <Link className={styles.link} href="/about-us">
-          🛟 Find Out More or Contact Us
-        </Link>
+        by <Link className={styles.link} href="/about-us">
+          sending us an email
+        </Link>.
       </p>
       <Subscribe
         {...{
@@ -39,6 +31,12 @@ export default function Page() {
           },
         }}
       />
+      <p>
+        When you press <code>Subscribe</code> you agree we can save and
+        use your email to verify that you are a person and to notify you about
+        news and events.
+        </p>
+      
     </div>
   );
 }

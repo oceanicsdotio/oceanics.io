@@ -44,17 +44,16 @@
     "next-env.d.ts",
     "typings.d.ts",
     "app/**/*",
-    "src/**/*.tsx",
-    "src/**/*.ts",
-    "glsl",
+    "glsl/*",
     ".next/types/**/*.ts",
-    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "build/types/**/*.ts", "mdx-components.tsx", "palette.ts"],
+    "build/types/**/*.ts", 
+    "mdx-components.tsx", 
+    "palette.ts"
+  ],
   "exclude": [
     "node_modules",
-    "app/catalog/Things/context.tsx",
     ".next"
   ]
 }
