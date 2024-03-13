@@ -36,11 +36,12 @@
     "app/**/*",
     "src/**/*.tsx",
     "src/**/*.ts",
+    "glsl",
     ".next/types/**/*.ts",
-    "build/types/**/*.ts"],
+    "build/types/**/*.ts", "mdx-components.tsx", "palette.ts"],
   "exclude": [
     "node_modules",
-    "app/simulation/Shaders.context.tsx",
+    "app/catalog/Things/Shaders.context.tsx",
     ".next"
   ]
 }

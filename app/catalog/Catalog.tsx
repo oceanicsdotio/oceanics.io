@@ -1,11 +1,15 @@
 "use client";
 import Markdown from "react-markdown";
-import React, { useRef, useEffect, type Dispatch, type SetStateAction} from "react";
+import React, {
+  useRef,
+  useEffect,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import useCatalog from "./useCatalog";
 import styles from "./catalog.module.css";
-import 'mapbox-gl/dist/mapbox-gl.css';
-import Channel, {ChannelType} from "./Channel";
-
+import "mapbox-gl/dist/mapbox-gl.css";
+import Channel, { ChannelType } from "./Channel";
 
 interface ICatalog {
   /**
@@ -13,24 +17,23 @@ interface ICatalog {
    * specification from.
    */
   src: string;
-    /**
+  /**
    * Metadata about data sources
    */
-    channels: ChannelType[]
-    /**
-    * Current zoom level
-    */
-    zoomLevel: number
-    /**
-    * Pass in an existing queue
-    */
-    queue: ChannelType[];
-    /**
-    * Replace me a reducer
-    */
-    setQueue: Dispatch<SetStateAction<ChannelType[]>>;
+  channels: ChannelType[];
+  /**
+   * Current zoom level
+   */
+  zoomLevel: number;
+  /**
+   * Pass in an existing queue
+   */
+  queue: ChannelType[];
+  /**
+   * Replace me a reducer
+   */
+  setQueue: Dispatch<SetStateAction<ChannelType[]>>;
 }
-
 
 const DEFAULT_MAP_PROPS = {
   zoom: 10,
@@ -99,71 +102,76 @@ export default function Catalog({ src, zoomLevel }: ICatalog) {
     });
   }, []);
 
+  /**
+   * List of collections to build selection from.
+   *
+   * If there is no `behind`, can be inserted in front, otherwise need to find the index
+   * of the behind value, and insert after.
+   */
+  // const validLayerOrder = (channels: ChannelType[]) => {
 
-    /**
-     * List of collections to build selection from.
-     * 
-     * If there is no `behind`, can be inserted in front, otherwise need to find the index
-     * of the behind value, and insert after.
-     */ 
-    // const validLayerOrder = (channels: ChannelType[]) => {
+  //     // Memoize just ID and BEHIND
+  //     const triggers = {};
 
-    //     // Memoize just ID and BEHIND
-    //     const triggers = {};
+  //     // Queue to build
+  //     const layerQueue: number[] = [];
 
-    //     // Queue to build
-    //     const layerQueue: number[] = [];
+  //     channels.forEach(({behind=null, id}) => {
 
-    //     channels.forEach(({behind=null, id}) => {
-            
-    //         // no behind value
-    //         if (behind === null) {
-    //             queue.push(id);
-    //             return;
-    //         }
+  //         // no behind value
+  //         if (behind === null) {
+  //             queue.push(id);
+  //             return;
+  //         }
 
-    //         // find behind value
-    //         const ind = layerQueue.findIndex(behind);
-        
-    //         if (ind === -1) {
-    //             if (behind in triggers) {
-    //                 triggers[behind].push(id)
-    //             } else {
-    //                 triggers[behind] = [id]
-    //             }
-    //             return;
-    //         } 
+  //         // find behind value
+  //         const ind = layerQueue.findIndex(behind);
 
-    //         layerQueue.splice(ind+1, 0, id);
+  //         if (ind === -1) {
+  //             if (behind in triggers) {
+  //                 triggers[behind].push(id)
+  //             } else {
+  //                 triggers[behind] = [id]
+  //             }
+  //             return;
+  //         }
 
-    //     });
-    // }
+  //         layerQueue.splice(ind+1, 0, id);
+
+  //     });
+  // }
 
   /**
    * OpenAPI spec structure will be populated asynchronously once the
    * web worker is available.
    */
-  const { api, ref } = useCatalog({ src, worker, map: {
-    accessToken: "",
-    defaults: DEFAULT_MAP_PROPS as any
-  } });
+  const { api, ref } = useCatalog({
+    src,
+    worker,
+    map: {
+      accessToken: "",
+      defaults: DEFAULT_MAP_PROPS as any,
+    },
+  });
 
   return (
     <div className={styles.api}>
       <div ref={ref} />
       <div className={styles.catalog}>
-            <Channel 
-                zoomLevel={zoomLevel}
-                id="home"
-                url="www.oceanics.io"
-                maxzoom={21}
-                minzoom={1}
-                type="point"
-                component="Location"
-                info="www.oceanics.io"
-                onClick={()=>{console.log("click")}}
-            />
-        </div>
+        <Channel
+          zoomLevel={zoomLevel}
+          id="home"
+          url="www.oceanics.io"
+          maxzoom={21}
+          minzoom={1}
+          type="point"
+          component="Location"
+          info="www.oceanics.io"
+          onClick={() => {
+            console.log("click");
+          }}
+        />
+      </div>
       <h1>{api.info.title}</h1>
       <Markdown>{api.info.description}</Markdown>
       {api.operations.map((operation) => {

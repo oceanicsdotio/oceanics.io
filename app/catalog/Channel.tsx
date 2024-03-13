@@ -1,6 +1,4 @@
 import React, { MouseEventHandler } from "react";
-import styled from "styled-components";
-import { ghost, orange, grey, charcoal } from "../../src/palette";
 
 
 export type ChannelType = {
@@ -51,7 +49,7 @@ export type ChannelType = {
 /**
  * A channel abstracts access to a data source. 
  */
-export const Channel = ({
+export default function Channel ({
     id,
     url,
     type,
@@ -62,7 +60,7 @@ export const Channel = ({
     zoomLevel,
     info="",
     onClick,
-}: ChannelType) => {
+}: ChannelType) {
     const inView = (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)
     return (
         <div className={className}>
@@ -78,10 +76,3 @@ export const Channel = ({
         </div>
     )
 }
-
-export const StyledChannel = styled(Channel)`
-
-`;
-
-Channel.displayName = "Channel";
-export default StyledChannel;

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import useWasmRuntime from "../../../../src/hooks/useWasmRuntime";
+import { useState, useEffect, useRef, useMemo } from "react";
+type ModuleType = typeof import("@oceanics-io/wasm");
 import type { InteractiveDataStream } from "@oceanics-io/wasm";
 
 export interface IDataStream {
@@ -49,6 +49,7 @@ export const useDataStream = ({
     capacity,
     ...props
 }: IDataStream) => {
+
     /**
      * Reference to pass to target canvas
      */
@@ -57,7 +58,22 @@ export const useDataStream = ({
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const { runtime } = useWasmRuntime();
+    const [ runtime, setRuntime ] = useState<ModuleType|null>(null);
+
+    /**
+     * Dynamically load the WASM, add debugging, and save to React state.
+     */
+    useEffect(() => {
+        try {
+            (async () => {
+                const wasm = await import("@oceanics-io/wasm");
+                wasm.panic_hook();
+                setRuntime(wasm);
+            })()   
+        } catch (err) {
+            console.error("Unable to load WASM runtime")
+        }
+    }, []);
 
     /**
      * The data stream structure. 

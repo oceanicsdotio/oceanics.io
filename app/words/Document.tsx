@@ -1,8 +1,4 @@
-import React, { ReactNode } from "react";
-import type { MouseEventHandler } from "react";
-import styled from "styled-components";
-
-const REFERENCE = "reference";
+import React, { ReactNode, type MouseEventHandler } from "react";
 
 interface IDocumentContent {
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
@@ -44,14 +40,14 @@ export const Inline = (
  * by whatever template renders MDX or other static data
  * into webpages.
  */
-export const Document = ({
+export default function Document ({
   className,
   document: {
     metadata: { references = [], ...metadata },
   },
   children,
   onClickLabel,
-}: IDocumentContent) => {
+}: IDocumentContent) {
   const timestamp = metadata.published
     .toISOString()
     .replace(/T/, " ")
@@ -85,32 +81,3 @@ export const Document = ({
     </article>
   );
 };
-
-/**
- * Styled version of the Document or resource, only adjusts
- * type setting, all other styling is left to Layout and
- * the parent component.
- */
-const StyledDocument = styled(Document)`
-  & header {
-    & a + a::before {
-      content: " / ";
-    }
-    & h2 {
-      font-size: large;
-      margin: 0.25em 0;
-    }
-  }
-  & a {
-    & img {
-      width: 1rem;
-      margin-left: 0.2rem;
-    }
-  }
-  .${REFERENCE} {
-    margin: 1em 0;
-  }
-`;
-
-Document.displayName = "Document";
-export default StyledDocument;

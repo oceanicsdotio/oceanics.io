@@ -12,7 +12,7 @@ import {
 
 import type { MiniMap, PrismCursor } from "@oceanics-io/wasm";
 type ModuleType = typeof import("@oceanics-io/wasm");
-import { lichen, orange } from "../src/palette";
+import { lichen, orange } from "../palette";
 
 // Mouse click coordinates
 export type EventLocation = {clientX: number; clientY: number;}; 

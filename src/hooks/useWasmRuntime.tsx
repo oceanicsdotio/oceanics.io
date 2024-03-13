@@ -1,18 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
-// https://stackoverflow.com/questions/52112948/whats-the-return-type-of-a-dynamic-import
 type ModuleType = typeof import("@oceanics-io/wasm");
 
-/**
- * Basic single-threaded runtime.
- * 
- * You can't supply the import path externally, because webpack needs at least the
- * root path to pre-build all the needed chunks. Hence the string concatenation, to force
- * bundling the Rust directory which may eventually contain more than one crate.
- * 
- * See https://github.com/webpack/webpack/issues/6680 for related issues and 
- * alternate resolution methods. 
- */
+
 export const useWasmRuntime = () => {
     /**
      * Runtime will be passed to calling Hook or Component. 
