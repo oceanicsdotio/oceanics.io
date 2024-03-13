@@ -82,3 +82,119 @@ font-style: inherit;
     background-color: black;
     padding: 5px;
 }
+
+
+.map-popup {
+    background: #202020FF;
+    height: fit-content;
+    border: solid 0.1rem;
+    border-radius: 0.3rem;
+    font-family:inherit;
+    font-size: inherit;
+    padding: 0;
+    color: #CCCCCC;
+}
+
+.map-popup div {
+    background: none;
+    height: fit-content;
+    border: none;
+    margin: 0;
+    padding: 0;
+    float: left;
+}
+
+.catalog {
+    grid-row: 1;
+    grid-column: 1;
+    border: 1px dashed grey;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    height: 100vh;
+    width: auto;
+    min-height: 100vh;
+    bottom: 0;
+    margin: 0.5rem;
+    padding: 0;
+}
+
+.channel {
+
+    display: block;
+    max-width: 65ch;
+    padding: 1rem;
+    margin: 0;
+    border-radius: 5px;
+    background-color: grey;
+    color: white;
+}
+
+.channel a {
+    display: block;
+    cursor: pointer;
+    margin: 0.5rem 0;
+    text-decoration: underline;
+}
+
+.zoom {
+    color: orange;
+    border-radius: 5px;
+    background-color: black;
+    padding: 0;
+    border: 1px solid grey;
+}
+
+.zoom div {
+    height: auto;
+    border: 1px solid;
+    border-radius: 5px;
+    text-align: center;
+    background-color: black;
+    padding: 3px;
+    /* margin-left: ${({minzoom})=>(minzoom-1)/22*100}%;
+    margin-right: ${({maxzoom})=>(22-maxzoom)/22*100}%;
+    color: ${({ minzoom, maxzoom, zoomLevel}) => 
+        (zoomLevel === null || (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)) ? ghost : grey
+    }; */
+}
+
+.visible {
+    color: white
+}
+/* background: #000000FF;
+font-family: inherit;
+font-size: larger;
+height: fit-content;
+width: fit-content;
+margin: 0;
+padding: 0;
+overflow: hidden;
+
+& > div {
+    overflow-y: scroll;
+    max-height: 75vh;
+    height: fit-content;
+    padding: 0.5rem;
+    background: none;
+
+    & > canvas {
+        width: 200px;
+        height: 75px;
+        display: block;
+        padding: 0;
+        margin: 0;
+        image-rendering: crisp-edges;
+    }
+
+    & > ul {
+        padding: 0;
+        margin: 0;
+
+        & > li {
+            color: #CCCCCCFF;
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+    }
+} */

@@ -1,21 +1,38 @@
 "use client";
 import Markdown from "react-markdown";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, type Dispatch, type SetStateAction} from "react";
 import useCatalog from "./useCatalog";
 import styles from "./catalog.module.css";
-import useSqualltalk from "./useSqualltalk";
 import 'mapbox-gl/dist/mapbox-gl.css';
+import Channel, {ChannelType} from "./Channel";
 
 
-export interface IOpenApi {
+interface ICatalog {
   /**
    * Source on the server to fetch the JSON
    * specification from.
    */
   src: string;
+    /**
+   * Metadata about data sources
+   */
+    channels: ChannelType[]
+    /**
+    * Current zoom level
+    */
+    zoomLevel: number
+    /**
+    * Pass in an existing queue
+    */
+    queue: ChannelType[];
+    /**
+    * Replace me a reducer
+    */
+    setQueue: Dispatch<SetStateAction<ChannelType[]>>;
 }
 
-export const DEFAULT_MAP_PROPS = {
+
+const DEFAULT_MAP_PROPS = {
   zoom: 10,
   antialias: false,
   pitchWithRotate: false,
@@ -74,7 +91,7 @@ export const DEFAULT_MAP_PROPS = {
  * The OpenApi component uses an OpenAPI specification for a
  * simulation backend, and uses it to construct an interface.
  */
-export default function Catalog({ src }: IOpenApi) {
+export default function Catalog({ src, zoomLevel }: ICatalog) {
   const worker = useRef<Worker>();
   useEffect(() => {
     worker.current = new Worker(new URL("./worker.ts", import.meta.url), {
@@ -82,20 +99,71 @@ export default function Catalog({ src }: IOpenApi) {
     });
   }, []);
 
+
+    /**
+     * List of collections to build selection from.
+     * 
+     * If there is no `behind`, can be inserted in front, otherwise need to find the index
+     * of the behind value, and insert after.
+     */ 
+    // const validLayerOrder = (channels: ChannelType[]) => {
+
+    //     // Memoize just ID and BEHIND
+    //     const triggers = {};
+
+    //     // Queue to build
+    //     const layerQueue: number[] = [];
+
+    //     channels.forEach(({behind=null, id}) => {
+            
+    //         // no behind value
+    //         if (behind === null) {
+    //             queue.push(id);
+    //             return;
+    //         }
+
+    //         // find behind value
+    //         const ind = layerQueue.findIndex(behind);
+        
+    //         if (ind === -1) {
+    //             if (behind in triggers) {
+    //                 triggers[behind].push(id)
+    //             } else {
+    //                 triggers[behind] = [id]
+    //             }
+    //             return;
+    //         } 
+
+    //         layerQueue.splice(ind+1, 0, id);
+
+    //     });
+    // }
+
   /**
    * OpenAPI spec structure will be populated asynchronously once the
    * web worker is available.
    */
-  const { api } = useCatalog({ src, worker });
-  const { ref } = useSqualltalk({
-    client: {
-      mobile: false
-    }
-  });
+  const { api, ref } = useCatalog({ src, worker, map: {
+    accessToken: "",
+    defaults: DEFAULT_MAP_PROPS as any
+  } });
 
   return (
     <div className={styles.api}>
       <div ref={ref} />
+      <div className={styles.catalog}>
+            <Channel 
+                zoomLevel={zoomLevel}
+                id="home"
+                url="www.oceanics.io"
+                maxzoom={21}
+                minzoom={1}
+                type="point"
+                component="Location"
+                info="www.oceanics.io"
+                onClick={()=>{console.log("click")}}
+            />
+        </div>
       <h1>{api.info.title}</h1>
       <Markdown>{api.info.description}</Markdown>
       {api.operations.map((operation) => {

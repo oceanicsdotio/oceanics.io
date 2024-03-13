@@ -1,8 +1,4 @@
-import React, { useMemo } from "react";
-import type { MouseEventHandler } from "react";
-import styled from "styled-components";
-// import type { Memo, QueryType } from "@oceanics-io/wasm";
-import { orange, ghost } from "../../palette";
+import React, { useMemo, type MouseEventHandler } from "react";
 
 /**
  * Main page inputs
@@ -43,7 +39,7 @@ export interface IReferences {
  *
  * Optionally use query parameters and hash anchor to filter content.
  */
-const References = ({
+export const References = ({
   className,
   documents,
   query,
@@ -124,33 +120,3 @@ const References = ({
     </div>
   );
 };
-
-export const StyledReferences = styled(References)`
-  a {
-    color: ${ghost};
-    cursor: pointer;
-  }
-  a + a::before {
-    content: " / ";
-  }
-  header {
-    a {
-      box-shadow: none;
-      color: ${orange};
-      border: none;
-      font-size: inherit;
-      text-decoration: underline;
-      margin: 0;
-      padding: 0;
-      font-size: x-large;
-    }
-    span {
-      display: block;
-      color: ${ghost};
-    }
-  } 
-`;
-
-References.displayName = "References";
-StyledReferences.displayName = "References";
-export default StyledReferences;

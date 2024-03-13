@@ -12,7 +12,7 @@ import type {
   Dispatch,
   SetStateAction,
 } from "react";
-import useWasmRuntime from "../../hooks/useWasmRuntime";
+import useWasmRuntime from "../../src/hooks/useWasmRuntime";
 
 /**
  * Pre-import all shaders. This is a bit fragile.

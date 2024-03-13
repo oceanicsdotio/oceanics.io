@@ -1,12 +1,13 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { DOMParser } from "@xmldom/xmldom";
 
-import type {Property, Method, Methods, Operation, Properties, FieldType} from "./useCatalog";
+import type {Property, Method, Operation, Properties, FieldType, FileObject, FileSystem } from "./useCatalog";
 const ctx: Worker = self as unknown as Worker;
-
-import type { FileObject, FileSystem } from "./useSqualltalk";
 type ModuleType = typeof import("@oceanics-io/wasm");
 
+interface Methods {
+  [index: string]: Method;
+}
 interface Paths {
     [index: string]: Methods;
   }
@@ -108,37 +109,6 @@ const load = async (src: string) => {
     }
 }
 
-// Listener function
-export const handleMessage = async ({ data }: MessageEvent) => {
-    switch (data.type) {
-        case "status":
-            ctx.postMessage({
-                type: "status",
-                data: "ready",
-            });
-            return;
-        case "load":
-            ctx.postMessage({
-                type: "load",
-                data: await load(data.data.src),
-            });
-            return;
-        default:
-            ctx.postMessage({
-                type: "error",
-                message: "unknown message format",
-                data
-            });
-            return;
-    }
-}
-
-/**
- * On start will listen for messages and match against type to determine
- * which internal methods to use. 
- */
-ctx.addEventListener("message", handleMessage)
-
 
 // Possible types of message
 const COMMANDS = {
@@ -157,7 +127,8 @@ const COMMANDS = {
   // Sending a layer style to MapBox
   layer: "layer",
   // Get object storage buffer
-  fragment: "fragment"
+  fragment: "fragment",
+  load: "load"
 }
 
 /**
@@ -358,7 +329,7 @@ const MAX_VALUE = 5200;
 /**
  * Get rid of the junk
  */
-export const cleanAndParse = (text: string): string[] =>
+const cleanAndParse = (text: string): string[] =>
   text.replace("and", ",")
     .replace(";", ",")
     .split(",")
@@ -556,6 +527,12 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
       });
       return;
     // Error on unspecified message type
+    case COMMANDS.load:
+        ctx.postMessage({
+            type: COMMANDS.load,
+            data: await load(data.data.src),
+        });
+        return;
     default:
       ctx.postMessage({
         type: COMMANDS.error,

@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import useWorker from "../../hooks/useWorker";
+import useWorker from "../../src/hooks/useWorker";
  export type ModuleType = typeof import("@oceanics-io/wasm");
 
 interface IMemoCache {

@@ -1,18 +1,18 @@
 "use client";
 import React, { useEffect, useRef } from "react";
-import useOceanside, { type IWorldType } from "./useOceanside";
+import useOceanics, { type IWorldType } from "./useOceanics";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import styles from "./index.module.css";
 
 /**
  * Dynamic interactive game board
  */
-export default function Oceanside(props: Omit<IWorldType, "worker">) {
+export default function Oceanics(props: Omit<IWorldType, "worker">) {
   // Main thread web assembly runtime.
   const { runtime } = useWasmRuntime();
   const worker = useRef<Worker>();
   useEffect(() => {
-    worker.current = new Worker(new URL("./Oceanside.worker.ts", import.meta.url), {
+    worker.current = new Worker(new URL("./worker.ts", import.meta.url), {
       type: "module",
     });
   }, [])
@@ -21,7 +21,7 @@ export default function Oceanside(props: Omit<IWorldType, "worker">) {
    * Synthetic terrain with digital elevation map and
    * probability table of feature types for world-building.
    */
-  const { world, board } = useOceanside({ ...props, worker, runtime });
+  const { world, board } = useOceanics({ ...props, worker, runtime });
 
   return (
     <div className={styles.oceanside}>

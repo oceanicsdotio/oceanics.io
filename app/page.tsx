@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Oceanside from "./Oceanside";
+import Oceanside from "./Oceanics";
 import { Metadata } from "next";
 import styles from "./index.module.css";
 

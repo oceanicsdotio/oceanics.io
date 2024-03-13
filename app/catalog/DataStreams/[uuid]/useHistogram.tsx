@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import useWorker from "../../../src/hooks/useWorker";
+import useWorker from "../../../../src/hooks/useWorker";
 
 export type HistogramData = [number, number][];
 export interface IHistogram {

@@ -1,6 +1,6 @@
 import React, { MouseEventHandler } from "react";
 import styled from "styled-components";
-import { ghost, orange, grey, charcoal } from "../../palette";
+import { ghost, orange, grey, charcoal } from "../../src/palette";
 
 
 export type ChannelType = {
@@ -81,61 +81,6 @@ export const Channel = ({
 
 export const StyledChannel = styled(Channel)`
 
-    display: block;
-    max-width: 65ch;
-    padding: 1rem;
-    margin: 0;
-    border-radius: 5px;
-    background-color: ${charcoal};
-    color: ${ghost};
-
-    & * {
-        font-size: inherit;
-        font-family: inherit;
-    }
-
-    & h1 {
-        text-transform: capitalize;
-        font-size: larger;
-    }
-
-    & label {
-        font-style: italic;
-    }
-
-    & a {
-        color: ${orange};
-        display: block;
-        cursor: pointer;
-        margin: 0.5rem 0;
-        text-decoration: underline;
-    }
-
-    & .zoom {
-        color: ${orange};
-        border-radius: 5px;
-        background-color: black;
-        padding: 0;
-        border: 1px solid ${grey};
-
-        & div {
-            height: auto;
-            border: 1px solid;
-            border-radius: 5px;
-            text-align: center;
-            background-color: ${charcoal};
-            padding: 3px;
-            margin-left: ${({minzoom})=>(minzoom-1)/22*100}%;
-            margin-right: ${({maxzoom})=>(22-maxzoom)/22*100}%;
-            color: ${({ minzoom, maxzoom, zoomLevel}) => 
-                (zoomLevel === null || (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)) ? ghost : grey
-            };
-        }
-
-        & .visible {
-            color: ${ghost}
-        }
-    }
 `;
 
 Channel.displayName = "Channel";
