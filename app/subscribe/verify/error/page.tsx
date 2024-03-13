@@ -12,7 +12,7 @@ export default function Page() {
     <>
       <h2>Something is wrong with our server.</h2>
       <p>
-        Not ideal, but we'll fix it. It would help if you <Link className={styles.link} href="/about-us">could let us
+        Not ideal, but we will fix it. It would help if you <Link className={styles.link} href="/about-us">could let us
         know about the problem.</Link>
       </p>
     </>

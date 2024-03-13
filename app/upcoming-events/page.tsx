@@ -32,7 +32,7 @@ interface ICalendarDataRaw {
   current: ICurrentEventDataRaw[];
 }
 
-function loadData({ past, current }: ICalendarDataRaw): ICalendarData {
+function loadData({ past=[], current }: ICalendarDataRaw): ICalendarData {
   // Load dates from time strings
   return {
     past: past.map((data) => {
@@ -52,7 +52,7 @@ function loadData({ past, current }: ICalendarDataRaw): ICalendarData {
 }
 
 export default function Page() {
-  const current = [];
+  const current: {name: string}[] = [];
   const hasCurrentEvents = current.length > 0;
   const currentEventsMessage = hasCurrentEvents ? (
     <p>{`There are ${current.length} upcoming event${

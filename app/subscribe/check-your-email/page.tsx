@@ -22,7 +22,7 @@ export default function Page() {
         <Link className={styles.link} href="/subscribe">
           you need to subscribe again
         </Link>
-        . If you don't want to continue, ignore the email and we will not
+        . If you do not want to continue, ignore the email and we will not
         contact you.
       </p>
       <p>

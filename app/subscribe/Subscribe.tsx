@@ -35,8 +35,8 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
   const ref = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   // Uses same nomenclature as the Google API
-  const [response, setResponse] = useState(null);
-  const [verified, setVerified] = useState(false);
+  const [response, setResponse] = useState<any>(null);
+  const [verified, setVerified] = useState<boolean>(false);
 
   /**
    * Use response from Google API, and pass it through our
@@ -55,7 +55,7 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
       const data: IVerification = await result.json();
       setVerified(data.success);
     })();
-  }, [response]);
+  }, [response, verify.recaptcha]);
 
   /**
    * Netlify forms allows a POST TO ANY ROUTE, and will
@@ -110,6 +110,7 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
               Subscribe
             </button>
           <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>
+            {/* @ts-expect-error Server Component */}
             <ReCAPTCHA ref={ref} sitekey={sitekey} onChange={setResponse} />
           </Suspense>
         </form>

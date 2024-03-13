@@ -29,8 +29,8 @@ const [
 ]);
 
 // Utility functions for chaining
-const filterPng = (name) => name.endsWith(".png");
-const wrapSlug = (slug) => Object({ slug });
+const filterPng = (name: string) => name.endsWith(".png");
+const wrapSlug = (slug: string) => Object({ slug });
 
 // Structure cache data
 const data = {
