@@ -3,7 +3,7 @@ pub mod interactive_grid {
     use web_sys::{HtmlCanvasElement,CanvasRenderingContext2d};
 
     use crate::grid::rectilinear_grid::rectilinear_grid::RectilinearGrid;
-    use crate::cursor::cursor_system::SimpleCursor;
+    use crate::cursor::SimpleCursor;
     use crate::grid::style::style::Style;
 
     /**

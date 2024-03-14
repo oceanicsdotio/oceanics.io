@@ -6,7 +6,7 @@ pub mod interactive_mesh {
     use std::collections::HashMap;
     use std::f64::consts::PI;
     use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
-    use crate::cursor::cursor_system::SimpleCursor;  // custom cursor behavior
+    use crate::cursor::SimpleCursor;  // custom cursor behavior
     use crate::mesh::triangular_mesh::triangular_mesh::TriangularMesh;
     use crate::mesh::style::style::Style;
     use crate::mesh::mesh::{color_map_z, next_state};

@@ -1,0 +1,66 @@
+[
+    {
+        "name": "oysters",
+        "probability": 0.05
+    },
+    {
+        "name": "mussels",
+        "probability": 0.05
+    },
+    {
+        "name": "platform",
+        "probability": 0.01
+    },
+    {
+        "name": "fish-pen",
+        "probability": 0.02
+    },
+    {
+        "name": "lighthouse",
+        "probability": 0.01
+    },
+    {
+        "name": "herring-gull",
+        "probability": 0.05
+    },
+    {
+        "name": "boat",
+        "probability": 0.03
+    },
+    {
+        "name": "ocean",
+        "probability": 0
+    },
+    {
+        "name": "land",
+        "probability": 0
+    },
+    {
+        "name": "lobster-buoys",
+        "probability": 0.03
+    },
+    {
+        "name": "wharf",
+        "probability": 0.02
+    },
+    {
+        "probability": 0.01,
+        "name": "diver-down"
+    },
+    {
+        "name": "turbine",
+        "probability": 0.02
+    },
+    {
+        "name": "turbine-fire",
+        "probability": 0.01
+    },
+    {
+        "name": "mud",
+        "probability": 0
+    },
+    {
+        "name": "oil-spill",
+        "probability": 0.01
+    }
+]

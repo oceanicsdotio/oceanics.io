@@ -3,7 +3,7 @@ mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
 mod stream;  // data stream structs and visualization methods
 mod mesh;  // 3D unstructured triangular network
-mod grid;  // 3D rectilinear grid methods and structures
+mod oceanics;
 
 
 use std::f32::consts::PI;
@@ -243,7 +243,6 @@ impl Limit {
         }
     }
 }
-
 
 
 #[wasm_bindgen]

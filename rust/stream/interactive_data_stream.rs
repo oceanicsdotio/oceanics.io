@@ -3,7 +3,7 @@ pub mod interactive_data_stream {
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
 
-    use crate::cursor::cursor_system::SimpleCursor;
+    use crate::cursor::SimpleCursor;
     use crate::stream::data_stream::data_stream::DataStream;
     use crate::stream::style::style::Style;
     

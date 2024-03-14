@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Oceanside from "./Oceanics";
+import Oceanics from "./Oceanics";
 import { Metadata } from "next";
 import styles from "./layout.module.css";
 import Link from "next/link";
@@ -18,19 +18,11 @@ export default function Page() {
         </Link>
       </h1>
       <Suspense fallback={<div className={styles.placeholder}></div>}>
-        <Oceanside
-          {...{
-            size: 96,
-            view: {
-              size: 9,
-            },
-            grid: {
-              size: 7,
-            },
-            datum: 0.8,
-            runtime: null,
-            src: "/nodes.json",
-          }}
+        <Oceanics
+          worldSize={96}
+          gridSize={7}
+          waterLevel={1.0}
+          backgroundColor="#222222ff"
         />
       </Suspense>
 
