@@ -5,18 +5,7 @@ import styles from "./layout.module.css";
 import icons from "./icons.json";
 
 // Mouse click coordinates
-type EventLocation = { clientX: number; clientY: number };
 type Points = [number, number][];
-
-// Get click coords from an event
-const eventCoordinates = (
-  { clientX, clientY }: EventLocation,
-  canvas: HTMLCanvasElement
-): [number, number] => {
-  // Short hand for element reference frame
-  const { left, top } = canvas.getBoundingClientRect();
-  return [clientX - left, clientY - top];
-};
 
 /*
  * Rotate a path of any number of points about the origin.
@@ -36,7 +25,7 @@ const rotatePath = (pts: Points, angle: number): Points => {
  * The width is the width of the canvas drawing area, and
  * gridSize is the number of squares per side of the world.
  */
-const inverse = (points: Points, width: number, gridSize: number): Points => {
+export const inverse = (points: Points, width: number, gridSize: number): Points => {
   return rotatePath(
     points.map(([x, y]) => [
       x -
@@ -77,7 +66,7 @@ export default function Oceanics({
   gridSize,
   worldSize,
   waterLevel,
-  backgroundColor
+  backgroundColor,
 }: IOceanics) {
   /**
    * Ref for clickable minimap that allows world navigation
@@ -93,8 +82,6 @@ export default function Oceanics({
   const [interactive, setInteractive] = useState<{
     map: MiniMap;
     cursor: PrismCursor;
-    clear: typeof import("@oceanics-io/wasm").clear_rect_blending;
-    tiles: number[][];
   } | null>(null);
 
   /**
@@ -127,7 +114,6 @@ export default function Oceanics({
   useEffect(() => {
     if (!board.current || !world.current) return;
     const handle = board.current;
-    const worldRef = world.current;
     [board.current.width, board.current.height] = ["width", "height"]
       .map((dim: string) =>
         getComputedStyle(handle).getPropertyValue(dim).slice(0, -2)
@@ -139,41 +125,25 @@ export default function Oceanics({
     ctx.imageSmoothingEnabled = false; // disable interpolation
 
     let cursor: PrismCursor | undefined | null;
-    const onMouseMove = (event: MouseEvent) => {
-      const xy = eventCoordinates(event, handle);
-      cursor?.update(...xy);
+    const onMouseMove = ({ clientX, clientY }: MouseEvent) => {
+      const { left, top } = handle.getBoundingClientRect();
+      cursor?.update(clientX - left, clientY - top);
     };
     board.current.addEventListener("mousemove", onMouseMove);
 
     (async function () {
-      const {PrismCursor, MiniMap, panic_hook, clear_rect_blending: clear} = await import("@oceanics-io/wasm");
+      const { PrismCursor, MiniMap, panic_hook } = await import(
+        "@oceanics-io/wasm"
+      );
       panic_hook();
-      cursor = new PrismCursor(
+      const cursor = new PrismCursor(
         0.0,
         0.0,
         window.devicePixelRatio,
         gridSize
       );
       const map = new MiniMap(worldSize, waterLevel, worldCtx, gridSize, icons);
-
-      const diagonals = gridSize * 2 - 1;
-      const tiles: number[][] = [];
-      let count = 0;
-      for (let row = 0; row < diagonals; row++) {
-        tiles.push([]);
-        const columns = row + (row < gridSize ? 1 : diagonals - 2 * row);
-        for (let column = 0; column < columns; column++) {
-          const col = columns - 1 - column; // reverse the order in the index
-          tiles[row].push(map.insertTile(count++, row, col));
-        }
-        tiles[row] = tiles[row].reverse();
-      }
-      setInteractive({
-        map,
-        cursor,
-        clear,
-        tiles,
-      });
+      setInteractive({ map, cursor });
     })();
 
     return () => {
@@ -191,24 +161,13 @@ export default function Oceanics({
     const ctx = canvas.getContext(`2d`) as CanvasRenderingContext2D;
     let requestId: number | null = null;
     (function render() {
-      interactive.clear(
+      interactive.map.draw(
         ctx,
+        performance.now(),
         canvas.width,
         canvas.height,
         backgroundColor
       );
-      interactive.tiles.forEach((diagonal: number[], ii: number) => {
-        diagonal.forEach((_, jj) => {
-          interactive.map.drawTile(
-            ctx,
-            ii,
-            jj,
-            diagonal.length,
-            performance.now(),
-            canvas.width
-          );
-        });
-      });
 
       // const Δx = 1;
       // const Δy = 1;
@@ -263,7 +222,7 @@ export default function Oceanics({
       //   ctx.stroke();
       // });
 
-      requestId = requestAnimationFrame(render);
+      // requestId = requestAnimationFrame(render);
     })();
     return () => {
       if (requestId) cancelAnimationFrame(requestId);

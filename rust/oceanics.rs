@@ -37,7 +37,8 @@ struct Tile {
     /// Name corresponds to features
     name: String,
     /// "Time delay" in sprite sheet rendering
-    frame_offset: f64
+    frame_offset: f64,
+    x_offset: f64
 }
 
 /// Used as index in the lookup functions that
@@ -59,8 +60,6 @@ struct DiagonalIndex {
 /// configuration.
 #[wasm_bindgen(getter_with_clone)]
 pub struct MiniMap {
-    /// World image data
-    image_data: Clamped<Vec<u8>>,
     /// View grid size, always square
     grid_size: u32,
     /// Mapping from grid coordinates to the tile reference
@@ -86,6 +85,7 @@ impl MiniMap {
         grid_size: u32,
         icons: JsValue,
     ) -> Result<MiniMap, JsValue> {
+        let grid = grid_size as usize;
         let icons: Vec<Icon> = serde_wasm_bindgen::from_value(icons)?;
         let count = (grid_size * grid_size) as usize;
         let offset = (world_size - grid_size) / 2;
@@ -122,6 +122,7 @@ impl MiniMap {
         world.put_image_data(&world_data, 0.0, 0.0)?;
         world.put_image_data(&bbox_data, vx, vy)?;
         world.put_image_data(&image, vx + 1.0, vy + 1.0)?;
+        let image_data = image.data();
         
         let mut features = IndexMap::<String, Feature>::with_capacity(FEATURES);
         for icon in icons {
@@ -140,85 +141,83 @@ impl MiniMap {
             features.insert(feature.name.clone(), feature);
         }
 
+        let mut tiles = IndexMap::with_capacity(count);
+        let diagonals = grid * 2 - 1;
+        for row in 0..diagonals {
+          let columns;
+          if row < grid {
+            columns = 1;
+          } else {
+            columns = diagonals - 2 * row
+          }
+          for col in 0..columns {
+            let jj = columns - 1 - col;
+            let index =  ((col - 1 - col + jj) * grid + grid.min(row) - jj - 1) as usize * 4 + 3;
+            let alpha = image_data[index] as f64 / 255.0;
+            let index = DiagonalIndex{row, column: jj};
+            let probability = js_sys::Math::random();
+            let dx = (columns - 1) as f64 / 2.0;
+            let x_offset = SPRITE_SIZE * ((index.column as f64 + (grid as f64 - dx)) - (grid + 1) as f64 / 2.0);
+            if alpha > DRY_THRESHOLD {
+                for feature in features.values() {
+                    if probability < feature.probability {
+                        let frames = (feature.image.width() / feature.image.height()) as f64;
+                        tiles.insert(index, Tile {
+                            name: feature.name.clone(),
+                            frame_offset: tiles.len() as f64 % frames,
+                            x_offset
+                        });
+                        break;
+                    }
+                }
+            } else {
+                let feature = features.get(&"land".to_string()).unwrap();
+                tiles.insert(index, Tile {
+                    name: feature.name.clone(),
+                    frame_offset: 0.0,
+                    x_offset
+                });
+            }
+          }
+        }
+
         let map = MiniMap {
-            image_data: image.data(),
             grid_size,
-            tiles: IndexMap::with_capacity(count),
+            tiles,
             features
         };
         Ok(map)
     }
 
-    /// Pick a random feature, defaulting to empty ocean space. Copy the
-    /// feature template object that was inserted, and return the copy.
-    /// This is used when populating the world or replacing tiles with
-    /// others randomly.
-    /// Invisible placeholder for land tile, so that all spaces are
-    /// treated the same way
-    #[wasm_bindgen(js_name = insertTile)]
-    pub fn insert_tile(&mut self, ii: usize, jj: usize, probability: f64) -> usize {
-        let current_size = self.tiles.len();
-        let grid = self.grid_size as usize;
-        let column = ii - grid.min(ii);
-        let index =  ((column + jj) * grid + grid.min(ii) - jj - 1) as usize * 4 + 3;
-        let alpha = self.image_data[index] as f64 / 255.0;
-        let index = DiagonalIndex{row: ii, column: jj};
-        if alpha > DRY_THRESHOLD {
-            for feature in self.features.values() {
-                if probability < feature.probability {
-                    let frames = (feature.image.width() / feature.image.height()) as f64;
-                    self.tiles.insert(index, Tile {
-                        name: feature.name.clone(),
-                        frame_offset: current_size as f64 % frames
-                    });
-                    break;
-                }
-            }
-        } else {
-            let feature = self.features.get(&"land".to_string()).unwrap();
-            self.tiles.insert(index, Tile {
-                name: feature.name.clone(),
-                frame_offset: 0.0
-            });
-        }
-        current_size
-    }
 
-
-    #[wasm_bindgen(js_name = drawTile)]
-    pub fn draw_tile(
-        &self,
-        ctx: CanvasRenderingContext2d,
-        ii: usize,
-        jj: usize,
-        length: f64,
-        time: f64,
-        width: f64,
-    ) -> Result<(), JsValue> {
-        let grid = self.grid_size as f64;
+    pub fn draw(&self, ctx: CanvasRenderingContext2d, time: f64, width: f64, height: f64, blend: JsValue) -> Result<(), JsValue> {
+        ctx.begin_path();
+        ctx.rect(0.0, 0.0, width, height);
+        ctx.set_fill_style(&blend);
+        ctx.fill();
         let sprite_scale = width / SPRITE_SIZE / self.grid_size as f64;
-        let index = DiagonalIndex{ row: ii, column: jj};
-        let tile = self.tiles.get(&index).unwrap();
-        let feature = self.features.get(&tile.name).unwrap();
         let phase = (TIME_CONSTANT * time) % 1.0;
         let keyframe_phase = (KEYFRAME_CONSTANT * time) % 1.0;
-        let frames = (feature.image.width() / feature.image.height()) as f64;
-        let keyframe = ((tile.frame_offset + keyframe_phase * frames) % frames).floor();
-        
-        let xx = SPRITE_SIZE * ((jj as f64 + (grid - (length - 1.0) / 2.0)) - (grid + 1.0) / 2.0);
-        let yy = SPRITE_SIZE / 4.0 * ii as f64;
-        let zz = SPRITE_SIZE * (((phase + xx / width) * 2.0 * PI).sin() + 1.0) / 2.0 * -1.0;
+        for (index, tile) in &self.tiles {
+            let feature = self.features.get(&tile.name).unwrap();
+            let frames = (feature.image.width() / feature.image.height()) as f64;
+            let keyframe = ((tile.frame_offset + keyframe_phase * frames) % frames).floor();
 
-        ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
-            &feature.image,
-            SPRITE_SIZE * keyframe,
-            0.0,
-            SPRITE_SIZE,
-            SPRITE_SIZE,
-            sprite_scale * xx,
-            sprite_scale * (yy - zz),
-            sprite_scale * SPRITE_SIZE,
-            sprite_scale * SPRITE_SIZE,
-        )
+            let yy = SPRITE_SIZE / 4.0 * index.row as f64;
+            let zz = SPRITE_SIZE * (((phase + tile.x_offset / width) * 2.0 * PI).sin() + 1.0) / 2.0 * -1.0;
+
+            ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+                &feature.image,
+                SPRITE_SIZE * keyframe,
+                0.0,
+                SPRITE_SIZE,
+                SPRITE_SIZE,
+                sprite_scale * tile.x_offset,
+                sprite_scale * (yy - zz),
+                sprite_scale * SPRITE_SIZE,
+                sprite_scale * SPRITE_SIZE,
+            )?;
+        }
+        Ok(())
     }
 }
