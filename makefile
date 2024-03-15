@@ -17,9 +17,9 @@ functions/lib: $(shell find functions -type f -name '*.rs')
 		--out-name index
 	@ touch -m $@
 
-coverage: $(shell find functions -type f -name '*.rs')
-	@ cargo llvm-cov --manifest-path rust/Cargo.toml --html --output-dir $@
-	@ touch -m $@
+# coverage: $(shell find functions -type f -name '*.rs')
+# 	@ cargo llvm-cov --manifest-path rust/Cargo.toml --html --output-dir $@
+# 	@ touch -m $@
 
 # Build the WASM library from Rust sources
 # Local dependencies need to be built before we can install
@@ -34,19 +34,19 @@ specification.json: specification.yaml node_modules
 	@ yarn run js-yaml $< > public/openapi.json
 
 # Build OpenAPI docs page from specification
-public/index.html: specification.json node_modules
+public/index.html: specification.json
 	@ yarn run redocly build-docs $< --output $@
 
+# Create examples with static UUID values for deterministic testing
+functions/cache.json: cache.ts specification.json 
+	@ yarn exec tsx cache.ts specification.json functions/cache.json
+
 # Build the next site within Netlify to pick up env/config
-out: next.config.mjs tsconfig.json netlify.toml node_modules public/index.html tsconfig.json
+out: next.config.mjs tsconfig.json netlify.toml public/index.html tsconfig.json
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@
-
-# Create examples with static UUID values for deterministic testing
-functions/test/cache.json: cache.ts specification.json 
-	@ yarn exec tsx $^ $@
 
 # Build the next site, called by Netlify build
 next:
@@ -58,31 +58,25 @@ dev: out
 	@ yarn netlify dev
 .PHONY: dev
 
-# Run all idempotent tests, generate a coverage report with istanbul/babel
-test: functions/test/cache.json coverage
+# Run idempotent tests
+test: functions/test/cache.json
 	@ yarn jest
 .PHONY: test
-
-# Run in github Actions
-ci: specification.json public/index.html 
-	@ yarn run tsc
-.PHONY: ci
 
 # Deploy to production
 deploy: out
 	@ yarn netlify deploy --prod
-.PHONY: prod
+.PHONY: deploy
 
 # Remove build artifacts
 clean:
 	@ rm -f functions/test/cache.json
 	@ rm -rf functions/lib
+	@ rm -rf app/lib
 	@ rm -rf node_modules
 	@ rm -rf out
 	@ rm -rf .netlify
 	@ rm -rf .next
-	@ rm -rf app/lib
-	@ rm -rf coverage
 .PHONY: clean
 
 # Cleanup targets on error
