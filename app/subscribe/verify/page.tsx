@@ -1,8 +1,6 @@
 import ValidateToken from "./ValidateToken";
 import { Suspense } from "react";
 import { Metadata } from "next";
-import Link from "next/link";
-import styles from "@app/layout.module.css"
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Verify e-mail",

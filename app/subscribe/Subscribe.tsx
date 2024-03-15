@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, Suspense, useState, useEffect } from "react";
 import type { FormEventHandler } from "react";
-import styles from "@app/layout.module.css";
+import style from "./Subscribe.module.css";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -84,13 +84,13 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
   return (
     
         <form
-          className={styles.form}
+          className={style.form}
           data-netlify="true"
           data-netlify-honeypot="bot-field"
           name={FORM_NAME}
           onSubmit={onSubmit}
         >
-          <p className={styles.hidden}>
+          <p className={style.hidden}>
             <label>{"this should be hidden, don't fill it out"}</label>
             <input name="bot-field" ref={botField} />
           </p>
@@ -98,7 +98,7 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
             Email
           </label>
           <input
-            className={styles.input}
+            className={style.input}
             id="email"
             type="email"
             name="email"
@@ -106,7 +106,7 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
             required
             ref={email}
           />
-           <button className={styles.submit} type="submit" disabled={!verified}>
+           <button className={style.submit} type="submit" disabled={!verified}>
               Subscribe
             </button>
           <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>

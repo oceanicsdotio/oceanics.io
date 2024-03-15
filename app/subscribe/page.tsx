@@ -1,7 +1,8 @@
 import Subscribe from "./Subscribe";
 import { Metadata } from "next";
 import Link from "next/link";
-import styles from "@app/layout.module.css";
+import layout from "@app/layout.module.css";
+import style from "./Subscribe.module.css";
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Subscribe",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className={styles.subscribe}>
+    <div className={style.subscribe}>
       <h2>
         Subscribe to <strong>Out of the Blue</strong>, our community newsletter and calendar
       </h2>
@@ -18,7 +19,7 @@ export default function Page() {
         except as needed to verify your email.
         We will not share your contact information. You can
         unsubscribe and have your data deleted at any time
-        by <Link className={styles.link} href="/about-us">
+        by <Link className={layout.link} href="/about-us">
           sending us an email
         </Link>.
       </p>

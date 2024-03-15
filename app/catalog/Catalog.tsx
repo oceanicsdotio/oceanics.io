@@ -2,7 +2,7 @@
 import Markdown from "react-markdown";
 import React, { useRef, useEffect, type MouseEventHandler, Suspense, useMemo } from "react";
 import useCatalog, {type Operation} from "./useCatalog";
-import styles from "./catalog.module.css";
+import styles from "./Catalog.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const DEFAULT_MAP_PROPS = {

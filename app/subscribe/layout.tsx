@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "@app/layout.module.css";
+import layout from "@app/layout.module.css";
 import Link from "next/link";
 
 export default function Layout({
@@ -8,9 +8,9 @@ export default function Layout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.content}>
+    <div className={layout.content}>
               <h1>
-        <Link className={styles.link} href="/">
+        <Link className={layout.link} href="/">
           Oceanics.io
         </Link>
       </h1>
