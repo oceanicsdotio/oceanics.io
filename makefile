@@ -1,14 +1,13 @@
 SRC = \
-	$(shell find glsl -type f -name '*') \
 	$(shell find app -type d) \
-	$(shell find app -type f -name '*') \
-	$(wildcard glsl/*) \
+	$(shell find app -type f -name '*')
 
 wasm: $(SRC)
 	@ cargo install wasm-pack
 	@ wasm-pack build app \
 		--out-dir ../wasm \
 		--out-name index
+	@ touch -m $@
 
 # Build the WASM library from Rust sources
 # Local dependencies need to be built before we can install
@@ -21,6 +20,7 @@ node_modules: wasm package.json $(SRC)
 build: next.config.mjs tsconfig.json netlify.toml node_modules
 	@ yarn netlify init
 	@ yarn netlify build
+	@ touch -m $@m
 
 # Build the next site, called by Netlify build
 next:

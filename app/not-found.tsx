@@ -7,12 +7,12 @@ export const metadata: Metadata = {
   description: 'Page not found',
 }
 
-export default function Page() {
+export default function NotFound() {
   return (
     <>
       <p>{"You can't get there from here."}</p>
       <Image
-        src={"/assets/dagan-sprite.gif"}
+        src={"/dagan-sprite.gif"}
         alt="Sea creature seeking answers"
         unoptimized={true}
         width={450}

@@ -3432,8 +3432,8 @@ __metadata:
 
 "@oceanics-io/wasm@file:wasm::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/wasm@file:wasm#wasm::hash=05775f&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/c8cd36a279473e197ef1dd75735d5c7bbdaf9372748a1e76393bf48db01a28c1630c0096123c9914115d4a8db1b4bff244f425a65a2a9d2802b0af2576bd900d
+  resolution: "@oceanics-io/wasm@file:wasm#wasm::hash=277ee3&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/7c11df968af741d08aa68004165609f1bbd8827416a1a33f317ec4008c6990b217a640387b89847e3d0282ebae469e1644c424c49a39cc712eed87fe549db327
   languageName: node
   linkType: hard
 
