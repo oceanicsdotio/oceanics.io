@@ -69,10 +69,6 @@ export default function Oceanics({
   backgroundColor,
 }: IOceanics) {
   /**
-   * Ref for clickable minimap that allows world navigation
-   */
-  const world = useRef<HTMLCanvasElement | null>(null);
-  /**
    * Ref for isometric view render target
    */
   const board = useRef<HTMLCanvasElement | null>(null);
@@ -112,7 +108,7 @@ export default function Oceanics({
    * insert the feature into the visualization.
    */
   useEffect(() => {
-    if (!board.current || !world.current) return;
+    if (!board.current) return;
     const handle = board.current;
     [board.current.width, board.current.height] = ["width", "height"]
       .map((dim: string) =>
@@ -120,8 +116,7 @@ export default function Oceanics({
       )
       .map((x: string) => parseInt(x) * window.devicePixelRatio);
     const ctx = board.current.getContext("2d");
-    const worldCtx = world.current.getContext("2d");
-    if (!ctx || !worldCtx) return;
+    if (!ctx) return;
     ctx.imageSmoothingEnabled = false; // disable interpolation
 
     let cursor: PrismCursor | undefined | null;
@@ -142,7 +137,8 @@ export default function Oceanics({
         window.devicePixelRatio,
         gridSize
       );
-      const map = new MiniMap(worldSize, waterLevel, worldCtx, gridSize, icons);
+      console.log({worldSize, waterLevel, gridSize, icons})
+      const map = new MiniMap(worldSize, waterLevel, gridSize, icons);
       setInteractive({ map, cursor });
     })();
 
@@ -222,17 +218,16 @@ export default function Oceanics({
       //   ctx.stroke();
       // });
 
-      // requestId = requestAnimationFrame(render);
+      requestId = requestAnimationFrame(render);
     })();
     return () => {
       if (requestId) cancelAnimationFrame(requestId);
     };
-  }, [interactive, backgroundColor, gridSize]);
+  }, [interactive, backgroundColor, gridSize, board]);
 
   return (
     <div className={styles.oceanside}>
       <canvas ref={board} className={styles.board} />
-      <canvas ref={world} className={styles.world} />
     </div>
   );
 }

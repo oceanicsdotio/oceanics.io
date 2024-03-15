@@ -22,7 +22,7 @@ node_modules: wasm package.json
 	@ touch -m $@
 
 # Build the next site within Netlify to pick up env/config
-build: next.config.mjs tsconfig.json netlify.toml $(SRC)
+build: node_modules next.config.mjs tsconfig.json netlify.toml $(SRC)
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@

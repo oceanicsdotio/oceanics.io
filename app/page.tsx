@@ -20,7 +20,7 @@ export default function Page() {
       <Suspense fallback={<div className={styles.placeholder}></div>}>
         <Oceanics
           worldSize={96}
-          gridSize={7}
+          gridSize={3}
           waterLevel={1.0}
           backgroundColor="#222222ff"
         />
