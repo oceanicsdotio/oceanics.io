@@ -36,3 +36,7 @@
   text-decoration: underline wavy lightblue;
   text-underline-offset: 3px;
 }
+
+.image {
+  width: 100%;
+}

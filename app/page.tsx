@@ -21,7 +21,7 @@ export default function Page() {
       <Suspense fallback={<div className={style.placeholder}></div>}>
         <Oceanics
           gridSize={20}
-          backgroundColor="#110022ff"
+          backgroundColor="#110022"
           timeConstant={-0.00018}
           frameConstant={0.002}
           amplitude={0.25}
@@ -30,25 +30,20 @@ export default function Page() {
       </Suspense>
 
       <p>
-        You need to draw on community knowledge and make
-        data-driven decisions for the future. Whether watching your surf or seeking opportunity.
-      </p>
-      <p>
-        We analyze public and proprietary data and serve you synthetic and aggregate products to manage risk and conflict.
-      </p>
-      <p>
+        We analyze public and proprietary ocean data and{" "}
         <a className={layout.link} href="https://data.oceanics.io">
-          🛟 Explore ocean data
-        </a>
+          serve you synthetic and aggregate products
+        </a>{" "}
+        to manage risk and conflict.
       </p>
       <p>
-        <Link className={layout.link} href="/subscribe">
-          🛟 Subscribe to newsletter
-        </Link>
+        Together we can draw on community knowledge and make data-driven
+        decisions for the future. Whether watching your surf or seeking
+        opportunity.
       </p>
       <p>
-        <Link className={layout.link} href="/about-us">
-          🛟 Learn more about us
+        <Link className={layout.link} href="/about">
+          ⚡ Get in touch
         </Link>
       </p>
     </>

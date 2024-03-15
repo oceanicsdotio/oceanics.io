@@ -31,7 +31,7 @@ export default function Page() {
         site. We will not share your personal information.
       </p>
       <p>
-        <Link className={layout.link} href="/about-us">
+        <Link className={layout.link} href="/about">
           🛟 Find Out More or Get in Touch
         </Link>
       </p>

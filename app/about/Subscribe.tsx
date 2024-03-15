@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, Suspense, useState, useEffect } from "react";
-import type { FormEventHandler } from "react";
-import style from "./Subscribe.module.css";
+import type { FormEventHandler, ReactNode } from "react";
+import style from "./about.module.css";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -12,9 +12,10 @@ interface IVerify {
   email: string;
 }
 
-export interface ISubscribe {
-  sitekey: string;
-  verify: IVerify;
+interface ISubscribe {
+  children: ReactNode
+  sitekey: string
+  verify: IVerify
 }
 
 const encode = (data: any) => {
@@ -29,7 +30,7 @@ interface IVerification {
   hostname: string;
 }
 
-export default function Subscribe({ sitekey, verify }: ISubscribe) {
+export default function Subscribe({ children, sitekey, verify }: ISubscribe) {
   const email = useRef<HTMLInputElement|null>(null);
   const botField = useRef<HTMLInputElement|null>(null);
   const ref = useRef<ReCAPTCHA>(null);
@@ -95,7 +96,7 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
             <input name="bot-field" ref={botField} />
           </p>
           <label htmlFor="email">
-            Email
+            <code>Email</code>
           </label>
           <input
             className={style.input}
@@ -106,6 +107,9 @@ export default function Subscribe({ sitekey, verify }: ISubscribe) {
             required
             ref={email}
           />
+          {
+            children
+          }
            <button className={style.submit} type="submit" disabled={!verified}>
               Subscribe
             </button>

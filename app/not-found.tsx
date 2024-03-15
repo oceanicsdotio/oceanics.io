@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 import { Metadata } from "next";
-import Image from "next/image";
 import React from "react";
+import layout from "./layout.module.css";
  
 export const metadata: Metadata = {
   title: 'Oceanics.io | Not Found 404',
@@ -10,13 +11,11 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <>
-      <p>{"You can't get there from here."}</p>
-      <Image
+      <h2>{"You can't get there from here."}</h2>
+      <img
+        className={layout.image}
         src="sprites/not-found.gif"
         alt="Sea creature seeking answers"
-        unoptimized={true}
-        width={450}
-        height={300}
       />
     </>
   );
