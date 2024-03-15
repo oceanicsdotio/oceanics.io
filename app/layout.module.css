@@ -105,21 +105,12 @@
   width: 100%;
 }
 
-.world {
-  margin: 0;
-  padding: 0;
-  image-rendering: crisp-edges;
-  /* display: none; */
-  width: 256px;
-  height: 256px;
-}
-
 .board {
   margin: 0;
   padding: 0;
   image-rendering: crisp-edges;
   width: 100%;
-  aspect-ratio: 1 / 0.8;
+  aspect-ratio: 1 / 0.3;
   animation: fade-in 2s;
 }
 
@@ -128,6 +119,6 @@
   margin: 0;
   padding: 0;
   width: 100%;
-  aspect-ratio: 1 / 0.8;
+  aspect-ratio: 1 / 0.3;
 }
 

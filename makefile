@@ -2,13 +2,12 @@ SRC = \
 	$(shell find glsl -type d) \
 	$(shell find glsl -type f -name '*') \
 	$(shell find app -type d) \
-	$(shell find app -type f -name '*')
-RUST = \
+	$(shell find app -type f -name '*') \
 	$(shell find rust -type d) \
 	$(shell find rust -type f -name '*')
 	
 # Build the WASM library from Rust sources
-wasm: $(RUST)
+wasm: $(SRC)
 	@ cargo install wasm-pack
 	@ wasm-pack build rust \
 		--out-dir ../$@ \
@@ -17,7 +16,7 @@ wasm: $(RUST)
 
 # Local dependencies need to be built before we can install
 # touching the directory updates timestamp for make
-node_modules: wasm package.json
+node_modules: wasm package.json $(SRC)
 	@ yarn install
 	@ touch -m $@
 

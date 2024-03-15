@@ -1,13 +1,8 @@
-use serde::Deserialize;
 use indexmap::IndexMap;
+use serde::Deserialize;
 use std::f64::consts::PI;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
-
-const SPRITE_SIZE: f64 = 32.0;
-const TIME_CONSTANT: f64 = 0.000001;
-const KEYFRAME_CONSTANT: f64 = 0.001;
-
 #[wasm_bindgen]
 #[derive(Deserialize, Clone)]
 struct Icon {
@@ -17,14 +12,14 @@ struct Icon {
     probability: f64,
 }
 
-/// Features are used in multiple ways. 
+/// Features are used in multiple ways.
 /// Both by the probability table and by the game interface.
 struct Feature {
     /// Name corresponds to tiles
     name: String,
     /// Relative probability
     probability: f64,
-    image: HtmlImageElement
+    image: HtmlImageElement,
 }
 
 /// Tiles are individual features, aka the instance of
@@ -35,6 +30,7 @@ struct Tile {
     name: String,
     /// "Time delay" in sprite sheet rendering
     frame_offset: f64,
+    flip: f64,
 }
 
 /// Used as index in the lookup functions that
@@ -57,7 +53,7 @@ struct DiagonalIndex {
 #[wasm_bindgen(getter_with_clone)]
 pub struct MiniMap {
     /// View grid size, always square
-    grid_size: u8,
+    grid_size: u32,
     /// Mapping from grid coordinates to the tile reference
     tiles: Vec<Tile>,
     /// The features in probability order
@@ -75,103 +71,90 @@ impl MiniMap {
     /// features.
     #[wasm_bindgen(constructor)]
     pub fn new(
-        world_size: u8,
-        water_level: f64,
-        grid_size: u8,
+        grid_size: u32,
         icons: JsValue,
     ) -> Result<MiniMap, JsValue> {
         let icons: Vec<Icon> = serde_wasm_bindgen::from_value(icons)?;
-        let quadrant = world_size as f64 / 2.0;
-        let capacity = world_size * world_size * 4;
-        let data = &mut Vec::with_capacity(capacity as usize);
-        for ii in 0..world_size {
-            for jj in 0..world_size {
-                let distance = 1.0
-                    - ((quadrant - ii as f64).powi(2) + (quadrant - jj as f64).powi(2)).sqrt()
-                        / (2.0 * quadrant.powi(2)).sqrt();
-                let elevation = (distance.powi(2)).min(1.0);
-                let mask = 255.0 * (elevation < water_level) as u8 as f64;
-                let depth = 1.0 - (water_level - elevation);
-                let red = (mask * 0.4).floor() as u8;
-                let green = (mask * 0.8 * depth).floor() as u8;
-                let blue = (mask * depth).floor() as u8;
-                let alpha = mask.floor() as u8;
-                data.push(red);
-                data.push(green);
-                data.push(blue);
-                data.push(alpha);
-            }
-        }
-       
         let mut features = IndexMap::<String, Feature>::with_capacity(16);
+        let mut total_probability = 0.0;
         for icon in icons {
+            total_probability = total_probability + icon.probability;
             let image = HtmlImageElement::new()?;
             let src = format!("/assets/{}.png", icon.name);
             image.set_src(&src);
-            let probability = match features.values().last() {
-                Some(last) => last.probability + icon.probability,
-                None => icon.probability
-            };
-            let feature = Feature{
-                probability,
+            let feature = Feature {
+                probability: total_probability,
                 name: icon.name,
-                image
+                image,
             };
             features.insert(feature.name.clone(), feature);
         }
 
         let count = grid_size * grid_size;
         let mut tiles = Vec::with_capacity(count as usize);
-        for _ in 0..grid_size {
-          for _ in 0..grid_size {
-            let probability = js_sys::Math::random();
+        for item in 0..count {
+            let probability = js_sys::Math::random() * total_probability;
             for feature in features.values() {
                 if probability < feature.probability {
-                    tiles.push(Tile{
+                    tiles.push(Tile {
                         name: feature.name.clone(),
-                        frame_offset: tiles.len() as f64 % 4.0
+                        frame_offset: (js_sys::Math::random()*4.0).floor(),
+                        flip: item as f64 % 2.0
                     });
                     break;
                 }
             }
-          }
         }
 
         let map = MiniMap {
             grid_size,
             tiles,
-            features
+            features,
         };
         Ok(map)
     }
 
-
-    pub fn draw(&self, ctx: CanvasRenderingContext2d, time: f64, width: f64, height: f64, blend: JsValue) -> Result<(), JsValue> {
+    pub fn draw(
+        &self,
+        ctx: CanvasRenderingContext2d,
+        time: f64,
+        width: f64,
+        height: f64,
+        blend: JsValue,
+        sprite_size: f64,
+        time_constant: f64,
+        frame_constant: f64,
+        amplitude: f64,
+        phase_constant: f64
+    ) -> Result<(), JsValue> {
         ctx.begin_path();
         ctx.rect(0.0, 0.0, width, height);
         ctx.set_fill_style(&blend);
         ctx.fill();
-        let sprite_scale = width / SPRITE_SIZE / self.grid_size as f64;
-        let phase = (TIME_CONSTANT * time) % 1.0;
-        let keyframe_phase = (KEYFRAME_CONSTANT * time) % 1.0;
+        let sprite_scale = width / (self.grid_size as f64 + 0.5);
+        let phase = (time_constant * time) % 2.0 * PI;
+        let keyframe_phase = (frame_constant * time) % 1.0;
+        let mut count = 0;
         for tile in &self.tiles {
-            let x_offset = 0.0;
-            let y_offset = 0.0;
+            let row = (count as f64 / self.grid_size as f64).floor();
+            let col = (count % self.grid_size) as f64;
+            let dx = col + (row % 2.0) * 0.5;
             let feature = self.features.get(&tile.name).unwrap();
             let image = &feature.image;
             let keyframe = ((tile.frame_offset + keyframe_phase * 4.0) % 4.0).floor();
-            let z_offset = (((phase + SPRITE_SIZE * x_offset / width) * 2.0 * PI).sin() + 1.0) / 2.0;
+            let dz = ((phase + (phase_constant * dx / self.grid_size as f64)).sin() + 1.0) * 0.5 * amplitude;
             ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 &image,
-                SPRITE_SIZE * keyframe,
+                sprite_size * keyframe,
                 0.0,
-                SPRITE_SIZE,
-                SPRITE_SIZE,
-                sprite_scale * SPRITE_SIZE * x_offset,
-                sprite_scale * SPRITE_SIZE * (y_offset + z_offset),
-                sprite_scale * SPRITE_SIZE,
-                sprite_scale * SPRITE_SIZE,
+                sprite_size,
+                sprite_size,
+                sprite_scale * dx,
+                sprite_scale * (row * 0.25 + dz),
+                sprite_scale,
+                sprite_scale,
             )?;
+            count = count + 1;
         }
         Ok(())
     }

@@ -19,10 +19,12 @@ export default function Page() {
       </h1>
       <Suspense fallback={<div className={styles.placeholder}></div>}>
         <Oceanics
-          worldSize={96}
-          gridSize={3}
-          waterLevel={1.0}
+          gridSize={20}
           backgroundColor="#222222ff"
+          timeConstant={0.00015}
+          frameConstant={0.0015}
+          amplitude={0.25}
+          phase={10.0}
         />
       </Suspense>
 
@@ -36,17 +38,17 @@ export default function Page() {
       </p>
       <p>
         <a className={styles.link} href="https://data.oceanics.io">
-          🛟 Explore our ocean data service
+          🛟 Explore ocean data
         </a>
       </p>
       <p>
         <Link className={styles.link} href="/subscribe">
-          🛟 Subscribe to our community newsletter
+          🛟 Subscribe to newsletter
         </Link>
       </p>
       <p>
         <Link className={styles.link} href="/about-us">
-          🛟 Learn more about us or get in touch
+          🛟 Learn more about us
         </Link>
       </p>
     </>
