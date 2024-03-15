@@ -5,6 +5,9 @@ SRC = \
 	$(wildcard glsl/*) \
 	$(wildcard rust/*)
 
+# Build the WASM library from Rust sources
+# Local dependencies need to be built before we can install
+# touching the directory updates timestamp for make
 node_modules: package.json $(SRC)
 	@ cargo install wasm-pack
 	@ wasm-pack build rust \
@@ -13,9 +16,6 @@ node_modules: package.json $(SRC)
 	@ yarn install
 	@ touch -m $@
  
-# Build the WASM library from Rust sources
-# Local dependencies need to be built before we can install
-# touching the directory updates timestamp for make
 # Build the next site within Netlify to pick up env/config
 build: next.config.mjs tsconfig.json netlify.toml node_modules
 	@ yarn netlify init
