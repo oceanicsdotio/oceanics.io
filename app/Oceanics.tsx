@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import type { MiniMap } from "@oceanics-io/wasm";
-import styles from "./layout.module.css";
+import style from "./oceanics.module.css";
 import icons from "./icons.json";
 
 /**
@@ -118,8 +118,8 @@ export default function Oceanics({
     phase
   ]);
   return (
-    <div className={styles.oceanside}>
-      <canvas ref={board} className={styles.board} />
+    <div className={style.oceanside}>
+      <canvas ref={board} className={style.board} />
     </div>
   );
 }

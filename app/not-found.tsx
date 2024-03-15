@@ -12,7 +12,7 @@ export default function NotFound() {
     <>
       <p>{"You can't get there from here."}</p>
       <Image
-        src={"/dagan-sprite.gif"}
+        src="sprites/not-found.gif"
         alt="Sea creature seeking answers"
         unoptimized={true}
         width={450}

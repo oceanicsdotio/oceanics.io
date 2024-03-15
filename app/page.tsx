@@ -1,7 +1,8 @@
 import React, { Suspense } from "react";
 import Oceanics from "./Oceanics";
 import { Metadata } from "next";
-import styles from "./layout.module.css";
+import layout from "./layout.module.css";
+import style from "./oceanics.module.css";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -13,11 +14,11 @@ export default function Page() {
   return (
     <>
       <h1>
-        <Link className={styles.link} href="/">
+        <Link className={layout.link} href="/">
           Oceanics.io
         </Link>
       </h1>
-      <Suspense fallback={<div className={styles.placeholder}></div>}>
+      <Suspense fallback={<div className={style.placeholder}></div>}>
         <Oceanics
           gridSize={20}
           backgroundColor="#110022ff"
@@ -28,28 +29,25 @@ export default function Page() {
         />
       </Suspense>
 
-      <p className={styles.large}>
-        To protect our Ocean, you need to draw on community knowledge and make
-        data-driven decisions for the future.
+      <p>
+        You need to draw on community knowledge and make
+        data-driven decisions for the future. Whether watching your surf or seeking opportunity.
       </p>
-      <p className={styles.large}>
+      <p>
         We analyze public and proprietary data and serve you synthetic and aggregate products to manage risk and conflict.
       </p>
       <p>
-        Whether watching your surf or seeking opportunity.
-      </p>
-      <p>
-        <a className={styles.link} href="https://data.oceanics.io">
+        <a className={layout.link} href="https://data.oceanics.io">
           🛟 Explore ocean data
         </a>
       </p>
       <p>
-        <Link className={styles.link} href="/subscribe">
+        <Link className={layout.link} href="/subscribe">
           🛟 Subscribe to newsletter
         </Link>
       </p>
       <p>
-        <Link className={styles.link} href="/about-us">
+        <Link className={layout.link} href="/about-us">
           🛟 Learn more about us
         </Link>
       </p>
