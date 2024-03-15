@@ -1,9 +1,8 @@
 import { describe, expect, test, beforeAll } from '@jest/globals';
 import fetch from "node-fetch";
-// @ts-ignore
 import nodes from "./cache.json";
 
-const IDENTITY = "https://data.oceanics.io/.netlify/identity";
+const IDENTITY = "https://www.oceanics.io/.netlify/identity";
 const FUNCTIONS = "http://localhost:8888/.netlify/functions";
 const INDEX = `${FUNCTIONS}/index`;
 const COLLECTION = `${FUNCTIONS}/collection`;

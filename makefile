@@ -2,14 +2,14 @@ SRC = \
 	$(shell find app -type d) \
 	$(shell find app -type f -name '*')
 
-app/lib: $(shell find app -type f -name '*.rs')
+app/lib: $(shell find app -type f -name '*.rs') app/Cargo.lock app/Cargo.toml
 	@ cargo install wasm-pack
 	@ wasm-pack build app \
 		--out-dir lib \
 		--out-name index
 	@ touch -m $@
 
-functions/lib: $(shell find functions -type f -name '*.rs')
+functions/lib: $(shell find functions -type f -name '*.rs') functions/Cargo.lock functions/Cargo.toml
 	@ cargo install wasm-pack
 	@ wasm-pack build functions \
 		--out-dir lib \
@@ -42,7 +42,7 @@ cache.json: cache.ts specification.json
 	@ yarn exec tsx cache.ts specification.json cache.json
 
 # Build the next site within Netlify to pick up env/config
-out: next.config.mjs tsconfig.json netlify.toml public/index.html tsconfig.json
+out: next.config.mjs tsconfig.json netlify.toml public/index.html tsconfig.json cache.json $(SRC)
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build

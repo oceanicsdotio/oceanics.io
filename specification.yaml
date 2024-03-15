@@ -5,15 +5,7 @@ info:
   title: "Bathysphere"
   version: "3.0.0"
   description: |
-
-    <h3>Manage Account</h3> 
-    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <div data-netlify-identity-button></div>
-     Registration is invite only, get in touch if you would like access. Please review security and privacy information before uploading any proprietary data.
- 
-
-    <h3>About</h3> 
-
+  
     Bathysphere is a store and registry for public and proprietary geospatial data. The system is designed to support marine research in the North Atlantic, but can be configured or extended for many applications.
 
     We ingest sensor and simulation data and automatically parse them into discoverable databases. Representing complex relationships between heterogenous data is simplified by applying a graph-native framework.
@@ -26,15 +18,15 @@ info:
 
   contact:
     name: Oceanicsdotio LLC
-    url: http://data.oceanics.io
-    email: business@oceanics.io
+    url: http://www.oceanics.io
+    email: wharf@oceanics.io
 
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
   x-logo:
-    url: https://data.oceanics.io/logo.png
+    url: https://www.oceanics.io/logo.png
 
 tags:
 
@@ -47,7 +39,7 @@ tags:
       Build topological relationships and access metadata.
 
 servers:
-- url: https://data.oceanics.io/{basePath}
+- url: https://www.oceanics.io/{basePath}
   description: Production API server
   variables:
     basePath:
