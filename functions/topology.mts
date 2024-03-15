@@ -1,4 +1,4 @@
-import { topology } from "@oceanics-io/wasm";
+import { topology } from "@oceanics-io/functions";
 import { paths } from "../specification.json";
 import type { Handler } from "@netlify/functions";
 

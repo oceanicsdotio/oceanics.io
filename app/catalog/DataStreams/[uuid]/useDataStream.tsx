@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-type ModuleType = typeof import("@oceanics-io/wasm");
-import type { InteractiveDataStream } from "@oceanics-io/wasm";
+type ModuleType = typeof import("@oceanics-io/app");
+import type { InteractiveDataStream } from "@oceanics-io/app";
 
 export interface IDataStream {
     /**
@@ -66,7 +66,7 @@ export const useDataStream = ({
     useEffect(() => {
         try {
             (async () => {
-                const wasm = await import("@oceanics-io/wasm");
+                const wasm = await import("@oceanics-io/app");
                 wasm.panic_hook();
                 setRuntime(wasm);
             })()   
