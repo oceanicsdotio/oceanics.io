@@ -38,8 +38,8 @@ public/index.html: specification.json
 	@ yarn run redocly build-docs $< --output $@
 
 # Create examples with static UUID values for deterministic testing
-functions/cache.json: cache.ts specification.json 
-	@ yarn exec tsx cache.ts specification.json functions/cache.json
+cache.json: cache.ts specification.json 
+	@ yarn exec tsx cache.ts specification.json cache.json
 
 # Build the next site within Netlify to pick up env/config
 out: next.config.mjs tsconfig.json netlify.toml public/index.html tsconfig.json
@@ -59,7 +59,7 @@ dev: out
 .PHONY: dev
 
 # Run idempotent tests
-test: functions/test/cache.json
+test: cache.json
 	@ yarn jest
 .PHONY: test
 
@@ -70,7 +70,7 @@ deploy: out
 
 # Remove build artifacts
 clean:
-	@ rm -f functions/test/cache.json
+	@ rm -f cache.json
 	@ rm -rf functions/lib
 	@ rm -rf app/lib
 	@ rm -rf node_modules
