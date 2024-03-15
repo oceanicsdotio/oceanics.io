@@ -4,37 +4,6 @@ use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, TextMetrics};
 use std::f64::consts::PI;
 
-fn signal (time: f64, period: f64) -> f64 {
-    let _period = period * 1000.0;
-    return (time % _period) / _period;
-}
-
-#[allow(dead_code)]
-struct CoordinatesXY {
-    x: f64,
-    y: f64
-}
-
-#[allow(dead_code)]
-struct CoordinatesUV {
-    u: f64,
-    v: f64
-}
-
-#[allow(dead_code)]
-struct Target {
-    active: bool
-}
-
-#[allow(dead_code)]
-struct CursorState {
-    reticule: CoordinatesXY,
-    target: Target,
-    cursor: CoordinatesUV,
-    delta: CoordinatesXY,
-    dragging: bool
-}
-
 #[wasm_bindgen]
 pub struct SimpleCursor {
     pub x: f64,
@@ -56,7 +25,7 @@ impl SimpleCursor {
     }
 
     /**
-    The simple cursor rendering method is stateless exept for the cursor position,
+    The simple cursor rendering method is stateless except for the cursor position,
     which is updated asynchronously from the JavaScript interface so that event handling
     is isolated from the request animation frame loop.
 
@@ -181,6 +150,12 @@ impl ContextCursor {
         self.y = y;
     }
 
+    fn signal (time: f64, period: f64) -> f64 {
+        let _period = period * 1000.0;
+        return (time % _period) / _period;
+    }
+    
+
     #[wasm_bindgen]
     pub fn draw (&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, time: f64, line_width: f64) {
 
@@ -198,9 +173,9 @@ impl ContextCursor {
         let _dy = y - (dy+0.5*h);
         let dxy = (_dx.powi(2) + _dy.powi(2)).sqrt();
         // let theta = _dy.atan2(_dx);
-        let displacement = 3.0*ICON + signal(time, 0.5) / 10.0;
-        let radians = signal(time, 2.0) * PI * 2.0;
-        let sig = signal(time, 2.0);
+        let displacement = 3.0*ICON + ContextCursor::signal(time, 0.5) / 10.0;
+        let radians = ContextCursor::signal(time, 2.0) * PI * 2.0;
+        let sig = ContextCursor::signal(time, 2.0);
 
         // ctx.set_global_alpha((alpha(&color) as f64)/255.0);
         ctx.set_stroke_style(&color);
@@ -243,56 +218,4 @@ impl ContextCursor {
 
         ctx.restore();
     }
-}
-
-#[wasm_bindgen]
-pub struct PrismCursor {
-    x: f32,
-    y: f32,
-    device_pixel_ratio: u8,
-    grid_size: u16
-}
-
-#[wasm_bindgen]
-impl PrismCursor {
-    #[wasm_bindgen(constructor)]
-    pub fn new(
-        x: f32, 
-        y: f32, 
-        device_pixel_ratio: u8,
-        grid_size: u16
-    ) -> PrismCursor {
-        PrismCursor {
-            x, 
-            y,
-            device_pixel_ratio,
-            grid_size
-        }
-    }
-
-    pub fn update(&mut self, x: f32, y: f32) {
-        self.x = x;
-        self.y = y;
-    }
-
-    // short hand for getting location in grid coordinates
-
-    #[wasm_bindgen(js_name = gridX)]
-    pub fn grid_x(&self, width: f32) -> u16 {
-        (self.x * (self.grid_size * self.device_pixel_ratio as u16) as f32 / width).floor() as u16
-    } 
-
-    #[wasm_bindgen(js_name = gridY)]
-    pub fn grid_y(&self, width: f32) -> u16 {
-        (self.y * (self.grid_size * self.device_pixel_ratio as u16) as f32 / width).floor() as u16
-    } 
-
-    pub fn x(&self) -> f32 {
-        self.x
-    }
-
-    pub fn y(&self) -> f32 {
-        self.y
-    }
-
 }

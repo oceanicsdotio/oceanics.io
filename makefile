@@ -12,19 +12,16 @@ wasm: $(SRC)
 	@ wasm-pack build rust \
 		--out-dir ../$@ \
 		--out-name index
-	@ touch -m $@
 
 # Local dependencies need to be built before we can install
 # touching the directory updates timestamp for make
 node_modules: wasm package.json $(SRC)
 	@ yarn install
-	@ touch -m $@
 
 # Build the next site within Netlify to pick up env/config
-build: node_modules next.config.mjs tsconfig.json netlify.toml $(SRC)
+build: wasm node_modules next.config.mjs tsconfig.json netlify.toml $(SRC)
 	@ yarn netlify init
 	@ yarn netlify build
-	@ touch -m $@
 
 # Build the next site, called by Netlify build
 next:
@@ -32,7 +29,7 @@ next:
 .PHONY: next
 
 # Start up local development environment
-dev: build
+dev: build wasm node_modules next.config.mjs tsconfig.json netlify.toml $(SRC)
 	@ yarn netlify dev
 .PHONY: dev
 

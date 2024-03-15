@@ -3,6 +3,7 @@ use serde::Deserialize;
 use std::f64::consts::PI;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+extern crate console_error_panic_hook;
 #[wasm_bindgen]
 #[derive(Deserialize, Clone)]
 struct Icon {
@@ -74,6 +75,7 @@ impl MiniMap {
         grid_size: u32,
         icons: JsValue,
     ) -> Result<MiniMap, JsValue> {
+        console_error_panic_hook::set_once();
         let icons: Vec<Icon> = serde_wasm_bindgen::from_value(icons)?;
         let mut features = IndexMap::<String, Feature>::with_capacity(16);
         let mut total_probability = 0.0;
@@ -92,14 +94,14 @@ impl MiniMap {
 
         let count = grid_size * grid_size;
         let mut tiles = Vec::with_capacity(count as usize);
-        for item in 0..count {
+        for _ in 0..count {
             let probability = js_sys::Math::random() * total_probability;
             for feature in features.values() {
                 if probability < feature.probability {
                     tiles.push(Tile {
                         name: feature.name.clone(),
                         frame_offset: (js_sys::Math::random()*4.0).floor(),
-                        flip: item as f64 % 2.0
+                        flip: -1.0
                     });
                     break;
                 }
@@ -149,9 +151,9 @@ impl MiniMap {
                 0.0,
                 sprite_size,
                 sprite_size,
-                sprite_scale * dx,
+                sprite_scale * dx * tile.flip,
                 sprite_scale * (row * 0.25 + dz),
-                sprite_scale,
+                sprite_scale * tile.flip,
                 sprite_scale,
             )?;
             count = count + 1;

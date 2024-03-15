@@ -22,7 +22,7 @@ export default function Page() {
           gridSize={20}
           backgroundColor="#222222ff"
           timeConstant={0.00015}
-          frameConstant={0.0015}
+          frameConstant={0.002}
           amplitude={0.25}
           phase={10.0}
         />

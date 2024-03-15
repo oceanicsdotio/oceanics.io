@@ -5,7 +5,7 @@ import styles from "./layout.module.css";
 import icons from "./icons.json";
 
 /**
- * Dynamic interactive game board.
+ * Main page animation.
  */
 export default function Oceanics({
   gridSize,
@@ -13,65 +13,88 @@ export default function Oceanics({
   timeConstant,
   frameConstant,
   amplitude,
-  phase
+  phase,
 }: {
   /**
-   * Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`,
-   * so scores are higher for larger.
+   * Integer height and width of grid.
    */
-  gridSize: number;
+  gridSize: number
   /**
-   * color of animation loop blending
+   * Animation loop blending
    */
-  backgroundColor: string;
+  backgroundColor: string
+  /**
+   * Speed of tidal/wave animation
+   */
   timeConstant: number;
+  /**
+   * Speed of the sprite keyframe animation
+   */
   frameConstant: number;
-  amplitude: number
-  phase: number
+  /**
+   * Amplitude of vertical displacement in animation
+   */
+  amplitude: number;
+  /**
+   * Phase multiplier to increase number of periods
+   * in the animation.
+   */
+  phase: number;
 }) {
   /**
-   * Ref for isometric view render target
+   * Ref for isometric view render target.
    */
   const board = useRef<HTMLCanvasElement | null>(null);
   /**
-   * Interactive elements handled in Rust/Wasm
+   * Interactive elements handled in Rust/Wasm.
    */
-  const [interactive, setInteractive] = useState<MiniMap | null>(null);
-
+  const [interactive, setInteractive] = useState<{
+    /**
+     * Data and rendering container
+     */
+    map: MiniMap;
+    /**
+     * Canvas context to draw to
+     */
+    target: CanvasRenderingContext2D;
+  } | null>(null);
+  /**
+   * Load wasm runtime asynchronously if we have a
+   * valid rendering target.
+   */
   useEffect(() => {
     if (!board.current) return;
-    const handle = board.current;
-    [handle.width, handle.height] = ["width", "height"].map(
-      (dim: string) =>
-        parseInt(getComputedStyle(handle).getPropertyValue(dim).slice(0, -2)) *
-        window.devicePixelRatio
-    );
-    const ctx = handle.getContext("2d");
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false; // disable interpolation
+    const target = board.current.getContext("2d");
+    if (!target) return;
     (async function () {
-      const { MiniMap, panic_hook } = await import("@oceanics-io/wasm");
-      panic_hook();
-      setInteractive(new MiniMap(gridSize, icons));
+      const { MiniMap } = await import("@oceanics-io/wasm");
+      setInteractive({
+        target,
+        map: new MiniMap(gridSize, icons)
+      });
     })();
   }, [gridSize, board]);
-
   /**
    * Draw the visible area to the board canvas using the
    * tile set object. This is the main animation loop
    */
   useEffect(() => {
     if (!board.current || !interactive) return;
-    const canvas = board.current;
-    const ctx = canvas.getContext(`2d`) as CanvasRenderingContext2D;
     let requestId: number | null = null;
+    let canvas = board.current;
     const spriteSize = 32.0;
+    interactive.target.imageSmoothingEnabled = false;
     (function render() {
-      interactive.draw(
-        ctx,
+      [canvas.width, canvas.height] = ["width", "height"].map(
+        (dim: string) =>
+          parseInt(getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2)) *
+          window.devicePixelRatio
+      );
+      interactive.map.draw(
+        interactive.target,
         performance.now(),
-        canvas.width,
-        canvas.height,
+        board.current.width,
+        board.current.height,
         backgroundColor,
         spriteSize,
         timeConstant,
@@ -92,9 +115,8 @@ export default function Oceanics({
     frameConstant,
     timeConstant,
     amplitude,
-    phase
+    phase,
   ]);
-
   return (
     <div className={styles.oceanside}>
       <canvas ref={board} className={styles.board} />
