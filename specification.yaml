@@ -5,7 +5,7 @@ info:
   title: "Bathysphere"
   version: "3.0.0"
   description: |
-  
+
     Bathysphere is a store and registry for public and proprietary geospatial data. The system is designed to support marine research in the North Atlantic, but can be configured or extended for many applications.
 
     We ingest sensor and simulation data and automatically parse them into discoverable databases. Representing complex relationships between heterogenous data is simplified by applying a graph-native framework.

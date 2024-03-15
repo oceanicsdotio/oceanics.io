@@ -33,7 +33,7 @@ export default function Page() {
 
       <p>
         We analyze public and proprietary ocean data and{" "}
-        <a className={layout.link} href="https://data.oceanics.io">
+        <a className={layout.link} href="/openapi">
           serve you synthetic and aggregate products
         </a>{" "}
         to manage risk and conflict.

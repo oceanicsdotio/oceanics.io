@@ -34,7 +34,7 @@ specification.json: specification.yaml node_modules
 	@ yarn run js-yaml $< > public/openapi.json
 
 # Build OpenAPI docs page from specification
-public/index.html: specification.json
+public/openapi.html: specification.json
 	@ yarn run redocly build-docs $< --output $@
 
 # Create examples with static UUID values for deterministic testing
@@ -42,7 +42,7 @@ cache.json: cache.ts specification.json
 	@ yarn exec tsx cache.ts specification.json cache.json
 
 # Build the next site within Netlify to pick up env/config
-out: next.config.mjs tsconfig.json netlify.toml public/index.html tsconfig.json cache.json $(SRC)
+out: next.config.mjs tsconfig.json netlify.toml public/openapi.html tsconfig.json cache.json $(SRC)
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build

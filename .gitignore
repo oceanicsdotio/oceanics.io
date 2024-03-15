@@ -51,3 +51,5 @@ out/
 .editorconfig
 coverage/
 .DS_STORE
+app/lib
+functions/lib
