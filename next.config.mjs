@@ -2,9 +2,12 @@
 /**
  * @type {import('next').NextConfig}
  **/
-export const nextConfig = {
+import withMDX from '@next/mdx'
+
+const nextConfig = {
   output: "export",
-  distDir: "build",
+  pageExtensions: ['mdx', 'tsx'],
+  trailingSlash: true,
   compiler: {
     // https://nextjs.org/docs/advanced-features/compiler#styled-components
     styledComponents: true,
@@ -38,5 +41,5 @@ export const nextConfig = {
     return config;
   },
 };
-
-export default nextConfig;
+const final =  withMDX()(nextConfig);
+export default final

@@ -1,32 +1,23 @@
 SRC = \
-	$(shell find src -type d) \
-	$(shell find src -type f -name '*') \
-	$(shell find pages -type d) \
-	$(shell find pages -type f -name '*')
-RUST = \
-	$(shell find rust -type d) \
-	$(shell find rust -type f -name '*')
-	
-# Build the WASM library from Rust sources
-wasm: $(RUST)
+	$(shell find app -type d) \
+	$(shell find app -type f -name '*')
+
+wasm: $(SRC)
 	@ cargo install wasm-pack
-	@ wasm-pack build rust \
-		--out-dir ../$@ \
+	@ wasm-pack build app \
+		--out-dir ../wasm \
 		--out-name index
 	@ touch -m $@
 
+# Build the WASM library from Rust sources
 # Local dependencies need to be built before we can install
 # touching the directory updates timestamp for make
-node_modules: wasm package.json
+node_modules: wasm package.json $(SRC)
 	@ yarn install
 	@ touch -m $@
-
-# Pre-process icon and graphics data for landing page animations
-public/nodes.json: cache.ts node_modules
-	@ yarn exec tsx $< $@
-
+ 
 # Build the next site within Netlify to pick up env/config
-build: public/nodes.json next.config.mjs tsconfig.json netlify.toml $(SRC)
+out: next.config.mjs tsconfig.json netlify.toml node_modules
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@
@@ -37,12 +28,12 @@ next:
 .PHONY: next
 
 # Start up local development environment
-dev: build
+dev: out
 	@ yarn netlify dev
 .PHONY: dev
 
 # Deploy to production
-deploy: build
+deploy: out
 	@ yarn netlify deploy --prod
 .PHONY: prod
 
@@ -50,8 +41,7 @@ deploy: build
 clean:
 	@ rm -rf wasm
 	@ rm -rf node_modules
-	@ rm public/nodes.json
-	@ rm -rf build
+	@ rm -rf out
 	@ rm -rf .netlify
 	@ rm -rf .next
 .PHONY: clean

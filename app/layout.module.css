@@ -1,0 +1,42 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow-y: scroll;
+}
+
+.content {
+  display: block;
+  color: lightblue;
+  width: 100%;
+  max-width: 65ch;
+  font-size: x-large;
+}
+
+.content p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.content strong {
+  color: lightcyan;
+}
+
+.footer {
+  display: block;
+  position: relative;
+  font-size: x-large;
+  border-top: 1px dashed;
+  color: lightblue;
+  text-align: center;
+}
+
+.link {
+  text-decoration: underline wavy lightblue;
+  text-underline-offset: 3px;
+}
+
+.image {
+  width: 100%;
+}

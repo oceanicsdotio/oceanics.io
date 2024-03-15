@@ -7,6 +7,12 @@
       "dom.iterable",
       "esnext"
     ],
+    "baseUrl": "./",
+    "paths": {
+      "@app/*": [
+        "app/*"
+      ],
+    },
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -22,19 +28,29 @@
     "isolatedModules": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "removeComments": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.json",
-    "src/**/*.js"
+    "typings.d.ts",
+    "app/**/*",
+    "glsl/*",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "build/types/**/*.ts", 
+    "mdx-components.tsx", 
+    "palette.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next"
   ]
 }
-

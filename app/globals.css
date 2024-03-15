@@ -1,0 +1,44 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: monospace;
+  background: #110022;
+  color: lightblue;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+code {
+  background-color: black;
+  border: 1px solid lightblue;
+  border-radius: 3px;
+  padding: 3px;
+}
+
+main {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  height: auto;
+  bottom: 0;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-radius: 1rem 1rem 0 0;
+}
+
+p {
+  line-height: 1.5;
+}
+
+footer {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 2rem;
+}
+
+a {
+  color: orange;
+}
