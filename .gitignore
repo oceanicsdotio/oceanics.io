@@ -53,3 +53,4 @@ coverage/
 .DS_STORE
 app/lib
 functions/lib
+examples.json

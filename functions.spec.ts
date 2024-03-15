@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeAll } from '@jest/globals';
 import fetch from "node-fetch";
-import nodes from "./cache.json";
+import examples from "./examples.json";
 
 const IDENTITY = "https://www.oceanics.io/.netlify/identity";
 const FUNCTIONS = "http://localhost:8888/.netlify/functions";
@@ -13,7 +13,7 @@ const ENTITY = `${FUNCTIONS}/entity`;
  * Get iterable of node types, suitable for concurrent testing
  */
 let nodeTypes: [string, number][] = [];
-const types = (nodes as unknown as [string]).reduce((acc: { [key: string]: number}, [label]) => {
+const types = (examples as unknown as [string]).reduce((acc: { [key: string]: number}, [label]) => {
   return {
     ...acc,
     [label]: (acc[label] ?? 0) + 1
@@ -131,7 +131,7 @@ describe("idempotent", function () {
       expect(response.status).toBe(204);
     });
 
-    test.concurrent.each(nodes as [string, any, any][])(`creates %s %s`, async function (nodeType, _, properties) {
+    test.concurrent.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType, _, properties) {
       const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
         body: JSON.stringify(properties),
         method: "POST",
@@ -192,7 +192,7 @@ describe("idempotent", function () {
 
   // Get a single entity by referencing UUID
   describe("entity.get", function () {
-    test.concurrent.each(nodes as unknown as [string, string][])(`verify %s %s`, async function (nodeType: string, uuid: string) {
+    test.concurrent.each(examples as unknown as [string, string][])(`verify %s %s`, async function (nodeType: string, uuid: string) {
       const response = await fetch(`${ENTITY}?left=${nodeType}&left_uuid=${uuid}`, {
         method: "GET",
         headers: {

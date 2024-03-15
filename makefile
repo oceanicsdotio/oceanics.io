@@ -37,12 +37,8 @@ specification.json: specification.yaml node_modules
 public/openapi.html: specification.json
 	@ yarn run redocly build-docs $< --output $@
 
-# Create examples with static UUID values for deterministic testing
-cache.json: cache.ts specification.json 
-	@ yarn exec tsx cache.ts specification.json cache.json
-
 # Build the next site within Netlify to pick up env/config
-out: next.config.mjs tsconfig.json netlify.toml public/openapi.html tsconfig.json cache.json $(SRC)
+out: next.config.mjs tsconfig.json netlify.toml public/openapi.html tsconfig.json $(SRC)
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
@@ -55,11 +51,13 @@ next:
 
 # Start up local development environment
 dev: out
+	@ yarn netlify init
 	@ yarn netlify dev
 .PHONY: dev
 
-# Run idempotent tests
-test: cache.json
+# Create examples with static UUID values for deterministic testing
+test: out examples.ts specification.json examples.json
+	@ yarn exec tsx examples.ts specification.json examples.json
 	@ yarn jest
 .PHONY: test
 
@@ -70,7 +68,7 @@ deploy: out
 
 # Remove build artifacts
 clean:
-	@ rm -f cache.json
+	@ rm -f examples.json
 	@ rm -rf functions/lib
 	@ rm -rf app/lib
 	@ rm -rf node_modules
