@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
-import type { MiniMap } from "@oceanics-io/app";
+import type { MiniMap } from "@oceanics/app";
 import style from "./oceanics.module.css";
 import icons from "./icons.json";
 
@@ -67,7 +67,7 @@ export default function Oceanics({
     const target = board.current.getContext("2d");
     if (!target) return;
     (async function () {
-      const { MiniMap } = await import("@oceanics-io/app");
+      const { MiniMap } = await import("@oceanics/app");
       setInteractive({
         target,
         map: new MiniMap(gridSize, icons)

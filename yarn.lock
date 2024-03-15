@@ -4650,17 +4650,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oceanics-io/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
+"@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/app@file:app/lib#app/lib::hash=2a0123&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/1e1191a4512eed5a1c6bc8c67be1fedc6b5465c497f1996cefa628fba579f3ced269d349fdaf50fa07d15a9c66867c43a5ee73e6688a3794da6a220d173a9f95
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=dc35ef&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/0dee0fef090c9bbd28f6863e0b51245a2bac6a48c60e9d27cfcb9bf13ab9ff919d25694f978f2c7692fb316a1679e9d2a045ab7c61a95baf104db0247d730179
   languageName: node
   linkType: hard
 
-"@oceanics-io/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
+"@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics-io/functions@file:functions/lib#functions/lib::hash=f82227&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/dca363bd26e50ebfecb734ae1dbeb060c47449c61751cc6e37247033304ad9f2c2370774b28665c861c93b6b17e5feb0505dd3430bd11c2c35144ffd5e91608f
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=73b06b&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/d23f8ad418e3504c49d206c0d5cd058b667114d7f373ed0cc4128714a64b95fe9fdc3fe36d366636b7aa9cdec90c178ec7c6abd034e5251c40edb5f0328165e4
   languageName: node
   linkType: hard
 
@@ -23502,8 +23502,8 @@ __metadata:
     "@netlify/functions": "npm:^2.5.1"
     "@netlify/plugin-csp-nonce": "npm:^1.2.6"
     "@next/mdx": "npm:^14.1.3"
-    "@oceanics-io/app": "file:app/lib"
-    "@oceanics-io/functions": "file:functions/lib"
+    "@oceanics/app": "file:app/lib"
+    "@oceanics/functions": "file:functions/lib"
     "@redocly/cli": "npm:^1.10.3"
     "@types/cors": "npm:^2"
     "@types/express": "npm:^4"

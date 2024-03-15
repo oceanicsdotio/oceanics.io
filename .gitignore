@@ -54,3 +54,4 @@ coverage/
 app/lib
 functions/lib
 examples.json
+specification.json

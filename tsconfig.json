@@ -12,6 +12,9 @@
       "@app/*": [
         "app/*"
       ],
+      "@/*": [
+        "*"
+      ]
     },
     "allowJs": true,
     "skipLibCheck": true,

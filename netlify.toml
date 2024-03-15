@@ -22,7 +22,7 @@
     "specification.json",
   ]
   external_node_modules = [
-    "@oceanics-io/app"
+    "@oceanics/app"
   ]
 
 [[headers]]

@@ -1,5 +1,5 @@
-import { paths } from "../specification.json";
-import { index } from "@oceanics-io/functions";
+import { paths } from "@/specification.json";
+import { index } from "@oceanics/functions";
 import type { Handler } from "@netlify/functions";
 
 const url = process.env.NEO4J_HOSTNAME ?? "";

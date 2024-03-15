@@ -14,7 +14,7 @@ import type {
   SetStateAction,
 } from "react";
 
-type ModuleType = typeof import("@oceanics-io/app");
+type ModuleType = typeof import("@oceanics/app");
 
 
 export const useWasmRuntime = () => {
@@ -34,7 +34,7 @@ export const useWasmRuntime = () => {
     useEffect(() => {
         try {
             (async () => {
-                const wasm = await import("@oceanics-io/app");
+                const wasm = await import("@oceanics/app");
                 wasm.panic_hook();
                 setRuntime(wasm);
             })()   
@@ -67,7 +67,7 @@ export type ProgramSourceMap = { [key: string]: [string, string] };
 
 // WASM bindings
 type WasmPackage =
-  typeof import("@oceanics-io/app");
+  typeof import("@oceanics/app");
 
 // Convenience type for string key value store
 type Lookup = { [key: string]: string };

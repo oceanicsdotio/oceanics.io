@@ -1,5 +1,5 @@
-import { topology } from "@oceanics-io/functions";
-import { paths } from "../specification.json";
+import { topology } from "@oceanics/functions";
+import { paths } from "@/specification.json";
 import type { Handler } from "@netlify/functions";
 
 const url = process.env.NEO4J_HOSTNAME ?? "";
