@@ -37,8 +37,11 @@ specification.json: specification.yaml node_modules
 public/openapi.html: specification.json
 	@ yarn run redocly build-docs $< --output $@
 
+examples.json: out examples.ts specification.json
+	@ yarn exec tsx examples.ts specification.json examples.json
+
 # Build the next site within Netlify to pick up env/config
-out: next.config.mjs tsconfig.json netlify.toml public/openapi.html tsconfig.json $(SRC)
+out: next.config.mjs tsconfig.json netlify.toml public/openapi.html tsconfig.json examples.json $(SRC)
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
@@ -56,8 +59,7 @@ dev: out
 .PHONY: dev
 
 # Create examples with static UUID values for deterministic testing
-test: out examples.ts specification.json examples.json
-	@ yarn exec tsx examples.ts specification.json examples.json
+test: out
 	@ yarn jest
 .PHONY: test
 
