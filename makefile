@@ -17,7 +17,7 @@ node_modules: wasm package.json $(SRC)
 	@ touch -m $@
  
 # Build the next site within Netlify to pick up env/config
-build: next.config.mjs tsconfig.json netlify.toml node_modules
+out: next.config.mjs tsconfig.json netlify.toml node_modules
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@
@@ -28,12 +28,12 @@ next:
 .PHONY: next
 
 # Start up local development environment
-dev: build
+dev: out
 	@ yarn netlify dev
 .PHONY: dev
 
 # Deploy to production
-deploy: build
+deploy: out
 	@ yarn netlify deploy --prod
 .PHONY: prod
 
@@ -41,7 +41,7 @@ deploy: build
 clean:
 	@ rm -rf wasm
 	@ rm -rf node_modules
-	@ rm -rf build
+	@ rm -rf out
 	@ rm -rf .netlify
 	@ rm -rf .next
 .PHONY: clean

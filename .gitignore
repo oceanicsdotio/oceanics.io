@@ -49,4 +49,3 @@ wasm/
 nodes.json
 .next
 out/
-build/

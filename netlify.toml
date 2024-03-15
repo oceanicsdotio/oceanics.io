@@ -1,6 +1,6 @@
 [build]
   base = "/"
-  publish = "/build"
+  publish = "/out"
   command = "make next"
   functions = "functions"
 
