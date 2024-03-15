@@ -34,13 +34,13 @@ export default function Page() {
         }}
       >
       <p>
-        By pressing <code>Subscribe</code>, you agree we can verify your email and notify you about news and events. We will not share your contact information. <Link
+        Pressing <code>Subscribe</code> opts you into email verification, news, and events. <Link
           className={layout.link}
           href="mailto:wharf@oceanics.io?subject=Out of the Blue"
           target="_blank"
         >
-          Send us an email to have your data deleted, or to say hello
-        </Link>.
+          Send us an email to say hello or unsubscribe
+        </Link>. We will not share your contact information.
       </p>
       </Subscribe>
     </div>
