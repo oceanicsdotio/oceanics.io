@@ -49,3 +49,13 @@ wasm/
 nodes.json
 .next
 out/
+
+.netlify/
+.editorconfig
+target/
+functions/specification.json
+functions/test/cache.json
+coverage
+public/index.html
+public/openapi.json
+.DS_STORE

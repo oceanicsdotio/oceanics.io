@@ -1,8 +1,8 @@
 [build]
   base = "/"
-  publish = "/out"
+  publish = "out"
   command = "make next"
-  functions = "functions"
+  functions = "functions/src"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -18,6 +18,17 @@
   
 [functions]  
   node_bundler = "esbuild"
+  included_files = [
+    "specification.json",
+  ]
+  external_node_modules = [
+    "@oceanics-io/wasm"
+  ]
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
 
 [[redirects]]
   from = "/api/*"

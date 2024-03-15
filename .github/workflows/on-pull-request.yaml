@@ -16,6 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Rust Toolchain
+        run: rustup toolchain install stable --profile minimal --no-self-update
+
+      - uses: Swatinem/rust-cache@v2
+        name: Configure Rust cache
+        with:
+          workspaces: 'rust'
+
       - uses: actions/setup-node@v4
         name: Configure Node
         with:
@@ -24,6 +32,7 @@ jobs:
       - name: Build all dependencies
         env:
             YARN_ENABLE_IMMUTABLE_INSTALLS: false
+            YARN_ENABLE_HARDENED_MODE: 0
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: make build
