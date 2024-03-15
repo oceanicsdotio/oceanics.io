@@ -3,7 +3,8 @@ use std::collections::VecDeque;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
-use crate::cursor::SimpleCursor;
+
+use crate::catalog::cursor::SimpleCursor;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

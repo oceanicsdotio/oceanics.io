@@ -1,10 +1,5 @@
-
-mod cursor;  // cursor replacements and canvas event handling system
 mod catalog;  // data stream structs and visualization methods
-mod mesh;  // 3D unstructured triangular network
 mod oceanics;
-mod webgl;  // shader magic
-mod vec3;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};

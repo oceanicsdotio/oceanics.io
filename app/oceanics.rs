@@ -333,7 +333,7 @@ impl MiniMap {
         for icon in icons {
             total_probability = total_probability + icon.probability;
             let image = HtmlImageElement::new()?;
-            let src = format!("/assets/{}.png", icon.name);
+            let src = format!("/sprites/{}.png", icon.name);
             image.set_src(&src);
             let feature = Feature {
                 probability: total_probability,

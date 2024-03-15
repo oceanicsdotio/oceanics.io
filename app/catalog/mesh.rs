@@ -4,11 +4,13 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 use std::f64::consts::PI;
-use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
-use crate::cursor::SimpleCursor;  // custom cursor behavior
 use serde::Deserialize;  // comm with Web JS
 use std::collections::hash_map::ValuesMut;
 use serde::Serialize;
+
+
+use crate::catalog::vec3::Vec3;  // 3-D graphics primitive
+use crate::catalog::cursor::SimpleCursor;  // custom cursor behavior
 
 /*
 * Update the agent position from velocity. 
