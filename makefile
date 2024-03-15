@@ -1,25 +1,23 @@
 SRC = \
-	$(shell find glsl -type d) \
 	$(shell find glsl -type f -name '*') \
 	$(shell find app -type d) \
 	$(shell find app -type f -name '*') \
-	$(shell find rust -type d) \
-	$(shell find rust -type f -name '*')
-	
-# Build the WASM library from Rust sources
-wasm: $(SRC)
+	$(wildcard glsl/*) \
+	$(wildcard rust/*)
+
+node_modules: package.json $(SRC)
 	@ cargo install wasm-pack
 	@ wasm-pack build rust \
-		--out-dir ../$@ \
+		--out-dir ../wasm \
 		--out-name index
-
+	@ yarn install
+	@ touch -m $@
+ 
+# Build the WASM library from Rust sources
 # Local dependencies need to be built before we can install
 # touching the directory updates timestamp for make
-node_modules: wasm package.json $(SRC)
-	@ yarn install
-
 # Build the next site within Netlify to pick up env/config
-build: wasm node_modules next.config.mjs tsconfig.json netlify.toml $(SRC)
+build: next.config.mjs tsconfig.json netlify.toml node_modules
 	@ yarn netlify init
 	@ yarn netlify build
 
@@ -29,7 +27,7 @@ next:
 .PHONY: next
 
 # Start up local development environment
-dev: build wasm node_modules next.config.mjs tsconfig.json netlify.toml $(SRC)
+dev: build
 	@ yarn netlify dev
 .PHONY: dev
 

@@ -13,7 +13,7 @@ export default function Oceanics({
   timeConstant,
   frameConstant,
   amplitude,
-  phase,
+  phase
 }: {
   /**
    * Integer height and width of grid.
@@ -26,20 +26,20 @@ export default function Oceanics({
   /**
    * Speed of tidal/wave animation
    */
-  timeConstant: number;
+  timeConstant: number
   /**
    * Speed of the sprite keyframe animation
    */
-  frameConstant: number;
+  frameConstant: number
   /**
    * Amplitude of vertical displacement in animation
    */
-  amplitude: number;
+  amplitude: number
   /**
    * Phase multiplier to increase number of periods
    * in the animation.
    */
-  phase: number;
+  phase: number
 }) {
   /**
    * Ref for isometric view render target.
@@ -115,7 +115,7 @@ export default function Oceanics({
     frameConstant,
     timeConstant,
     amplitude,
-    phase,
+    phase
   ]);
   return (
     <div className={styles.oceanside}>

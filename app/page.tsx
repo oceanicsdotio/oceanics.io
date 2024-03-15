@@ -20,8 +20,8 @@ export default function Page() {
       <Suspense fallback={<div className={styles.placeholder}></div>}>
         <Oceanics
           gridSize={20}
-          backgroundColor="#222222ff"
-          timeConstant={0.00015}
+          backgroundColor="#110022ff"
+          timeConstant={-0.00018}
           frameConstant={0.002}
           amplitude={0.25}
           phase={10.0}
@@ -30,11 +30,13 @@ export default function Page() {
 
       <p className={styles.large}>
         To protect our Ocean, you need to draw on community knowledge and make
-        data-driven decisions for the future. Whether watching your surf or
-        seeking opportunity.
+        data-driven decisions for the future.
       </p>
       <p className={styles.large}>
         We analyze public and proprietary data and serve you synthetic and aggregate products to manage risk and conflict.
+      </p>
+      <p>
+        Whether watching your surf or seeking opportunity.
       </p>
       <p>
         <a className={styles.link} href="https://data.oceanics.io">

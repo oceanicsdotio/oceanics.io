@@ -30,8 +30,7 @@ struct Tile {
     /// Name corresponds to features
     name: String,
     /// "Time delay" in sprite sheet rendering
-    frame_offset: f64,
-    flip: f64,
+    frame_offset: f64
 }
 
 /// Used as index in the lookup functions that
@@ -73,7 +72,7 @@ impl MiniMap {
     #[wasm_bindgen(constructor)]
     pub fn new(
         grid_size: u32,
-        icons: JsValue,
+        icons: JsValue
     ) -> Result<MiniMap, JsValue> {
         console_error_panic_hook::set_once();
         let icons: Vec<Icon> = serde_wasm_bindgen::from_value(icons)?;
@@ -100,8 +99,7 @@ impl MiniMap {
                 if probability < feature.probability {
                     tiles.push(Tile {
                         name: feature.name.clone(),
-                        frame_offset: (js_sys::Math::random()*4.0).floor(),
-                        flip: -1.0
+                        frame_offset: (count % 4) as f64
                     });
                     break;
                 }
@@ -141,19 +139,26 @@ impl MiniMap {
             let row = (count as f64 / self.grid_size as f64).floor();
             let col = (count % self.grid_size) as f64;
             let dx = col + (row % 2.0) * 0.5;
+            let dy = row * 0.25;
+            let dz = ((phase + (phase_constant * dx / self.grid_size as f64)).sin() + 1.0) * 0.5 * amplitude;
+
             let feature = self.features.get(&tile.name).unwrap();
             let image = &feature.image;
             let keyframe = ((tile.frame_offset + keyframe_phase * 4.0) % 4.0).floor();
-            let dz = ((phase + (phase_constant * dx / self.grid_size as f64)).sin() + 1.0) * 0.5 * amplitude;
+            
             ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 &image,
+                // Source top left
                 sprite_size * keyframe,
                 0.0,
+                // Source size
                 sprite_size,
                 sprite_size,
-                sprite_scale * dx * tile.flip,
-                sprite_scale * (row * 0.25 + dz),
-                sprite_scale * tile.flip,
+                // Destination top left
+                sprite_scale * dx,
+                sprite_scale * (dy + dz),
+                // Destination size
+                sprite_scale,
                 sprite_scale,
             )?;
             count = count + 1;
