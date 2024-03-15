@@ -20,7 +20,7 @@ node_modules: wasm package.json $(SRC)
 build: next.config.mjs tsconfig.json netlify.toml node_modules
 	@ yarn netlify init
 	@ yarn netlify build
-	@ touch -m $@m
+	@ touch -m $@
 
 # Build the next site, called by Netlify build
 next:
