@@ -1,7 +1,7 @@
 mod webgl;  // shader magic
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
-mod stream;  // data stream structs and visualization methods
+mod data_stream;  // data stream structs and visualization methods
 mod mesh;  // 3D unstructured triangular network
 mod oceanics;
 
@@ -175,9 +175,6 @@ pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, 
     return transformation_matrix(ox, oy, oz, ax, ay, az, s, d, f, n, aspect);
 }
 
-
-
-
 pub struct Array {
     data: Vec<f64>
 }
@@ -229,21 +226,6 @@ impl Array {
         0
     }
 }
-
-pub struct Limit {
-    lower: f64,
-    upper: f64
-}
-
-impl Limit {
-    pub fn new(lower: f64, upper: f64) -> Limit {
-        Limit {
-            lower,
-            upper
-        }
-    }
-}
-
 
 #[wasm_bindgen]
 pub fn alloc(size: usize) -> *mut c_void {
