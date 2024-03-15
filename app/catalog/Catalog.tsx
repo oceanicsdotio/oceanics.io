@@ -1,21 +1,9 @@
 "use client";
 import Markdown from "react-markdown";
-import React, { useRef, useEffect, type MouseEventHandler } from "react";
-import useCatalog from "./useCatalog";
+import React, { useRef, useEffect, type MouseEventHandler, Suspense, useMemo } from "react";
+import useCatalog, {type Operation} from "./useCatalog";
 import styles from "./catalog.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
-
-interface ICatalog {
-  /**
-   * Source on the server to fetch the JSON
-   * specification from.
-   */
-  src: string;
-  /**
-   * Current zoom level
-   */
-  zoomLevel: number;
-}
 
 const DEFAULT_MAP_PROPS = {
   zoom: 10,
@@ -72,89 +60,140 @@ const DEFAULT_MAP_PROPS = {
   },
 };
 
-export type ChannelType = {
-    id: string,
-    /**
-     * Source of the raw data
-     */
-    url: string,
-    /**
-     * The type of the data. 
-     */
-    type: string,
-    /**
-     * Hook for Styled Components to apply CSS
-     */
-    className?: string,
-    /**
-     * How to render the data
-     */
-    component: string,
-    /**
-     * Does not appear when zoomed in further
-     */
-    maxzoom: number,
-    /**
-     * Not rendered when zoomed further out
-     */
-    minzoom: number,
-    /**
-     * Current zoom level passed in for rendering in cards
-     * whether or not the channel is currently visible
-     */
-    zoomLevel: number,
-    /**
-     * The provider and legal owner of the data
-     */
-    attribution?: string,
-    /**
-     * URL that links to the provider
-     */
-    info: string,
-    /**
-     * Render and update view on click
-     */
-    onClick: MouseEventHandler
-}
+type ChannelType = {
+  id: string;
+  /**
+   * Source of the raw data
+   */
+  url: string;
+  /**
+   * The type of the data.
+   */
+  type: string;
+  /**
+   * Hook for Styled Components to apply CSS
+   */
+  className?: string;
+  /**
+   * How to render the data
+   */
+  component: string;
+  /**
+   * Does not appear when zoomed in further
+   */
+  maxzoom: number;
+  /**
+   * Not rendered when zoomed further out
+   */
+  minzoom: number;
+  /**
+   * Current zoom level passed in for rendering in cards
+   * whether or not the channel is currently visible
+   */
+  zoomLevel: number;
+  /**
+   * The provider and legal owner of the data
+   */
+  attribution?: string;
+  /**
+   * URL that links to the provider
+   */
+  info: string;
+  /**
+   * Render and update view on click
+   */
+  onClick: MouseEventHandler;
+};
 
 /**
- * A channel abstracts access to a data source. 
+ * A channel abstracts access to a data source.
  */
-function Channel ({
-    id,
-    url,
-    type,
-    className,
-    component="default",
-    maxzoom=21,
-    minzoom=1,
-    zoomLevel,
-    info="",
-    onClick,
+function Channel({
+  id,
+  url,
+  type,
+  className,
+  component = "default",
+  maxzoom = 21,
+  minzoom = 1,
+  zoomLevel,
+  info = "",
+  onClick,
 }: ChannelType) {
-    const inView = (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)
-    return (
-        <div className={className}>
-            <h1>{id.replace(/-/g, ' ')}</h1>
-            <div className={"zoom"}>
-                <div className={inView?"visible":""}>
-                    {`zoom: ${minzoom}-${maxzoom}`}
-                </div>
-            </div>
-            <a onClick={onClick}>{`< render as ${type} with <${component}/> popup`}</a>
-            <a href={url}>{"> download"}</a>
-            <a href={info}>{"> attribution"}</a>
+  const inView = zoomLevel >= minzoom && zoomLevel <= maxzoom;
+  return (
+    <div className={className}>
+      <h1>{id.replace(/-/g, " ")}</h1>
+      <div className={"zoom"}>
+        <div className={inView ? "visible" : ""}>
+          {`zoom: ${minzoom}-${maxzoom}`}
         </div>
-    )
+      </div>
+      <a
+        onClick={onClick}
+      >{`< render as ${type} with <${component}/> popup`}</a>
+      <a href={url}>{"> download"}</a>
+      <a href={info}>{"> attribution"}</a>
+    </div>
+  );
 }
 
+
+function ApiOperation(operation: Operation) {
+  const requestParams = (operation.requestBody ?? []).map((props) => {
+    return { key: `request-body-${props.id}`, ...props };
+  });
+  const queryParams = (operation.parameters ?? []).map((props) => {
+    return { key: `query-${props.id}`, ...props };
+  });
+  let formUniqueId = `${operation.path}-${operation.method}`;
+  return (
+    <form key={formUniqueId} id={formUniqueId} className={styles.form}>
+      <h2>{operation.summary}</h2>
+      <h3>path</h3>
+      <code>{operation.path}</code>
+      <h3>method</h3>
+      <code>{operation.method.toUpperCase()}</code>
+      <h3>description</h3>
+      <Markdown>{operation.description}</Markdown>
+      {[...requestParams, ...queryParams].map(
+        ({ description, key, ...props }) => (
+          <div key={key}>
+            <label htmlFor={props.id}>{props.name}</label>
+            <input {...props} />
+            <div>{description}</div>
+          </div>
+        )
+      )}
+    </form>
+  );
+}
 
 /**
  * The OpenApi component uses an OpenAPI specification for a
  * simulation backend, and uses it to construct an interface.
  */
-export default function Catalog({ src, zoomLevel }: ICatalog) {
+export default function Catalog({
+  src,
+  zoomLevel,
+}: {
+  /**
+   * Source on the server to fetch the JSON
+   * specification from.
+   */
+  src: string;
+  /**
+   * Current zoom level
+   */
+  zoomLevel: number;
+}) {
+  /**
+   * Ref to Web Worker
+   */
   const worker = useRef<Worker>();
+  /**
+   * Load Web Worker on component mount
+   */
   useEffect(() => {
     worker.current = new Worker(new URL("./worker.ts", import.meta.url), {
       type: "module",
@@ -213,8 +252,10 @@ export default function Catalog({ src, zoomLevel }: ICatalog) {
     },
   });
 
+  const operations = useMemo(() => api.operations.map(ApiOperation), [api])
+
   return (
-    <div className={styles.api}>
+    <div className={styles.catalog}>
       <div ref={ref} />
       <div className={styles.catalog}>
         <Channel
@@ -233,43 +274,7 @@ export default function Catalog({ src, zoomLevel }: ICatalog) {
       </div>
       <h1>{api.info.title}</h1>
       <Markdown>{api.info.description}</Markdown>
-      {api.operations.map((operation) => {
-        const requestBodyId = `${operation.path}-${operation.method}-request-body`;
-        const requestQueryId = `${operation.path}-${operation.method}-query`;
-        return (
-          <div key={operation.summary}>
-            <h2>{operation.summary}</h2>
-            <h3>path</h3>
-            <Markdown>{`\`${operation.path}\``}</Markdown>
-            <h3>method</h3>
-            <Markdown>{operation.method.toUpperCase()}</Markdown>
-            <h3>description</h3>
-            <Markdown>{operation.description}</Markdown>
-            <form id={requestBodyId} className={styles.form}>
-              <h1>{"request body"}</h1>
-              {(operation.requestBody ?? []).map(
-                ({ description, ...props }) => (
-                  <div key={`${requestBodyId}-${props.id}`}>
-                    <label htmlFor={props.id}>{props.name}</label>
-                    <input {...props} />
-                    <div>{description}</div>
-                  </div>
-                )
-              )}
-            </form>
-            <form id={requestQueryId} className={styles.form}>
-              <h1>{"query parameters"}</h1>
-              {(operation.parameters ?? []).map(({ description, ...props }) => (
-                <div key={`${requestQueryId}-${props.id}`}>
-                  <label htmlFor={props.id}>{props.name}</label>
-                  <input {...props} />
-                  <div>{description}</div>
-                </div>
-              ))}
-            </form>
-          </div>
-        );
-      })}
+      <Suspense>{operations}</Suspense>
     </div>
   );
 }

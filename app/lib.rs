@@ -1,23 +1,14 @@
-mod webgl;  // shader magic
-mod vec3;
+
 mod cursor;  // cursor replacements and canvas event handling system
-mod data_stream;  // data stream structs and visualization methods
+mod catalog;  // data stream structs and visualization methods
 mod mesh;  // 3D unstructured triangular network
 mod oceanics;
-
-
-use std::f32::consts::PI;
-
-/*
- * WebGL bindings capabilities in Rust, using `web_sys` package.
- */
-pub use webgl::webgl::{create_buffer, create_program, create_texture};
-
+mod webgl;  // shader magic
+mod vec3;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-
 use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
 
 // Better error reporting
@@ -25,7 +16,7 @@ extern crate console_error_panic_hook;
 use std::mem;
 use std::os::raw::c_void;
 use std::ops::{Index, Mul, SubAssign};
-
+use std::f32::consts::PI;
 
 
 #[wasm_bindgen]

@@ -12,8 +12,6 @@ const base = "https://api-m.sandbox.paypal.com";
 const api = express();
 const router = Router();
 
-
-
 // parse post params sent in body in json format
 api.use(express.json());
 api.use(cors())
