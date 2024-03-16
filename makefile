@@ -64,7 +64,7 @@ test: out
 
 # Deploy to production
 deploy: out
-	@ yarn netlify deploy --prod
+	@ yarn netlify deploy --prod --message "Makefile Deploy" --open
 .PHONY: deploy
 
 # Remove build artifacts
