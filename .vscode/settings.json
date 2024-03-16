@@ -1,46 +1,17 @@
 {
   "cSpell.enableFiletypes": [
-    "cypher",
-    "mdx"
-  ],
-  "cSpell.ignoreWords": [
-    "arange",
-    "consts",
-    "depuration",
-    "ffill",
-    "frontmatter",
-    "get",
-    "getenv",
-    "irfft",
-    "pdoc",
-    "pipenv",
-    "pipfile",
-    "powi",
-    "pyclass",
-    "pylint",
-    "pymethods",
-    "pytest",
-    "redoc",
-    "standalone",
-    "xticklabels"
+    "mdx",
+    "md"
   ],
   "cSpell.words": [
-    "cyanobacteria",
-    "katex",
     "Oceanics",
     "Oceanicsdotio"
   ],
   "git.enableCommitSigning": true,
   "deno.enable": true,
-  "deno.enablePaths": [
-    "netlify/edge-functions",
-    "oceanics-io-edge",
-    "oceanics-io-api/edge"
-  ],
   "deno.unstable": true,
   "deno.importMap": ".netlify/edge-functions-import-map.json",
   "deno.path": "/Users/keeney/Library/Preferences/netlify/deno-cli/deno",
-  "rust-analyzer.showUnlinkedFileNotification": false,
   "search.exclude": {
     "**/.yarn": true,
     "**/.pnp.*": true
