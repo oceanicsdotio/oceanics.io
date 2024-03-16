@@ -4652,15 +4652,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=dc35ef&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/0dee0fef090c9bbd28f6863e0b51245a2bac6a48c60e9d27cfcb9bf13ab9ff919d25694f978f2c7692fb316a1679e9d2a045ab7c61a95baf104db0247d730179
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=3d1362&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/fe5ef2f610fa52947abaf853150774355b2ec221cbfa34787f9a7be7ab123a45f92f7520761d10eecba6bd05094555e32a87469cce08ef14ba49515d3eb98fd4
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -6391,14 +6391,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.2.64":
-  version: 18.2.64
-  resolution: "@types/react@npm:18.2.64"
+"@types/react@npm:^18.2.66":
+  version: 18.2.66
+  resolution: "@types/react@npm:18.2.66"
   dependencies:
     "@types/prop-types": "npm:*"
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10/e82bd16660030c9aabdb5027bb9bf69570a90813e4a894c17bfb288978c2b80251def5754e455d72aa3485d99136e1b11b694f78c586e5918e10b3bb09b91b3c
+  checksum: 10/8a82bda6c254681536fa8348dc15d52345d8203d5d322406feef865f74ebfe2475ebde0be4e2f9a18ffbb587dac946dfb5d0974b598779ff282259aff7e8209a
   languageName: node
   linkType: hard
 
@@ -23515,7 +23515,7 @@ __metadata:
     "@types/node": "npm:^20.11.16"
     "@types/node-fetch": "npm:^2.6.11"
     "@types/prop-types": "npm:^15.7.11"
-    "@types/react": "npm:^18.2.64"
+    "@types/react": "npm:^18.2.66"
     "@types/react-dom": "npm:^18.2.21"
     "@types/react-google-recaptcha": "npm:^2.1.9"
     "@types/react-pdf": "npm:^7.0.0"
