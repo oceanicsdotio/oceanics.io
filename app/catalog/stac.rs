@@ -1,11 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-/**
- * Assets are references to external data objects, which may or may not
- * be accessible at the time of query.
- *
- * These are most likely blobs in object storage
- */
+/// Assets are references to external data objects, which may or may not
+/// be accessible at the time of query.
+/// These are likely blobs in object storage
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Assets {
@@ -14,10 +11,6 @@ struct Assets {
     description: Option<String>,
     location: Option<String>,
 }
-
-/**
- * Python implementation of Assets
- */
 
 impl Assets {
     pub fn new(
@@ -35,10 +28,8 @@ impl Assets {
     }
 }
 
-/**
- * Collections are arbitrary groupings of entities.
- */
-
+/// Collections are groups of entities.
+/// They can be recursive.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Collections {
@@ -51,9 +42,6 @@ struct Collections {
     version: Option<u32>,
 }
 
-/**
- * Python implementation of Collections
- */
 impl Collections {
     pub fn new(
         name: Option<String>,

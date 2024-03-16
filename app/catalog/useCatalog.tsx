@@ -26,14 +26,14 @@ export type Feature = {
 }
 
 // Custom serializer for JSON that emits a fixed precision for numeric types
-export const withPrecision = (precision: number) =>
+const withPrecision = (precision: number) =>
   function(key: number|string, val: number) {
       if (isNaN(+key)) return val;
       return val.toFixed ? Number(val.toFixed(precision)) : val;
   }
 
 // Convert CSV to single-precision Array
-export const fromCsvString = (csvString: string, rows: [number, number], columns: [number, number]) => {
+const fromCsvString = (csvString: string, rows: [number, number], columns: [number, number]) => {
 
   const reduceLine = (acc: number[], line: string) => {
       const newItem = line
@@ -50,19 +50,19 @@ export const fromCsvString = (csvString: string, rows: [number, number], columns
   return new Float32Array(numerical);
 }
 
-export type Variable = {
+type Variable = {
   offset: number,
   size: number,
   name: string
 }
 
-export const readVariables = (text: string) => {
+const readVariables = (text: string) => {
   const {variables} = JSON.parse(text);
   const keys = {"lon": 0, "lat": 1, "h": 2};
   return variables.filter(({name}: {name: string}) => name in keys);
 }
 
-export const fromNetcdfBytes = async (
+const fromNetcdfBytes = async (
   // key: string, 
   delta: number, 
   // [start, end]: [number, number], 
@@ -85,11 +85,8 @@ export const fromNetcdfBytes = async (
   //     const index = (ii * 3 + keys[name]) * width;
   //     dv.setFloat32(index, value, true);  // swap endianness
   // }
-  
   return new Float32Array(copy);
 }
-
-
 
 // Transform to pass into retrieve()
 export const transformCsv = (text: string) => {
@@ -528,13 +525,10 @@ export default function useCatalog({
     //   });
   }, [map, queue, ready]);
 
-  /**
-   * Swap layers to be in the correct order as they are created. Will
-   * only trigger once both layers exist.
-   *
-   * Nice because you can resolve them asynchronously without worrying
-   * about creation order.
-   */
+  /// Swap layers to be in the correct order as they are created. Will
+  /// only trigger once both layers exist.
+  /// Nice because you can resolve them asynchronously without worrying
+  /// about creation order.
   useEffect(() => {
     if (!map) return;
     channelOrder.forEach(([back, front]) => {

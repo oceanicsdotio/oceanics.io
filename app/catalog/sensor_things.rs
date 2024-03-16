@@ -36,10 +36,6 @@ impl MetaDataTemplate {
             x_amz_meta_service
         }
     }
-
-    pub fn headers(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 /**
@@ -57,9 +53,7 @@ struct Storage {
     lock_file: String,
 }
 
-
 impl Storage {
-    
     pub fn new(
         endpoint: String,
         service_name: String,
@@ -77,28 +71,14 @@ impl Storage {
     }
 }
 
-
-
-/**
- * Agents are a mystery
- */
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Agents {
-    
     name: Option<String>,
-    
     uuid: Option<String>,
 }
 
-
-/**
- *  interface for Agents
- */
-
 impl Agents {
-    
     pub fn new(
         name: Option<String>,
         uuid: Option<String>,
@@ -107,33 +87,19 @@ impl Agents {
             name,
             uuid
         }
-    } 
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
     }
 }
-
 
 /** 
  * Data structure representing a network accessible Socket
  */
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Socket {
-    
     host: String,
-    
     port: Option<u32>
 }
 
-
-/**
- *  bindings for Socker structure
- */
-
 impl Socket {
-    
     pub fn new(
         host: String,
         port: Option<u32>
@@ -145,35 +111,21 @@ impl Socket {
     }
 }
 
-
 /**
  * Actuators are devices that turn messages into physical effects.
  */
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Actuators {
-    
     name: Option<String>,
-    
     uuid: Option<String>,
-    
     description: Option<String>,
-    
     encoding_type: Option<String>,
-    
     metadata: Option<String>,
-    
     network_address: Option<Socket>
 }
 
-
-/**
- *  bindings for Actuators
- */
-
 impl Actuators {
-    
     pub fn new(
         name: Option<String>,
         uuid: Option<String>,
@@ -191,17 +143,11 @@ impl Actuators {
             network_address
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
-
 
 /**
  * FeaturesOfInterest are usually Locations.
  */
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct FeaturesOfInterest {
@@ -217,13 +163,7 @@ struct FeaturesOfInterest {
     feature: Option<HashMap<String, String>>,
 }
 
-
-/**
- *  implementation of Features
- */
-
 impl FeaturesOfInterest {
-    
     pub fn new(
         name: Option<String>,
         uuid: Option<String>,
@@ -238,10 +178,6 @@ impl FeaturesOfInterest {
             encoding_type,
             feature
         }
-    }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -265,13 +201,7 @@ struct Sensors{
     metadata: Option<HashMap<String, String>>
 }
 
-
-/**
- *  implementation of Sensors
- */
-
 impl Sensors {
-    
     pub fn new(
         name: Option<String>,
         uuid: Option<String>,
@@ -287,16 +217,11 @@ impl Sensors {
             metadata
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 /**
  * Create a property, but do not associate any data streams with it
  */
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ObservedProperties {
@@ -309,11 +234,6 @@ struct ObservedProperties {
     
     definition: Option<String>
 }
-
-
-/**
- *  implementation of ObservedProperties
- */
 
 impl ObservedProperties{
     
@@ -330,10 +250,6 @@ impl ObservedProperties{
             definition
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 /**
@@ -345,18 +261,10 @@ impl ObservedProperties{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Tasks {
-    
     creation_time: Option<f64>,
-    
     uuid: Option<String>,
-    
     tasking_parameters: Option<HashMap<String, String>>
 }
-
-
-/**
- *  implementation of tasks
- */
 
 impl Tasks {
     
@@ -371,12 +279,7 @@ impl Tasks {
             tasking_parameters
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
-
 
 /** 
  * A thing is an object of the physical or information world that is capable of of being identified
@@ -416,16 +319,11 @@ impl Things {
             properties
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 /**
  * TaskingCapabilities may be called by defining graph patterns that supply all of their inputs.
-  */
-
+*/
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TaskingCapabilities {
@@ -440,9 +338,6 @@ struct TaskingCapabilities {
     
     tasking_parameters: Option<HashMap<String, String>>
 }
-
-
-
 
 impl TaskingCapabilities {
     
@@ -461,10 +356,6 @@ impl TaskingCapabilities {
             tasking_parameters
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 
@@ -476,8 +367,6 @@ struct SpatialLocationData {
     
     coordinates: [f64; 3],
 }
-
-
 
 impl SpatialLocationData {
     
@@ -491,8 +380,6 @@ impl SpatialLocationData {
         }
     }
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -527,10 +414,6 @@ impl Locations {
             location
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 
@@ -547,10 +430,7 @@ struct HistoricalLocations {
     time: Option<f64>,
 }
 
-
-
 impl HistoricalLocations {
-    
     pub fn new(
         uuid: Option<String>,
         time: Option<f64>
@@ -560,17 +440,10 @@ impl HistoricalLocations {
             time
         }
     }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 
-/**
-time interval, ISO8601
-*/
-
+/** time interval, ISO8601 */
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct TimeInterval {
     
@@ -595,9 +468,8 @@ impl TimeInterval {
 
 
 /**
- * Observationss are individual time-stamped members of DataStreams
+ * Observations are individual time-stamped members of DataStreams
  */
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Observations {
@@ -616,11 +488,6 @@ struct Observations {
     
     parameters: Option<HashMap<String, String>>
 }
-
-
-/**
- *  implementation of Observations
- */
 
 impl Observations {
     
@@ -642,18 +509,12 @@ impl Observations {
             valid_time,
             parameters
         }
-
-    }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
     }
 }
 
 /**
  * DataStreams are collections of Observations from a common source
  */
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct DataStreams {
@@ -673,13 +534,7 @@ struct DataStreams {
     result_time: Option<TimeInterval>
 }
 
-
-/**
- *  implementation of DataStreams
- */
-
 impl DataStreams {
-    
     pub fn new(
         uuid: Option<String>,
         name: Option<String>,
@@ -698,9 +553,5 @@ impl DataStreams {
             phenomenon_time,
             result_time
         }
-    }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
     }
 }

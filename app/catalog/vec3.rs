@@ -1,12 +1,4 @@
-
-/**
- * Operator overloading.
- */
 use std::ops::{Add, AddAssign, Sub, Mul, MulAssign, Div};
-
-/**
- * Encode or decode with JSON
- */
 use serde::Serialize;
 
 /**
