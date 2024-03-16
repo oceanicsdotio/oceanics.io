@@ -35,6 +35,3 @@
   to = "/.netlify/functions/api"
   status = 200
   headers = {X-From = "Netlify"}
-
-
-
