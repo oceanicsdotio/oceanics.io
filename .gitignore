@@ -46,6 +46,12 @@ tsconfig.tsbuildinfo
 .netlify
 target/
 wasm/
-nodes.json
-.next
+.next/
 out/
+.editorconfig
+coverage/
+.DS_STORE
+app/lib
+functions/lib
+examples.json
+specification.json

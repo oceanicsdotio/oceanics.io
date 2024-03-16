@@ -1,0 +1,27 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "no-use-before-define": "error",
+    "@typescript-eslint/ban-ts-comment": 0,
+    "@typescript-eslint/no-explicit-any": 0
+  },
+  "env": {
+    "node": true
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".yarn/",
+    ".vscode/",
+    ".idea/",
+    ".netlify/"
+  ]
+}

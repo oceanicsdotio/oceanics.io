@@ -1,9 +1,9 @@
 const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("@oceanics-io/wasm");
+type ModuleType = typeof import("@oceanics/app");
 
 let runtime: ModuleType;
 async function start() {
-  runtime = await import("@oceanics-io/wasm");
+  runtime = await import("@oceanics/app");
   runtime.panic_hook();
 }
 

@@ -1,0 +1,31 @@
+[package]
+name = "data-oceanics-io-wasm"
+version = "0.1.0"
+authors = ["Oceanicsdotio LLC <business@oceanics.io>"]
+edition = "2018"
+description = "API level drivers"
+license = "MIT"
+repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "lib.rs"
+
+[profile.release]
+opt-level = "s"
+
+[dependencies]
+serde = { version = "1.0.193", features = ["derive"] }
+serde_derive = "1.0.193"
+js-sys = "0.3.69"
+wasm-bindgen-futures = "0.4.42"
+serde_json = {version="1.0.108", default-features = false, features = ["alloc"]}
+serde-wasm-bindgen = "0.6.5"
+console_error_panic_hook = "0.1.7"
+web-sys = { version = "0.3.69", features = [
+    "Request",
+    "ReadableStream",
+    "Headers",
+    "Response",
+] }
+wasm-bindgen = { version = "0.2.92", features = ["serde-serialize"] }

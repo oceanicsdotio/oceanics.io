@@ -3,7 +3,7 @@ import { DOMParser } from "@xmldom/xmldom";
 
 import type {Property, Method, Operation, Properties, FieldType, FileObject, FileSystem } from "./useCatalog";
 const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("@oceanics-io/wasm");
+type ModuleType = typeof import("@oceanics/app");
 
 interface Methods {
   [index: string]: Method;
@@ -187,7 +187,7 @@ async function getFileSystem(url: string): Promise<FileSystem> {
  * thread for troubleshooting.
  */
 async function start() {
-  runtime = await import("@oceanics-io/wasm");
+  runtime = await import("@oceanics/app");
   runtime.panic_hook();
 }
 

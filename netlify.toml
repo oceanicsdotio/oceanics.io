@@ -1,6 +1,6 @@
 [build]
   base = "/"
-  publish = "/out"
+  publish = "out"
   command = "make next"
   functions = "functions"
 
@@ -18,6 +18,17 @@
   
 [functions]  
   node_bundler = "esbuild"
+  included_files = [
+    "specification.json",
+  ]
+  external_node_modules = [
+    "@oceanics/app"
+  ]
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
 
 [[redirects]]
   from = "/api/*"

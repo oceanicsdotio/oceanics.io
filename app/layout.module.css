@@ -37,6 +37,14 @@
   text-underline-offset: 3px;
 }
 
+.nested a {
+  text-decoration: underline wavy lightblue;
+  text-underline-offset: 3px;
+}
+.nested a::before {
+  content: "⚡ ";
+}
+
 .image {
   width: 100%;
 }

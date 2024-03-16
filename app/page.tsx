@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import layout from "./layout.module.css";
 import style from "./oceanics.module.css";
 import Link from "next/link";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Oceanics.io",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
+      <Script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></Script>
       <h1>
         <Link className={layout.link} href="/">
           Oceanics.io
@@ -31,7 +33,7 @@ export default function Page() {
 
       <p>
         We analyze public and proprietary ocean data and{" "}
-        <a className={layout.link} href="https://data.oceanics.io">
+        <a className={layout.link} href="/openapi">
           serve you synthetic and aggregate products
         </a>{" "}
         to manage risk and conflict.
@@ -41,9 +43,10 @@ export default function Page() {
         decisions for the future. Whether watching your surf or seeking
         opportunity.
       </p>
-      <p>
+      <div className={layout.nested} data-netlify-identity-button></div>
+      <p className={layout.nested}>
         <Link className={layout.link} href="/about">
-          ⚡ Get in touch
+          Get in touch
         </Link>
       </p>
     </>
