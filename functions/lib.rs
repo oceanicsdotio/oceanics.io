@@ -5,10 +5,7 @@ use std::convert::From;
 mod cypher;
 mod openapi;
 // Route handlers
-mod index;
-mod collection;
-mod entity;
-mod topology;
+mod src;
 
 extern crate console_error_panic_hook;
 

@@ -2,7 +2,7 @@
   base = "/"
   publish = "out"
   command = "make next"
-  functions = "functions"
+  functions = "functions/src"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -22,7 +22,7 @@
     "specification.json",
   ]
   external_node_modules = [
-    "@oceanics/app"
+    "@oceanics/functions"
   ]
 
 [[headers]]
