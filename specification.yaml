@@ -31,12 +31,16 @@ info:
 tags:
 
   - name: Catalog
-    description: |
-      Access data through the entity catalog interface. These are your generic CRUD operations.
+    description: Access metadata about collections.
+
+  - name: Collection
+    description: Access groups of entities sharing a type.
+
+  - name: Entity
+    description: Manage a single entity or pair of entities.
 
   - name: Topology
-    description: |
-      Build topological relationships and access metadata.
+    description: Create and access entity relationship metadata.
 
 servers:
 - url: https://www.oceanics.io/{basePath}
@@ -56,7 +60,7 @@ paths:
   
     get:
       tags: [ Catalog ]
-      summary: Catalog
+      summary: Catalog Metadata
       security:
         - BearerAuth: []
       description: |
@@ -90,7 +94,7 @@ paths:
 
     delete:
       tags: [Catalog]
-      summary: Delete
+      summary: Delete Catalog
       security:
         - BearerAuth: []
       description: |
@@ -105,8 +109,8 @@ paths:
   /{entity}:
 
     post:
-      tags: [Catalog]
-      summary: Create
+      tags: [Entity, Collection]
+      summary: Create Entity
       security:
         - BearerAuth: []
       description: |
@@ -122,8 +126,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
     get:
-      tags: [Catalog]
-      summary: Collection
+      tags: [Collection]
+      summary: Collection Metadata
       security:
         - BearerAuth: []
       description: |
@@ -142,8 +146,8 @@ paths:
   /{entity}({uuid}):
 
     get:
-      tags: [Catalog]
-      summary: Metadata
+      tags: [ Entity ]
+      summary: Entity Metadata
       security:
         - BearerAuth: []
       description: Get entity
@@ -157,8 +161,8 @@ paths:
           $ref: '#/components/responses/NotFound'
 
     put:
-      tags: [ Catalog ]
-      summary: Update
+      tags: [ Entity ]
+      summary: Update Entity
       security:
         - BearerAuth: []
       description: Update entity
@@ -176,8 +180,8 @@ paths:
           $ref: '#/components/responses/NotFound'
 
     delete:
-      tags: [ Catalog ]
-      summary: Delete
+      tags: [ Entity ]
+      summary: Delete Entity
       security:
         - BearerAuth: []
       description: Delete entity and orphans recursively.
@@ -191,12 +195,11 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-        
   /{root}({rootId})/{entity}:
 
     get:
-      tags: [ Catalog ]
-      summary: Query
+      tags: [ Topology, Entity, Collection ]
+      summary: Connected Entities
       security:
         - BearerAuth: []
       description: |
@@ -218,8 +221,8 @@ paths:
   /{root}({rootId})/{entity}({uuid}):
 
     post:
-      tags: [ Catalog ]
-      summary: Join
+      tags: [ Topology, Entity ]
+      summary: Join Entity Pair
       security:
         - BearerAuth: []
       description: Create a labeled relationship between entities.
@@ -237,8 +240,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
     delete:
-      tags: [ Catalog ]
-      summary: Drop
+      tags: [ Topology, Entity ]
+      summary: Drop Relationship
       security:
         - BearerAuth: []
       description: |
