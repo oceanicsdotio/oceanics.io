@@ -4,8 +4,6 @@ use std::convert::From;
 // Drivers and data types
 mod cypher;
 mod openapi;
-mod stac;
-mod sensor_things;
 // Route handlers
 mod index;
 mod collection;

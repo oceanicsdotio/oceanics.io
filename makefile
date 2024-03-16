@@ -36,7 +36,7 @@ specification.json: specification.yaml node_modules
 public/openapi.html: specification.json
 	@ yarn run redocly build-docs $< --output $@
 
-examples.json: out examples.ts specification.json
+examples.json: examples.ts specification.json
 	@ yarn exec tsx examples.ts specification.json examples.json
 
 # Build the next site within Netlify to pick up env/config

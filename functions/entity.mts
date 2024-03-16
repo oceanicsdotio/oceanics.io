@@ -1,4 +1,4 @@
-import { paths } from "@/specification.json";
+import { paths } from "../specification.json";
 import { entity } from "@oceanics/functions";
 import type { Handler } from "@netlify/functions";
 
