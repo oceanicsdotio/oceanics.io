@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import type { MiniMap } from "@oceanics/app";
 import style from "./oceanics.module.css";
-import icons from "./icons.json";
+import icons from "./oceanics.json";
 
 /**
  * Main page animation.
