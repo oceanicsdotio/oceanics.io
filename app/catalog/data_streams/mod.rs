@@ -1,10 +1,123 @@
-use serde::Deserialize;
-use std::collections::VecDeque;
+use serde::{Serialize,Deserialize};
+use std::collections::{VecDeque,HashMap};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+mod cursor;
+use cursor::SimpleCursor;
 
-use crate::catalog::cursor::SimpleCursor;
+/** time interval, ISO8601 */
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct TimeInterval {
+    
+    start: f64,
+    
+    end: f64
+}
+
+
+impl TimeInterval {
+    
+    pub fn new(
+        start: f64,
+        end: f64
+    ) -> Self {
+        TimeInterval {
+            start,
+            end
+        }
+    }
+}
+
+
+/**
+ * Observations are individual time-stamped members of DataStreams
+ */
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Observations {
+    
+    uuid: Option<String>,
+    
+    phenomenon_time: Option<f64>,
+    
+    result: Option<f64>,
+    
+    result_time: Option<f64>,
+    
+    result_quality: Option<String>,
+    
+    valid_time: Option<TimeInterval>,
+    
+    parameters: Option<HashMap<String, String>>
+}
+
+impl Observations {
+    
+    pub fn new(
+        uuid: Option<String>,
+        phenomenon_time: Option<f64>,
+        result: Option<f64>,
+        result_time: Option<f64>,
+        result_quality: Option<String>,
+        valid_time: Option<TimeInterval>,
+        parameters: Option<HashMap<String, String>>
+    ) -> Self {
+        Observations {
+            uuid,
+            phenomenon_time,
+            result,
+            result_time,
+            result_quality,
+            valid_time,
+            parameters
+        }
+    }
+}
+
+/**
+ * DataStreams are collections of Observations from a common source
+ */
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DataStreams {
+    
+    uuid: Option<String>,
+    
+    name: Option<String>,
+    
+    description: Option<String>,
+    
+    unit_of_measurement: Option<String>,
+    
+    observation_type: Option<String>,
+    
+    phenomenon_time: Option<TimeInterval>,
+    
+    result_time: Option<TimeInterval>
+}
+
+impl DataStreams {
+    pub fn new(
+        uuid: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        unit_of_measurement: Option<String>,
+        observation_type: Option<String>,
+        phenomenon_time: Option<TimeInterval>,
+        result_time: Option<TimeInterval>
+    ) -> Self {
+        DataStreams {
+            uuid,
+            name,
+            description,
+            unit_of_measurement,
+            observation_type,
+            phenomenon_time,
+            result_time
+        }
+    }
+}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

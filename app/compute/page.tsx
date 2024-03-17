@@ -3,8 +3,8 @@ import Simulation from "./Simulation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Oceanics.io | Data Stream",
-  description: "Access streaming time series data.",
+  title: "Oceanics.io | Things",
+  description: "Things demo.",
 };
 
 export default function Page() {

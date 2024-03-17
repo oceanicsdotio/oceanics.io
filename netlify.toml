@@ -36,12 +36,12 @@
   status = 200
   headers = {X-From = "Netlify"}
 
-[[redirects]]
-  from = "/catalog/*" 
-  to = "/catalog/:splat"
-  status = 200
-  force = true
-  conditions = { Role = ["admin"] }
+# [[redirects]]
+#   from = "/catalog/*" 
+#   to = "/catalog/:splat"
+#   status = 200
+#   force = true
+#   conditions = { Role = ["admin"] }
 
 [[redirects]]
   from = "/bets/*" 

@@ -1,4 +1,5 @@
 mod catalog;  // data stream structs and visualization methods
+mod compute;
 mod oceanics;
 
 use wasm_bindgen::prelude::*;
