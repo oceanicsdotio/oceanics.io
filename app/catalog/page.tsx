@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Catalog",
-  description: "Access ocean data.",
+  description: "Manage your data.",
 };
 
 export default function Page() {
@@ -12,10 +12,10 @@ export default function Page() {
     <>
       <Suspense>
         <Catalog
-          src="/" 
           zoomLevel={10}
+          accessToken={process.env.NEXT_MAPBOX_ACCESS_TOKEN ?? ""}
         ></Catalog>
-        </Suspense>
+      </Suspense>
     </>
   );
 }

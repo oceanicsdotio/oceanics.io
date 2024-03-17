@@ -3,8 +3,8 @@ import Simulation from "./Simulation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Oceanics.io | Things",
-  description: "Things demo.",
+  title: "Oceanics.io | Compute",
+  description: "Web GPU instance",
 };
 
 export default function Page() {

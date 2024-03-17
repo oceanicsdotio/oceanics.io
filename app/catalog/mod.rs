@@ -1,4 +1,3 @@
-pub mod mesh;
 pub mod data_streams;
 pub mod features_of_interest;
 pub mod locations;
@@ -14,26 +13,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Assets {
-    name: Option<String>,
-    uuid: Option<String>,
-    description: Option<String>,
-    location: Option<String>,
-}
-
-impl Assets {
-    pub fn new(
-        name: Option<String>,
-        uuid: Option<String>,
-        description: Option<String>,
-        location: Option<String>,
-    ) -> Self {
-        Assets {
-            name,
-            uuid,
-            description,
-            location,
-        }
-    }
+    pub name: Option<String>,
+    pub uuid: Option<String>,
+    pub description: Option<String>,
+    pub location: Option<String>,
 }
 
 /// Collections are groups of entities.
@@ -41,36 +24,15 @@ impl Assets {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Collections {
-    name: Option<String>,
-    uuid: Option<String>,
-    description: Option<String>,
-    extent: Option<Vec<f64>>,
-    keywords: Option<String>,
-    license: Option<String>,
-    version: Option<u32>,
+    pub name: Option<String>,
+    pub uuid: Option<String>,
+    pub description: Option<String>,
+    pub extent: Option<Vec<f64>>,
+    pub keywords: Option<String>,
+    pub license: Option<String>,
+    pub version: Option<u32>,
 }
 
-impl Collections {
-    pub fn new(
-        name: Option<String>,
-        uuid: Option<String>,
-        description: Option<String>,
-        extent: Option<Vec<f64>>,
-        keywords: Option<String>,
-        license: Option<String>,
-        version: Option<u32>,
-    ) -> Self {
-        Collections {
-            name,
-            uuid,
-            description,
-            extent,
-            keywords,
-            license,
-            version,
-        }
-    }
-}
 
 /// S3 storage metadata headers
 #[derive(Debug, Serialize, Deserialize)]
