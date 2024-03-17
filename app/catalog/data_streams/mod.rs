@@ -2,19 +2,18 @@ use serde::{Serialize, Deserialize};
 use std::collections::{VecDeque, HashMap};
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, TextMetrics};
-
+/// Cursor show
 struct SimpleCursor {
     pub x: f64,
     pub y: f64
 }
-
 impl SimpleCursor {
-
+    /// Setter
     pub fn update(&mut self, x: f64, y: f64) {
         self.x = x;
         self.y = y;
     }
-
+    /// Draw a marker and location on each axis.
     pub fn draw(
         &self, 
         ctx: &CanvasRenderingContext2d, 
@@ -80,7 +79,6 @@ impl SimpleCursor {
         ctx.stroke();
     }
 } 
-
 /// time interval, ISO8601
 #[wasm_bindgen]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -88,7 +86,6 @@ struct TimeInterval {
     pub start: f64,
     pub end: f64
 }
-
 /// Observations are individual time-stamped members of DataStreams
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -101,11 +98,7 @@ struct Observations {
     pub valid_time: Option<TimeInterval>,
     pub parameters: Option<HashMap<String, String>>
 }
-
-
-/**
- * DataStreams are collections of Observations from a common source
- */
+/// DataStreams are collections of Observations from a common source
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct DataStreams {
@@ -117,8 +110,8 @@ struct DataStreams {
     pub phenomenon_time: Option<TimeInterval>,
     pub result_time: Option<TimeInterval>
 }
-
-
+/// Rendering style, unrelated to the value of the data themselves
+/// in most cases.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Style {
@@ -131,14 +124,12 @@ struct Style {
     pub tick_size: f64,
     pub label_padding: f64,
 }
-
 /// An axis struct describes one index of an ND array. For visualization purposes
 /// it maps a data dimension into a screen position.
 /// Methods on Axis are defined in the `impl` block.
 struct Axis {
    pub extent: (f64, f64)
 }
-
 /// Interactive data streams are containers with an additional reference
 #[wasm_bindgen]
 pub struct InteractiveDataStream {
@@ -150,15 +141,11 @@ pub struct InteractiveDataStream {
     cursor: SimpleCursor,
     frames: usize,
 }
-
-
 #[wasm_bindgen]
 impl InteractiveDataStream {
-    /**
-     * Create a new container without making too many assumptions
-     *  how it will be used. Mostly streams are dynamically
-     * constructed on the JavaScript side.
-     */
+    /// Create a new container without making too many assumptions
+    /// how it will be used. Mostly streams are dynamically
+    /// constructed on the JavaScript side.
     #[wasm_bindgen(constructor)]
     pub fn new(
         capacity: usize,
@@ -178,11 +165,8 @@ impl InteractiveDataStream {
             frames: 0,
         }
     }
-
-    /**
-     * Compose the data-driven visualization and draw to
-     * the target HtmlCanvasElement.
-     */
+    /// Compose the data-driven visualization and draw to
+    /// the target HtmlCanvasElement.
     pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
         let rstyle: Style = serde_wasm_bindgen::from_value(style).unwrap();
         let color = JsValue::from_str(&rstyle.stream_color);
@@ -226,29 +210,21 @@ impl InteractiveDataStream {
 
         self.frames += 1;
     }
-
-
-    /**
-     * Hoist cursor setter, needed to ensure JavaScript binding
-     */
+    /// Hoist cursor setter, needed to ensure JavaScript binding
     pub fn update_cursor(&mut self, x: f64, y: f64) {
         self.cursor.update(x, y);
     }
-
     /// Current number of observations
     pub fn size(&self) -> usize {
         self.observations.len()
     }
-
-    /**
-     * Add a new observation to the datastream.
-     *
-     * The current length and mean are used to update the instaneous
-     * expected value.
-     *
-     * If the the buffer has reached it's maximum length, an
-     * observation is evicted from the front.
-     */
+    /// Add a new observation to the datastream.
+    /// 
+    /// The current length and mean are used to update the instantaneous
+    /// expected value.
+    /// 
+    /// If the the buffer has reached it's maximum length, an
+    /// observation is evicted from the front.
     pub fn push(&mut self, observation: JsValue) {
         let observation: Observations = serde_wasm_bindgen::from_value(observation).unwrap();
         let size = self.size();
@@ -264,7 +240,6 @@ impl InteractiveDataStream {
             let _ = self.mean.pop_front().unwrap();
             new_mean = (self.mean.back().unwrap() * (size as f64) + y - evicted) / (size as f64);
         }
-
         self.mean.push_back(new_mean);
         self.observations.push_back(observation);
         self.axes[0].extent = (
@@ -273,9 +248,8 @@ impl InteractiveDataStream {
         );
         self.axes[1].extent = (y.min(self.axes[1].extent.0), y.max(self.axes[1].extent.1));
     }
-
     /// Return array of logical values, with true indicating that the value or its
-    // first derivative are outliers
+    /// first derivative are outliers
     pub fn _statistical_outliers(&self, _threshold: f32) {
         let size = self.observations.len();
         let mut dydt: Vec<f32> = Vec::with_capacity(size);
@@ -321,7 +295,7 @@ impl InteractiveDataStream {
         // let mod_z = 0.6745 * diff / mad;
         // mod_z > threshold
     }
-
+    /// Fill in missing samples using adjacent values at a chose frequency.
     fn _resample_and_fill(
         &self,
         start: f64,
@@ -352,7 +326,7 @@ impl InteractiveDataStream {
         }
         result
     }
-
+    /// Change the sample frequency, and create new values using linear interpolation
     fn _resample_and_interpolate(&self, start: f64, end: f64, frequency: f64) -> VecDeque<Observations> {
         let capacity = ((end - start) / frequency).ceil() as usize;
         let mut observations: VecDeque<Observations> = VecDeque::with_capacity(capacity); // new struct to output
@@ -387,12 +361,10 @@ impl InteractiveDataStream {
         }
         observations
     }
-
     /// Transform the y-dimension to pixel dimensions
     fn rescale(&self, val: f64, dim: usize) -> f64 {
         (val - self.axes[dim].extent.0) / (self.axes[dim].extent.1 - self.axes[dim].extent.0)
     }
-
     /// Draw observations as points.
     pub fn draw_as_points(
         &self,
@@ -411,8 +383,7 @@ impl InteractiveDataStream {
             ctx.fill_rect(x * w - scale / 2.0, h - y * h - scale / 2.0, scale, scale);
         }
     }
-
-    /// Draw observations with connectings lines.
+    /// Draw observations with connecting lines.
     fn _draw_as_lines(
         &self,
         ctx: &CanvasRenderingContext2d,
@@ -442,7 +413,6 @@ impl InteractiveDataStream {
         }
         ctx.stroke();
     }
-
     /// Display summary statistics for the current window
     pub fn draw_mean_line(
         &self,
@@ -467,7 +437,6 @@ impl InteractiveDataStream {
         }
         ctx.stroke();
     }
-
     /// Draw the axes and ticks
     pub fn draw_axes(
         &self,

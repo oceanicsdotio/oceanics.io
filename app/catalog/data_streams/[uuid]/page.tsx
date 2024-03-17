@@ -20,13 +20,13 @@ export default function Page() {
         <DataStream
             streamColor="#ffffff"
             overlayColor="#ffffff"
-            backgroundColor="#000000"
+            backgroundColor="#110022"
             lineWidth={2}
-            pointSize={2}
+            pointSize={4}
             capacity={1000}
-            tickSize={4}
-            fontSize={16}
-            labelPadding={2}
+            tickSize={16}
+            fontSize={32}
+            labelPadding={8}
         ></DataStream>
         </Suspense>
     </>

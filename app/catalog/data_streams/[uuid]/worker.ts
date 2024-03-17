@@ -1,6 +1,4 @@
-import type { HistogramResult, HistogramData } from "./useHistogram";
 const ctx: Worker = self as unknown as Worker;
-
 /**
  * Known message types
  */
@@ -9,7 +7,6 @@ const MESSAGES = {
     error: "error",
     reduce: "reduce"
 }
-
 /**
  * Calculate summary statistics for the bins, to help with rendering
  * and UI metadata.
@@ -17,16 +14,17 @@ const MESSAGES = {
  * There should only be positive values for the y-axis.
  */
 const reduce = (
-    { total, max }: HistogramResult,
-    [bin, count]: [number, number]
+    { total, max }: {
+        total: number;
+        max: number;
+      },
+    [_, count]: [number, number]
 ) => {
-    if (count < 0) throw Error(`Negative count value, ${count} @ ${bin}`);
     return {
         total: total + count,
         max: Math.max(max, count)
     }
 }
-
 /**
  * Listener function
  */
@@ -41,7 +39,7 @@ const handleMessage = async ({ data }: MessageEvent) => {
         case MESSAGES.reduce:
             ctx.postMessage({
                 type: MESSAGES.reduce,
-                data: (data.data as HistogramData).reduce(
+                data: (data.data as [number, number][]).reduce(
                     reduce, 
                     { total: 0, max: 0 }
                 ),
@@ -56,12 +54,12 @@ const handleMessage = async ({ data }: MessageEvent) => {
             return;
     }
 }
-
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
 ctx.addEventListener("message", handleMessage)
-
-// Trick into being a module and for testing
+/**
+ * Trick into being a module and for testing
+ */ 
 export { handleMessage }
