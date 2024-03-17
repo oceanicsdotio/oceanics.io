@@ -839,28 +839,11 @@ impl TriangularMesh {
     }
 
     /**
-     * Create a new instance
-     */
-    #[allow(dead_code)]
-    pub fn new(
-        prefix: String,
-        start: u32,
-        end: u32,
-        radix: u8
-    ) -> TriangularMesh{
-        TriangularMesh{
-            vertex_array: VertexArray::new(prefix, start, end, radix), 
-            topology: Topology::new()
-        }
-    }
-
-    /**
      * Because we memoize the edges as triangles are inserted, we can cheat and reconstruct
      * the neighbors from the pairs.
      * 
      * This increases the cost of the program. 
      */
-    #[allow(dead_code)]
     pub fn neighbors(&self) -> HashMap<u16,HashSet<u16>> {
 
         let count = self.vertex_array.count();
@@ -887,7 +870,6 @@ impl TriangularMesh {
      * to self to enable chaining, because that tends to be
      * how the reflect command is used.
      */
-    #[allow(dead_code)]
     pub fn reflect(&mut self, dim: usize) -> &mut Self {
         
         for vert in self.vertex_array.values_mut() {
@@ -979,7 +961,6 @@ impl TriangularMesh {
     /**
      * Calculate the normals of each face.
      */
-    #[allow(dead_code)]
     fn normals (&mut self) -> (HashMap<u16,(Vec3,u8)>, HashMap<CellIndex,Vec3>) {
 
         let capacity = self.vertex_array.count();
@@ -1074,7 +1055,6 @@ impl TriangularMesh {
     /**
      * Divide the number of faces
      */
-    #[allow(dead_code)]
     fn subdivide(&mut self) {
     
         let cells = &mut self.topology.cells;
@@ -1140,39 +1120,6 @@ impl InteractiveMesh {
             velocity: HashMap::with_capacity(0)
         }
     }
-
-    /**
-     * Initialize a fully connected topological network with random initial positions
-     */
-    fn from_random_positions(count: u16, length: f64, spring_constant: f64, length_variability: f64) -> InteractiveMesh {
-
-        let mut mesh = InteractiveMesh {
-            mesh: TriangularMesh::new(String::from("Swarm"), 0, count as u32, 36),
-            frames: 0,
-            velocity: HashMap::with_capacity(count as usize)
-        };
-
-        for ii in 0..count {
-            let coordinates: Vec3 =  Vec3{value:[
-                js_sys::Math::random().powi(2),
-                js_sys::Math::random().powi(2),
-                js_sys::Math::random()
-            ]};
-            mesh.mesh.insert_point(ii, coordinates);
-            mesh.insert_agent(ii);
-        }
-        
-        for ii in 0..count {
-            for jj in (ii+1)..count {
-                let random_length = length + js_sys::Math::random()*length_variability;
-                mesh.mesh.topology.insert_edge([ii, jj], random_length, spring_constant);
-                
-            }
-        }
-
-        mesh
-    }
-
 
     /**
      * Adding an agent to the system requires inserting the coordinates
@@ -1400,32 +1347,22 @@ pub struct Primitive {
     /**
      * Structure containing point data
      */
-    vertices: VertexArray,
+    pub vertex_array: VertexArray,
     /**
      * Indices may be in any order
      */
-    indices: Vec<u16>
+    pub indices: Vec<u16>
 }
 
 /**
 * Public interface for Primitive. 
 */
-impl Primitive {
-    /**
-     * Constructor
-     */
-    pub fn new(capacity: u32) -> Primitive {
-        Primitive {
-            vertices: VertexArray::new(String::from("primitive"), 0, capacity, 36),
-            indices: Vec::with_capacity(capacity as usize)
-        }
-    }
-    
+impl Primitive {    
     /**
      * Shift all points
      */
     pub fn shift(&mut self, dx: f64, dy: f64, dz: f64) -> &Self {
-        self.vertices.shift(dx, dy, dz);
+        self.vertex_array.shift(dx, dy, dz);
         self
     }
 
@@ -1433,7 +1370,7 @@ impl Primitive {
      * Scale all positions
      */
     pub fn scale(&mut self, sx: f64, sy: f64, sz: f64) -> &Self {
-        self.vertices.shift(sx, sy, sz);
+        self.vertex_array.shift(sx, sy, sz);
         self
     }
     
@@ -1445,7 +1382,7 @@ impl Primitive {
     
         let inc: f64 = -2.0 * PI / self.indices.len() as f64;
         for ii in self.indices.iter() {
-            let pt = self.vertices.get_mut(ii).unwrap();
+            let pt = self.vertex_array.get_mut(ii).unwrap();
             *pt = Vec3::XAXIS.rotate(&(inc* (*ii as f64)), &axis);
         }
         self
@@ -1462,7 +1399,7 @@ impl Primitive {
 
         for ii in self.indices.iter() {
             let angle = start_angle*180.0 + inc*(*ii as f64);
-            let pt = self.vertices.points.get_mut(ii).unwrap();
+            let pt = self.vertex_array.points.get_mut(ii).unwrap();
             pt.value = ray.rotate(&angle, &Vec3::ZAXIS).value;
         }
         self
@@ -1500,7 +1437,7 @@ impl Primitive {
         for ii in 0..count {
             let jj = &self.indices[ii];
             let angle = start_angle*180.0 + inc*(*jj as f64);
-            let pt = self.vertices.points.get_mut(jj).unwrap();
+            let pt = self.vertex_array.points.get_mut(jj).unwrap();
             pt.value = ray.rotate(&angle, &Vec3::ZAXIS).value;
         }
         self

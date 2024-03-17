@@ -1,79 +1,107 @@
-use serde::{Serialize,Deserialize};
-use std::collections::{VecDeque,HashMap};
+use serde::{Serialize, Deserialize};
+use std::collections::{VecDeque, HashMap};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsValue;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
-mod cursor;
-use cursor::SimpleCursor;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, TextMetrics};
 
-/** time interval, ISO8601 */
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct TimeInterval {
-    
-    start: f64,
-    
-    end: f64
+struct SimpleCursor {
+    pub x: f64,
+    pub y: f64
 }
 
+impl SimpleCursor {
 
-impl TimeInterval {
-    
-    pub fn new(
-        start: f64,
-        end: f64
-    ) -> Self {
-        TimeInterval {
-            start,
-            end
-        }
+    pub fn update(&mut self, x: f64, y: f64) {
+        self.x = x;
+        self.y = y;
     }
+
+    pub fn draw(
+        &self, 
+        ctx: &CanvasRenderingContext2d, 
+        w: f64, 
+        h: f64, 
+        color: &JsValue,
+        font_size: f64, 
+        line_width: f64, 
+        tick_size: f64, 
+        completeness: f64, 
+        label_padding: f64
+    ) {
+        
+        let font = format!("{:.0}px Arial", font_size.floor());
+
+        ctx.set_stroke_style(&color);
+        ctx.set_line_width(line_width);
+        ctx.set_fill_style(&color);
+        ctx.set_font(&font);
+    
+        ctx.begin_path();
+
+        let y_bottom = tick_size.min(self.y);
+        let actual_y = y_bottom + completeness * (self.y - y_bottom);
+        let y_top = (h-tick_size).max(self.y);
+
+        ctx.move_to(self.x, h);
+        ctx.line_to(self.x, y_top - completeness * (y_top - self.y));
+
+        ctx.move_to(self.x, 0.0);
+        ctx.line_to(self.x, actual_y);
+
+        let x_caption = format!("{:.0}", self.x);
+        let x_caption_measures: TextMetrics = ctx.measure_text(&x_caption.as_str()).unwrap();
+        let width: f64 = x_caption_measures.width();
+
+        ctx.fill_text(
+            x_caption.as_str(), 
+            (self.x - width - label_padding).max(tick_size + label_padding).min(w - width - label_padding - tick_size), 
+            (actual_y - label_padding).max(font_size + label_padding + tick_size).min(h - label_padding - tick_size)
+        ).unwrap();
+    
+        let x_left = tick_size.min(self.x);
+        let actual_x = x_left + completeness * (self.x - x_left);
+        let x_right = (w-tick_size).max(self.x);
+
+        ctx.move_to(0.0, self.y);
+        ctx.line_to(actual_x, self.y);
+
+        ctx.move_to(w, self.y);
+        ctx.line_to(x_right - completeness * (x_right - self.x), self.y);
+
+        let y_caption = format!("{:.0}", h - self.y);
+        let y_caption_measures: TextMetrics = ctx.measure_text(&y_caption.as_str()).unwrap();
+        let width: f64 = y_caption_measures.width();
+
+        ctx.fill_text(
+            y_caption.as_str(), 
+            (actual_x + label_padding).max(tick_size + label_padding).min(w - width - label_padding - tick_size), 
+            (self.y + font_size + label_padding).max(font_size + label_padding + tick_size).min(h - label_padding - tick_size)
+        ).unwrap();
+    
+        ctx.stroke();
+    }
+} 
+
+/// time interval, ISO8601
+#[wasm_bindgen]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct TimeInterval {    
+    pub start: f64,
+    pub end: f64
 }
 
-
-/**
- * Observations are individual time-stamped members of DataStreams
- */
+/// Observations are individual time-stamped members of DataStreams
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Observations {
-    
-    uuid: Option<String>,
-    
-    phenomenon_time: Option<f64>,
-    
-    result: Option<f64>,
-    
-    result_time: Option<f64>,
-    
-    result_quality: Option<String>,
-    
-    valid_time: Option<TimeInterval>,
-    
-    parameters: Option<HashMap<String, String>>
+    pub uuid: Option<String>,
+    pub phenomenon_time: f64,
+    pub result: f64,
+    pub result_time: Option<f64>,
+    pub result_quality: Option<String>,
+    pub valid_time: Option<TimeInterval>,
+    pub parameters: Option<HashMap<String, String>>
 }
 
-impl Observations {
-    
-    pub fn new(
-        uuid: Option<String>,
-        phenomenon_time: Option<f64>,
-        result: Option<f64>,
-        result_time: Option<f64>,
-        result_quality: Option<String>,
-        valid_time: Option<TimeInterval>,
-        parameters: Option<HashMap<String, String>>
-    ) -> Self {
-        Observations {
-            uuid,
-            phenomenon_time,
-            result,
-            result_time,
-            result_quality,
-            valid_time,
-            parameters
-        }
-    }
-}
 
 /**
  * DataStreams are collections of Observations from a common source
@@ -81,47 +109,19 @@ impl Observations {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct DataStreams {
-    
-    uuid: Option<String>,
-    
-    name: Option<String>,
-    
-    description: Option<String>,
-    
-    unit_of_measurement: Option<String>,
-    
-    observation_type: Option<String>,
-    
-    phenomenon_time: Option<TimeInterval>,
-    
-    result_time: Option<TimeInterval>
+    pub uuid: Option<String>,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub unit_of_measurement: Option<String>,
+    pub observation_type: Option<String>,
+    pub phenomenon_time: Option<TimeInterval>,
+    pub result_time: Option<TimeInterval>
 }
 
-impl DataStreams {
-    pub fn new(
-        uuid: Option<String>,
-        name: Option<String>,
-        description: Option<String>,
-        unit_of_measurement: Option<String>,
-        observation_type: Option<String>,
-        phenomenon_time: Option<TimeInterval>,
-        result_time: Option<TimeInterval>
-    ) -> Self {
-        DataStreams {
-            uuid,
-            name,
-            description,
-            unit_of_measurement,
-            observation_type,
-            phenomenon_time,
-            result_time
-        }
-    }
-}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Style {
+struct Style {
     pub background_color: String,
     pub stream_color: String,
     pub overlay_color: String,
@@ -132,13 +132,25 @@ pub struct Style {
     pub label_padding: f64,
 }
 
+/// An axis struct describes one index of an ND array. For visualization purposes
+/// it maps a data dimension into a screen position.
+/// Methods on Axis are defined in the `impl` block.
+struct Axis {
+   pub extent: (f64, f64)
+}
+
 /// Interactive data streams are containers with an additional reference
 #[wasm_bindgen]
 pub struct InteractiveDataStream {
-    data_stream: DataStream,
+    _metadata: Option<DataStreams>,
+    capacity: usize,
+    observations: VecDeque<Observations>,
+    mean: VecDeque<f64>,
+    axes: Vec<Axis>,
     cursor: SimpleCursor,
     frames: usize,
 }
+
 
 #[wasm_bindgen]
 impl InteractiveDataStream {
@@ -148,10 +160,21 @@ impl InteractiveDataStream {
      * constructed on the JavaScript side.
      */
     #[wasm_bindgen(constructor)]
-    pub fn new(capacity: usize) -> InteractiveDataStream {
+    pub fn new(
+        capacity: usize,
+        metadata: JsValue,
+    ) -> InteractiveDataStream {
+        let _metadata: Option<DataStreams> = serde_wasm_bindgen::from_value(metadata).unwrap();
         InteractiveDataStream {
-            data_stream: DataStream::new(capacity),
-            cursor: SimpleCursor::new(0.0, 0.0),
+            _metadata,
+            capacity,
+            observations: VecDeque::with_capacity(capacity),
+            mean: VecDeque::with_capacity(capacity),
+            axes: vec![
+                Axis{extent: (0.0, capacity as f64)},
+                Axis{extent: (0.0, 1.0)},
+            ],
+            cursor: SimpleCursor{x: 0.0, y: 0.0},
             frames: 0,
         }
     }
@@ -173,11 +196,9 @@ impl InteractiveDataStream {
         let inset = rstyle.tick_size * 0.5;
 
         crate::clear_rect_blending(ctx, w, h, bg);
-        self.data_stream
-            .draw_as_points(ctx, w, h, &color, rstyle.point_size);
-        self.data_stream
-            .draw_mean_line(ctx, w, h, &overlay, rstyle.line_width);
-        self.data_stream.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
+        self.draw_as_points(ctx, w, h, &color, rstyle.point_size);
+        self.draw_mean_line(ctx, w, h, &overlay, rstyle.line_width);
+        self.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
         self.cursor.draw(
             ctx,
             w,
@@ -206,19 +227,6 @@ impl InteractiveDataStream {
         self.frames += 1;
     }
 
-    /**
-     * Hoist the datastream push method, needed to ensure JavaScript binding
-     */
-    pub fn push(&mut self, x: f64, y: f64) {
-        self.data_stream.push(x, y);
-    }
-
-    /**
-     * Hoist data stream size getter, needed to ensure JavaScript binding
-     */
-    pub fn size(&self) -> usize {
-        self.data_stream.size()
-    }
 
     /**
      * Hoist cursor setter, needed to ensure JavaScript binding
@@ -226,63 +234,10 @@ impl InteractiveDataStream {
     pub fn update_cursor(&mut self, x: f64, y: f64) {
         self.cursor.update(x, y);
     }
-}
 
-/**
- * Observations are N-dimensional points mapped into 2-D screen space.
- * DataStreams are made up of Observations.
- */
-struct Observation {
-    x: f64,
-    y: f64,
-}
-
-/**
-An axis struct describes one index of an ND array. For visualization purposes
-it maps a data dimension into a screen position.
-
-Methods on Axis are defined in the `impl` block.
-*/
-struct Axis {
-    extent: (f64, f64)
-}
-
-impl Axis {
-    /// Create a new Axis struct
-    pub fn new(extent: (f64, f64)) -> Axis {
-        Axis {
-            extent
-        }
-    }
-}
-
-/**
- * Data streams are containers of observations. They keep track of data, metadata, and
- * summary statistics about their child Observations.
- */
-pub struct DataStream {
-    capacity: usize,
-    data: VecDeque<Observation>,
-    mean: VecDeque<f64>,
-    axes: Vec<Axis>,
-}
-
-impl DataStream {
-    /// Constructor for datastreams
-    pub fn new(capacity: usize) -> DataStream {
-        DataStream {
-            capacity,
-            data: VecDeque::with_capacity(capacity),
-            mean: VecDeque::with_capacity(capacity),
-            axes: vec![
-                Axis::new((0.0, capacity as f64)),
-                Axis::new((0.0, 1.0)),
-            ],
-        }
-    }
-
+    /// Current number of observations
     pub fn size(&self) -> usize {
-        self.data.len()
+        self.observations.len()
     }
 
     /**
@@ -294,32 +249,35 @@ impl DataStream {
      * If the the buffer has reached it's maximum length, an
      * observation is evicted from the front.
      */
-    pub fn push(&mut self, x: f64, y: f64) {
+    pub fn push(&mut self, observation: JsValue) {
+        let observation: Observations = serde_wasm_bindgen::from_value(observation).unwrap();
         let size = self.size();
-
         let new_mean;
+        let y = observation.result;
 
         if size == 0 {
             new_mean = y;
         } else if (0 < size) && (size < self.capacity) {
             new_mean = (self.mean.back().unwrap() * (size as f64) + y) / (size + 1) as f64;
         } else {
-            let evicted = self.data.pop_front().unwrap().y;
+            let evicted = self.observations.pop_front().unwrap().result;
             let _ = self.mean.pop_front().unwrap();
             new_mean = (self.mean.back().unwrap() * (size as f64) + y - evicted) / (size as f64);
         }
 
         self.mean.push_back(new_mean);
-        self.data.push_back(Observation { x, y });
-
-        self.axes[0].extent = (self.data.front().unwrap().x, self.data.back().unwrap().x);
+        self.observations.push_back(observation);
+        self.axes[0].extent = (
+            self.observations.front().unwrap().phenomenon_time, 
+            self.observations.back().unwrap().phenomenon_time
+        );
         self.axes[1].extent = (y.min(self.axes[1].extent.0), y.max(self.axes[1].extent.1));
     }
 
     /// Return array of logical values, with true indicating that the value or its
     // first derivative are outliers
     pub fn _statistical_outliers(&self, _threshold: f32) {
-        let size = self.data.len();
+        let size = self.observations.len();
         let mut dydt: Vec<f32> = Vec::with_capacity(size);
         let mut dt: Vec<f32> = Vec::with_capacity(size);
         let mut diff: Vec<f64> = Vec::with_capacity(size);
@@ -329,7 +287,7 @@ impl DataStream {
         dt.push(0.0);
 
         for nn in 0..size {
-            diff.push(self.data[nn].y);
+            diff.push(self.observations[nn].result);
         }
 
         diff.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -345,8 +303,8 @@ impl DataStream {
 
         for nn in 0..size {
             if nn > 0 {
-                let delta_t = (self.data[nn].x - self.data[nn - 1].x) as f32;
-                let delta_y = (self.data[nn].y - self.data[nn - 1].y) as f32;
+                let delta_t = (self.observations[nn].phenomenon_time - self.observations[nn - 1].phenomenon_time) as f32;
+                let delta_y = (self.observations[nn].result - self.observations[nn - 1].result) as f32;
                 dydt.push(delta_y / delta_t);
                 dt.push(delta_t);
             }
@@ -370,48 +328,64 @@ impl DataStream {
         end: f64,
         frequency: f64,
         back_fill: bool,
-    ) -> DataStream {
+    ) -> VecDeque<Observations> {
         let capacity = ((end - start) / frequency).ceil() as usize;
-        let mut result = DataStream::new(capacity); // new struct to output
+        let mut result = VecDeque::with_capacity(capacity);
         let mut reference = 0;
 
         for ii in 0..capacity {
-            let time = (ii as f64) * frequency + start;
-            while reference < result.data.len() - 1
-                && time > self.data[reference + (!back_fill as usize)].x
+            let phenomenon_time = (ii as f64) * frequency + start;
+            while reference < result.len() - 1
+                && phenomenon_time > self.observations[reference + (!back_fill as usize)].phenomenon_time
             {
                 reference += 1;
             }
-            result.push(time, self.data[reference].y);
+            result.push_back(Observations{
+                uuid: None,
+                phenomenon_time,
+                result: self.observations[reference].result,
+                result_time: None,
+                result_quality: None,
+                valid_time: None,
+                parameters: None
+            });
         }
         result
     }
 
-    fn _resample_and_interpolate(&self, start: f64, end: f64, frequency: f64) -> DataStream {
+    fn _resample_and_interpolate(&self, start: f64, end: f64, frequency: f64) -> VecDeque<Observations> {
         let capacity = ((end - start) / frequency).ceil() as usize;
-        let mut result = DataStream::new(capacity); // new struct to output
+        let mut observations: VecDeque<Observations> = VecDeque::with_capacity(capacity); // new struct to output
         let mut previous = 0;
         let mut reference = 0;
 
         for ii in 0..capacity {
-            let time = (ii as f64) * frequency + start;
-            while reference < result.data.len() - 1 && time > self.data[reference].x {
+            let phenomenon_time = (ii as f64) * frequency + start;
+            while reference < observations.len() - 1 && phenomenon_time > self.observations[reference].phenomenon_time {
                 previous += (reference > 0) as usize;
                 reference += 1;
             }
 
-            let y: f64;
-            if reference == 0 || reference == result.data.len() - 1 {
-                y = self.data[reference].y;
+            let result: f64;
+            if reference == 0 || reference == observations.len() - 1 {
+                result = self.observations[reference].result;
             } else {
-                let dydt = (self.data[reference].y - self.data[previous].y)
-                    / (self.data[reference].x - self.data[previous].x);
-                y = self.data[previous].y + (time - self.data[previous].x) * dydt;
+                let dydt = (self.observations[reference].result - self.observations[previous].result)
+                    / (self.observations[reference].phenomenon_time - self.observations[previous].phenomenon_time);
+                    result = self.observations[previous].result + (phenomenon_time - self.observations[previous].phenomenon_time) * dydt;
             }
 
-            result.push(time, y);
+            observations.push_back(Observations{
+                uuid: None,
+                phenomenon_time,
+                result,
+                result_time: None,
+                result_quality: None,
+                valid_time: None,
+                parameters: None
+            });
         }
-        result
+        observations
     }
 
     /// Transform the y-dimension to pixel dimensions
@@ -428,15 +402,12 @@ impl DataStream {
         color: &JsValue,
         scale: f64,
     ) {
-        if self.data.len() == 0 {
-            return;
+        if self.size() > 0 {
+            ctx.set_fill_style(color);
         }
-
-        ctx.set_fill_style(color);
-
-        for obs in self.data.iter() {
-            let x = self.rescale(obs.x, 0);
-            let y = self.rescale(obs.y, 1);
+        for obs in self.observations.iter() {
+            let x = self.rescale(obs.phenomenon_time, 0);
+            let y = self.rescale(obs.result, 1);
             ctx.fill_rect(x * w - scale / 2.0, h - y * h - scale / 2.0, scale, scale);
         }
     }
@@ -450,7 +421,7 @@ impl DataStream {
         color: &JsValue,
         line_width: f64,
     ) {
-        if self.data.len() == 0 {
+        if self.observations.len() == 0 {
             return;
         }
 
@@ -459,9 +430,9 @@ impl DataStream {
         ctx.set_line_width(line_width);
 
         let mut start = true;
-        for obs in self.data.iter() {
-            let x = self.rescale(obs.x, 0);
-            let y = self.rescale(obs.y, 1);
+        for obs in self.observations.iter() {
+            let x = self.rescale(obs.phenomenon_time, 0);
+            let y = self.rescale(obs.result, 1);
             if start {
                 ctx.move_to(x * w, h - y * h);
                 start = false;
@@ -483,11 +454,10 @@ impl DataStream {
     ) {
         ctx.set_stroke_style(&color);
         ctx.set_line_width(line_width);
-
         ctx.begin_path();
-        let size = self.data.len();
+        let size = self.size();
         for ii in 0..size {
-            let x = self.rescale(self.data[ii].x, 0);
+            let x = self.rescale(self.observations[ii].phenomenon_time, 0);
             let y = self.rescale(self.mean[ii], 1);
             if ii == 0 {
                 ctx.move_to(x * w, h - y * h);
