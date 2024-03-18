@@ -3,6 +3,7 @@ import DataStream from "./DataStream";
 import { Metadata } from "next";
 import Link from "next/link";
 import layout from "@app/layout.module.css"
+import type {DataStreams} from "@oceanics/app"
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Data Stream",
@@ -16,13 +17,13 @@ export async function generateStaticParams() {
   }]
 }
 
-export default function Page({params}: {params: {uuid: string}}) {
+export default function Page({params}: {params: DataStreams}) {
   return (
     <> 
       <h2><Link className={layout.link} href={"/catalog/data_streams/"}>
       Data Streams
       </Link></h2>
-      <h3>{params.uuid}</h3>
+      <h3>{params.name ?? params.uuid}</h3>
       <Suspense fallback={<p>Loading...</p>}>
         <DataStream
             streamColor="lightblue"

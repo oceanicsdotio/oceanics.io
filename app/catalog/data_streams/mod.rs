@@ -142,7 +142,7 @@ pub struct Histogram {
 /// Interactive data streams are containers with an additional reference
 #[wasm_bindgen]
 pub struct InteractiveDataStream {
-    _metadata: Option<DataStreams>,
+    data_stream: DataStreams,
     capacity: usize,
     observations: VecDeque<Observations>,
     mean: VecDeque<f64>,
@@ -162,10 +162,10 @@ impl InteractiveDataStream {
         metadata: JsValue,
         bins: usize
     ) -> InteractiveDataStream {
-        let _metadata: Option<DataStreams> = serde_wasm_bindgen::from_value(metadata).unwrap();
+        let data_stream: DataStreams = serde_wasm_bindgen::from_value(metadata).unwrap();
         panic_hook();
         InteractiveDataStream {
-            _metadata,
+            data_stream,
             capacity,
             observations: VecDeque::with_capacity(capacity),
             mean: VecDeque::with_capacity(capacity),
