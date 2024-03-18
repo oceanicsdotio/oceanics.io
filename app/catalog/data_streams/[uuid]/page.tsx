@@ -4,19 +4,22 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Data Stream",
-  description: "Access streaming time series data.",
+  description: "Streaming and synthetic time series data.",
 };
 
 export async function generateStaticParams() { 
   return [{
-    uuid: "example"
+    uuid: "example",
+    name: "Example"
   }]
 }
 
-export default function Page() {
+export default function Page({params}: {params: {uuid: string}}) {
   return (
-    <>
-      <Suspense>
+    <> 
+      <h2>Data Streams</h2>
+      <h3>{params.uuid}</h3>
+      <Suspense fallback={<p>Loading...</p>}>
         <DataStream
             streamColor="#ffffff"
             overlayColor="#ffffff"
@@ -27,6 +30,7 @@ export default function Page() {
             tickSize={16}
             fontSize={32}
             labelPadding={8}
+            binSize={100}
         ></DataStream>
         </Suspense>
     </>

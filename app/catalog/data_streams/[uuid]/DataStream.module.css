@@ -12,6 +12,7 @@
   padding: 0;
   image-rendering: crisp-edges;
   width: 100%;
+  aspect-ratio: 1.0 / 0.5;
   animation: fade-in 2s;
   border-radius: 5px;
   border: 1px solid lightblue;

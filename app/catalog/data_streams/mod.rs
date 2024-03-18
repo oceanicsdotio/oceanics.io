@@ -1,7 +1,10 @@
+use js_sys::Object;
 use serde::{Serialize, Deserialize};
 use std::collections::{VecDeque, HashMap};
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, TextMetrics};
+
+use crate::panic_hook;
 /// Cursor show
 struct SimpleCursor {
     pub x: f64,
@@ -82,7 +85,7 @@ impl SimpleCursor {
 /// time interval, ISO8601
 #[wasm_bindgen]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct TimeInterval {    
+pub struct TimeInterval {    
     pub start: f64,
     pub end: f64
 }
@@ -99,9 +102,10 @@ struct Observations {
     pub parameters: Option<HashMap<String, String>>
 }
 /// DataStreams are collections of Observations from a common source
+#[wasm_bindgen(getter_with_clone)]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct DataStreams {
+pub struct DataStreams {
     pub uuid: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -130,6 +134,12 @@ struct Style {
 struct Axis {
    pub extent: (f64, f64)
 }
+/// Stream statistics
+pub struct Histogram {
+    pub max: f64,
+    pub total: f64,
+    pub bins: Vec<[u32; 2]>
+}
 /// Interactive data streams are containers with an additional reference
 #[wasm_bindgen]
 pub struct InteractiveDataStream {
@@ -140,6 +150,7 @@ pub struct InteractiveDataStream {
     axes: Vec<Axis>,
     cursor: SimpleCursor,
     frames: usize,
+    histogram: Histogram
 }
 #[wasm_bindgen]
 impl InteractiveDataStream {
@@ -150,8 +161,10 @@ impl InteractiveDataStream {
     pub fn new(
         capacity: usize,
         metadata: JsValue,
+        bins: usize
     ) -> InteractiveDataStream {
         let _metadata: Option<DataStreams> = serde_wasm_bindgen::from_value(metadata).unwrap();
+        panic_hook();
         InteractiveDataStream {
             _metadata,
             capacity,
@@ -163,11 +176,16 @@ impl InteractiveDataStream {
             ],
             cursor: SimpleCursor{x: 0.0, y: 0.0},
             frames: 0,
+            histogram: Histogram{
+                total: 0.0,
+                max: 0.0,
+                bins: Vec::with_capacity(bins)
+            } 
         }
     }
     /// Compose the data-driven visualization and draw to
     /// the target HtmlCanvasElement.
-    pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
+    pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue, summary: bool) {
         let rstyle: Style = serde_wasm_bindgen::from_value(style).unwrap();
         let color = JsValue::from_str(&rstyle.stream_color);
         let bg = JsValue::from_str(&rstyle.background_color);
@@ -176,13 +194,23 @@ impl InteractiveDataStream {
         let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
         let w = canvas.width() as f64;
         let h = canvas.height() as f64;
-        let font = format!("{:.0} Arial", rstyle.font_size);
-        let inset = rstyle.tick_size * 0.5;
-
         crate::clear_rect_blending(ctx, w, h, bg);
-        self.draw_as_points(ctx, w, h, &color, rstyle.point_size);
-        self.draw_mean_line(ctx, w, h, &overlay, rstyle.line_width);
-        self.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
+        if summary {
+            ctx.set_fill_style(&color);
+            for [x, count] in self.histogram.bins.iter() {
+                let dw = 1.0 / self.histogram.bins.len() as f64;
+                ctx.fill_rect(
+                    w * (x.clone() as f64 - dw),
+                    h,
+                    w * dw,
+                    (h * -(count.clone() as f64)) / self.histogram.max
+                  );
+            }
+        } else {
+            self.draw_as_points(ctx, w, h, &color, rstyle.point_size);
+            self.draw_mean_line(ctx, w, h, &overlay, rstyle.line_width);
+            self.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
+        }
         self.cursor.draw(
             ctx,
             w,
@@ -194,9 +222,9 @@ impl InteractiveDataStream {
             0.0,
             rstyle.label_padding,
         );
-
+        let font = format!("{:.0} Arial", rstyle.font_size);
         let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
-
+        let inset = rstyle.tick_size * 0.5;
         if time < 10000.0 || fps < 30.0 {
             crate::draw_caption(
                 &ctx,
@@ -232,7 +260,7 @@ impl InteractiveDataStream {
         let y = observation.result;
 
         if size == 0 {
-            new_mean = y;
+            new_mean = observation.result;
         } else if (0 < size) && (size < self.capacity) {
             new_mean = (self.mean.back().unwrap() * (size as f64) + y) / (size + 1) as f64;
         } else {
@@ -240,13 +268,19 @@ impl InteractiveDataStream {
             let _ = self.mean.pop_front().unwrap();
             new_mean = (self.mean.back().unwrap() * (size as f64) + y - evicted) / (size as f64);
         }
+        self.histogram.total += 1.0;
+        self.histogram.max = self.histogram.max.max(y);
         self.mean.push_back(new_mean);
+        let time = observation.phenomenon_time;
         self.observations.push_back(observation);
         self.axes[0].extent = (
             self.observations.front().unwrap().phenomenon_time, 
-            self.observations.back().unwrap().phenomenon_time
+            time
         );
-        self.axes[1].extent = (y.min(self.axes[1].extent.0), y.max(self.axes[1].extent.1));
+        self.axes[1].extent = (
+            y.min(self.axes[1].extent.0), 
+            y.max(self.axes[1].extent.1)
+        );
     }
     /// Return array of logical values, with true indicating that the value or its
     /// first derivative are outliers
@@ -473,11 +507,11 @@ impl InteractiveDataStream {
             ctx.line_to(x, h - tick_size);
         }
 
-        ctx.move_to(0.0, 0.0);
-        ctx.line_to(0.0, h);
-        ctx.line_to(w, h);
-        ctx.line_to(w, 0.0);
-        ctx.line_to(0.0, 0.0);
+        // ctx.move_to(0.0, 0.0);
+        // ctx.line_to(0.0, h);
+        // ctx.line_to(w, h);
+        // ctx.line_to(w, 0.0);
+        // ctx.line_to(0.0, 0.0);
 
         ctx.stroke();
     }
