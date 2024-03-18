@@ -1,4 +1,3 @@
-use js_sys::Object;
 use serde::{Serialize, Deserialize};
 use std::collections::{VecDeque, HashMap};
 use wasm_bindgen::prelude::*;
@@ -481,14 +480,15 @@ impl InteractiveDataStream {
         line_width: f64,
         tick_size: f64,
     ) {
-        const INC: f64 = 1.0 / 10.0;
+        let divs: u8 = 10;
+        let inc = 1.0 / divs as f64;
 
         ctx.set_stroke_style(color);
         ctx.set_line_width(line_width);
         ctx.begin_path();
 
-        for ii in 0..11 {
-            let y = INC * ii as f64 * h;
+        for ii in 1..divs {
+            let y = inc * ii as f64 * h;
 
             ctx.move_to(0.0, h - y);
             ctx.line_to(tick_size, h - y);
@@ -497,8 +497,8 @@ impl InteractiveDataStream {
             ctx.line_to(w - tick_size, h - y);
         }
 
-        for ii in 0..11 {
-            let x = INC * ii as f64 * w;
+        for ii in 1..divs {
+            let x = inc * ii as f64 * w;
 
             ctx.move_to(x, 0.0);
             ctx.line_to(x, tick_size);

@@ -1,6 +1,8 @@
 import React, { Suspense } from "react";
 import DataStream from "./DataStream";
 import { Metadata } from "next";
+import Link from "next/link";
+import layout from "@app/layout.module.css"
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Data Stream",
@@ -17,12 +19,14 @@ export async function generateStaticParams() {
 export default function Page({params}: {params: {uuid: string}}) {
   return (
     <> 
-      <h2>Data Streams</h2>
+      <h2><Link className={layout.link} href={"/catalog/data_streams/"}>
+      Data Streams
+      </Link></h2>
       <h3>{params.uuid}</h3>
       <Suspense fallback={<p>Loading...</p>}>
         <DataStream
-            streamColor="#ffffff"
-            overlayColor="#ffffff"
+            streamColor="lightblue"
+            overlayColor="lightblue"
             backgroundColor="#110022"
             lineWidth={2}
             pointSize={4}

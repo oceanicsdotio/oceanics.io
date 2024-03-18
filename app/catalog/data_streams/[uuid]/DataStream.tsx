@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { InteractiveDataStream } from "@oceanics/app";
 import style from "./DataStream.module.css";
 /**
@@ -55,10 +55,6 @@ const DataStream = ({ capacity, binSize=100, ...props }: IDataStream) => {
    */
   const [interactive, setInteractive] = useState<InteractiveDataStream | null>(null);
   /**
-   * Message displayed as label.
-   */
-  const [message, setMessage] = useState<string>();
-  /**
    * Run startup procedure
    */
   useEffect(() => {
@@ -86,8 +82,7 @@ const DataStream = ({ capacity, binSize=100, ...props }: IDataStream) => {
     );
     const start = performance.now();
     let requestId: number | null = null;
-    setMessage(`N=${interactive.size()}`);
-
+    
     (function render() {
       const phenomenonTime = performance.now() - start;
       const days = (phenomenonTime / 5000.0) % 365.0;
@@ -107,9 +102,6 @@ const DataStream = ({ capacity, binSize=100, ...props }: IDataStream) => {
 
   return (
     <div>
-      <Suspense fallback={<label>Calculating...</label>}>
-        <label>{message}</label>
-      </Suspense>
       <canvas className={style.canvas} ref={canvas} />
     </div>
   );

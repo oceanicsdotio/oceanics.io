@@ -57,6 +57,10 @@ dev: out
 	@ yarn netlify dev
 .PHONY: dev
 
+next-dev: out
+	@ yarn next dev
+.PHONY: next-dev
+
 # Create examples with static UUID values for deterministic testing
 test: out
 	@ yarn jest
