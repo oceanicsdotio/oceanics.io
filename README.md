@@ -11,7 +11,7 @@
 
 ## About
 
-This document is for developers of [https://www.oceanics.io](https://www.oceanics.io), a web application for high-performance ocean computing and visualization. 
+This document is for developers of [https://www.oceanics.io](https://www.oceanics.io), a web application for high-performance computing and visualization. 
 
 Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is, with no warranty or guarantee. 
 

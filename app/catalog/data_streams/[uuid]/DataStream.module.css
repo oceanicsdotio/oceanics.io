@@ -1,0 +1,8 @@
+.canvas {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  aspect-ratio: 1.0 / 0.25;
+  border-radius: 10px;
+  border: 1px solid lightblue;
+}
