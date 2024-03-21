@@ -1,6 +1,5 @@
-SRC = \
-	$(shell find app -type d) \
-	$(shell find app -type f -name '*')
+SRC = $(shell find app -type f -not -path 'app/lib/*' -not -path 'app/target/*')
+FUNCTIONS = $(shell find functions/src -type f -name '*.mts')
 
 app/lib: $(shell find app -type f -name '*.rs') app/Cargo.lock app/Cargo.toml
 	@ cargo install wasm-pack
@@ -40,14 +39,14 @@ examples.json: examples.ts specification.json
 	@ yarn exec tsx examples.ts specification.json examples.json
 
 # Build the next site within Netlify to pick up env/config
-out: next.config.mjs tsconfig.json netlify.toml public/openapi.html tsconfig.json examples.json $(SRC)
+out: $(SRC) next.config.mjs tsconfig.json netlify.toml public/openapi.html examples.json 
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@
 
 # Build the next site, called by Netlify build
-next:
+next: 
 	@ yarn run next build
 .PHONY: next
 
@@ -57,7 +56,7 @@ dev: out
 	@ yarn netlify dev
 .PHONY: dev
 
-next-dev: out
+next-dev: app/lib public/openapi.html
 	@ yarn next dev
 .PHONY: next-dev
 
@@ -75,7 +74,9 @@ deploy: out
 clean:
 	@ rm -f examples.json
 	@ rm -rf functions/lib
+	@ rm -rf functions/target
 	@ rm -rf app/lib
+	@ rm -rf app/target
 	@ rm -rf node_modules
 	@ rm -rf out
 	@ rm -rf .netlify
