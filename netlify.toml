@@ -44,8 +44,15 @@
 #   conditions = { Role = ["admin"] }
 
 [[redirects]]
-  from = "/bets/*" 
-  to = "/bets/:splat"
+  from = "/compute/*" 
+  to = "/compute/:splat"
+  status = 200
+  force = true
+  conditions = { Role = ["admin"] }
+
+[[redirects]]
+  from = "/read/*" 
+  to = "/read/:splat"
   status = 200
   force = true
   conditions = { Role = ["admin"] }

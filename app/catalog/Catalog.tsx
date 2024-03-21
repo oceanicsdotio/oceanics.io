@@ -8,7 +8,8 @@ import React, {
   useState,
   type MutableRefObject,
 } from "react";
-
+import Link from "next/link";
+import layout from "@app/layout.module.css";
 import styles from "./catalog.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import specification from "../../specification.json";
@@ -457,6 +458,9 @@ export default function Catalog({
       <h2>{specification.info.title}</h2>
       <Markdown>{specification.info.description}</Markdown>
       {/* <Suspense>{operations}</Suspense> */}
+      <p>
+        <Link className={layout.link} href={"/catalog/data_streams"}>Data Streams</Link>
+      </p>
     </div>
   );
 }

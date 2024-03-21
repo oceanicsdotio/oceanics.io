@@ -1,71 +1,70 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import type { InteractiveDataStream } from "@oceanics/app";
-import style from "./DataStream.module.css";
+import type { InteractiveDataStream, DataStreamStyle } from "@oceanics/app";
+import styles from "./DataStream.module.css";
 /**
- * Interface for the React component
+ * Interface for main React component
  */
 interface IDataStream {
   /**
-   * Hex color for the time series
-   */
-  streamColor: string;
-  /**
-   * Hex color for figure elements
-   */
-  overlayColor: string;
-  /**
-   * Hex color for background blending
-   */
-  backgroundColor: string;
-  /**
-   * How thick to draw the time series line
-   */
-  lineWidth: number;
-  /**
-   * How large to draw the points
-   */
-  pointSize: number;
-  /**
-   * Buffer of observations visible at once
+   * Buffer of visible/stored observations.
    */
   capacity: number;
   /**
-   * Axis tick length
+   * Number of bins to use in histogram.
    */
-  tickSize: number;
+  bins: number;
   /**
-   * Canvas-drawn text size
+   * System time scalar
    */
-  fontSize: number;
+  timeConstant: number;
   /**
-   * Space between ticks and text labels
+   * Show histogram instead of series
    */
-  labelPadding: number;
-  binSize: number;
+  summary: boolean;
+  /**
+   * Drawing style type is from WASM, but we have to leave
+   * out bound methods.
+   */
+  draw: Omit<DataStreamStyle, "free">;
 }
 /*
  * Time series data container. Uses a synchronous WASM runtime
  * to draw to canvas and do various transformations of the data.
  */
-const DataStream = ({ capacity, binSize=100, ...props }: IDataStream) => {  
+const DataStream = ({
+  capacity,
+  bins,
+  timeConstant,
+  summary,
+  draw,
+}: IDataStream) => {
+  /**
+   * Render target
+   */
   const canvas = useRef<HTMLCanvasElement | null>(null);
   /**
    * The data stream structure.
    */
-  const [interactive, setInteractive] = useState<InteractiveDataStream | null>(null);
+  const [interactive, setInteractive] = useState<InteractiveDataStream | null>(
+    null
+  );
   /**
    * Run startup procedure
    */
   useEffect(() => {
     (async () => {
-      const { InteractiveDataStream } = await import(
+      const { InteractiveDataStream, panic_hook } = await import(
         "@oceanics/app"
       );
-      let data = new InteractiveDataStream(capacity, {}, binSize);
+      panic_hook();
+      let data = new InteractiveDataStream(capacity, bins, {
+        uuid: "example",
+        name: "Example",
+      });
       setInteractive(data);
     })();
-  }, [capacity, binSize]);
+  }, [capacity, bins]);
   /**
    * Draw as time series. Or, Draw as histogram.
    */
@@ -82,27 +81,21 @@ const DataStream = ({ capacity, binSize=100, ...props }: IDataStream) => {
     );
     const start = performance.now();
     let requestId: number | null = null;
-    
     (function render() {
-      const phenomenonTime = performance.now() - start;
-      const days = (phenomenonTime / 5000.0) % 365.0;
-      const hours = days % 1.0;
-      const result = Math.sin(hours);
-      interactive.push({
-        phenomenonTime,
-        result,
-      });
-      interactive.draw(handle, phenomenonTime, props, false);
+      const phenomenonTime = timeConstant * (performance.now() - start);
+      const result = Math.sin(phenomenonTime);
+      interactive.pushObservation({ phenomenonTime, result }, -1.0, 1.0);
+      interactive.draw(handle, draw, summary);
       requestId = requestAnimationFrame(render);
     })();
     return () => {
       if (requestId) cancelAnimationFrame(requestId);
     };
-  }, [interactive, canvas, props]);
+  }, [interactive, canvas, draw, timeConstant, summary]);
 
   return (
     <div>
-      <canvas className={style.canvas} ref={canvas} />
+      <canvas className={styles.canvas} ref={canvas} />
     </div>
   );
 };
