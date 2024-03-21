@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.535.0":
-  version: 3.535.0
-  resolution: "@aws-sdk/client-s3@npm:3.535.0"
+"@aws-sdk/client-s3@npm:^3.537.0":
+  version: 3.537.0
+  resolution: "@aws-sdk/client-s3@npm:3.537.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:3.0.0"
     "@aws-crypto/sha256-browser": "npm:3.0.0"
@@ -186,7 +186,7 @@ __metadata:
     "@aws-sdk/middleware-recursion-detection": "npm:3.535.0"
     "@aws-sdk/middleware-sdk-s3": "npm:3.535.0"
     "@aws-sdk/middleware-signing": "npm:3.535.0"
-    "@aws-sdk/middleware-ssec": "npm:3.535.0"
+    "@aws-sdk/middleware-ssec": "npm:3.537.0"
     "@aws-sdk/middleware-user-agent": "npm:3.535.0"
     "@aws-sdk/region-config-resolver": "npm:3.535.0"
     "@aws-sdk/signature-v4-multi-region": "npm:3.535.0"
@@ -228,7 +228,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^2.3.0"
     "@smithy/util-waiter": "npm:^2.2.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/6735485e379974194494196955803e038a96fd9ef7a4812c484769d75369993fea476ac8e9f8abfeb8b984e5fd5ce7dfa76dd3ed29e1ace37023b08d6603a96c
+  checksum: 10/aef48d9852824a07464db461a946db94317fed5f099da97ba6a6dcbbf70df8df4b5bb953e039c0823648639f0847d5f14fda6166264ae991b2450d4d491546b8
   languageName: node
   linkType: hard
 
@@ -620,14 +620,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/middleware-ssec@npm:3.535.0":
-  version: 3.535.0
-  resolution: "@aws-sdk/middleware-ssec@npm:3.535.0"
+"@aws-sdk/middleware-ssec@npm:3.537.0":
+  version: 3.537.0
+  resolution: "@aws-sdk/middleware-ssec@npm:3.537.0"
   dependencies:
     "@aws-sdk/types": "npm:3.535.0"
     "@smithy/types": "npm:^2.12.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/574801d48da1ee05493d52ed61ad4bf09744e87a93bcb21f653843933b20d7dd8c64c58a24f911630976790ce9af66cc49530eddbbc957350b7c4d1044e4925c
+  checksum: 10/ac2f3a436f5ca541041d18dbd908ce3b0cd68f7e899bbc84aa8559cb8ef12ba6003668cbddec988f57af61d5f02b4692f4986504670590e8b8c1ad944a3b8cd7
   languageName: node
   linkType: hard
 
@@ -23567,7 +23567,7 @@ __metadata:
   resolution: "www-oceanics-io@workspace:."
   dependencies:
     "@apidevtools/swagger-parser": "npm:^10.1.0"
-    "@aws-sdk/client-s3": "npm:^3.535.0"
+    "@aws-sdk/client-s3": "npm:^3.537.0"
     "@babel/core": "npm:^7.24.0"
     "@babel/preset-env": "npm:^7.24.0"
     "@babel/preset-typescript": "npm:^7.23.3"
