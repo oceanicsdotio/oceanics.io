@@ -1,40 +1,11 @@
-use std::collections::HashMap;
 use serde::Deserialize;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::Clamped;
-use web_sys::HtmlCanvasElement;
-use web_sys::WebGlFramebuffer;
-use web_sys::WebGlUniformLocation;
 use web_sys::{
-    CanvasRenderingContext2d, HtmlImageElement, ImageData, WebGlBuffer, WebGlProgram,
-    WebGlRenderingContext, WebGlShader, WebGlTexture,
+    console, CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement, WebGlBuffer,
+    WebGlFramebuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture,
+    WebGlUniformLocation,
 };
-
-/**
- * Take a rendering context, and shader definition and compile
- * the rendering pipeline stage into a program in GPU memory.
- */
-fn compile_shader(
-    context: &WebGlRenderingContext,
-    shader_type: u32,
-    source: &str,
-) -> Result<WebGlShader, String> {
-    let shader = context.create_shader(shader_type).unwrap();
-    context.shader_source(&shader, source);
-    context.compile_shader(&shader);
-
-    if context
-        .get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS)
-        .as_bool()
-        .unwrap_or(false)
-    {
-        Ok(shader)
-    } else {
-        Err(context
-            .get_shader_info_log(&shader)
-            .unwrap_or_else(|| String::from("Unknown error creating shader")))
-    }
-}
 
 struct Program {
     program: WebGlProgram,
@@ -43,30 +14,34 @@ struct Program {
 }
 
 impl Program {
-    /**
-     * Compile the shaders and link them to a program,
-     * returning the pointer to the executable
-     * in GPU memory.
-     *
-     * This is the high-level routine called directly from JavaScript.
-     * Create a map of GPU attribute names and addresses.
-     * These are used to mount and update values. They
-     * normally have a name prefixed with `a_` by glsl
-     * convention, but this may not always be true.
-     */
-    pub fn new(webgl: &WebGlRenderingContext, vertex: &str, fragment: &str) -> Result<Program, String> {
-        let vert_shader =
-            compile_shader(webgl, WebGlRenderingContext::VERTEX_SHADER, vertex)?;
-        let frag_shader =
-            compile_shader(webgl, WebGlRenderingContext::FRAGMENT_SHADER, fragment)?;
+    /// Compile the shaders and link them to a program,
+    /// returning the pointer to the executable
+    /// in GPU memory.
+    ///
+    /// This is the high-level routine called directly from JavaScript.
+    /// Create a map of GPU attribute names and addresses.
+    /// These are used to mount and update values. They
+    /// normally have a name prefixed with `a_` by glsl
+    /// convention, but this may not always be true.
+    pub fn new(
+        webgl: &WebGlRenderingContext,
+        vertex: &str,
+        fragment: &str,
+    ) -> Result<Program, String> {
+        let vert_shader = Self::compile_shader(webgl, WebGlRenderingContext::VERTEX_SHADER, vertex)?;
+        let frag_shader = Self::compile_shader(webgl, WebGlRenderingContext::FRAGMENT_SHADER, fragment);
+        if frag_shader.is_err() {
+            console::log_1(&JsValue::from_str(fragment));
+            return Err(frag_shader.err().unwrap());
+        }
         let program = webgl.create_program().unwrap();
         webgl.attach_shader(&program, &vert_shader);
-        webgl.attach_shader(&program, &frag_shader);
+        webgl.attach_shader(&program, &frag_shader.unwrap());
         webgl.link_program(&program);
         let status = webgl.get_program_parameter(&program, WebGlRenderingContext::LINK_STATUS);
         if !status.as_bool().unwrap() {
             let info = webgl.get_program_info_log(&program).unwrap();
-            return Err(info)
+            return Err(info);
         }
         let count = webgl.get_program_parameter(&program, WebGlRenderingContext::ACTIVE_UNIFORMS);
         let count: u32 = serde_wasm_bindgen::from_value(count).unwrap();
@@ -93,6 +68,29 @@ impl Program {
         })
     }
 
+    /// Take a rendering context, and shader definition and compile
+    /// the rendering pipeline stage into a program in GPU memory.
+    fn compile_shader(
+        context: &WebGlRenderingContext,
+        shader_type: u32,
+        source: &str,
+    ) -> Result<WebGlShader, String> {
+        let shader = context.create_shader(shader_type).unwrap();
+        context.shader_source(&shader, source);
+        context.compile_shader(&shader);
+
+        if context
+            .get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS)
+            .as_bool()
+            .unwrap_or(false)
+        {
+            Ok(shader)
+        } else {
+            Err(context
+                .get_shader_info_log(&shader)
+                .unwrap_or_else(|| String::from("Unknown error creating shader")))
+        }
+    }
     pub fn bind_attribute(
         &self,
         webgl: &WebGlRenderingContext,
@@ -167,20 +165,53 @@ impl Program {
         }
     }
 }
+/// Known programs. Honestly, just easier than the configurable route.
 struct Programs {
     update: Program,
     screen: Program,
     draw: Program,
     noise: Program,
 }
+/// Known textures.
+struct Textures {
+    screen: WebGlTexture,
+    back: WebGlTexture,
+    previous: WebGlTexture,
+    state: WebGlTexture,
+    color: Option<WebGlTexture>,
+    velocity: Option<WebGlTexture>,
+}
+struct Attributes {
+    a_pos: WebGlBuffer,
+    a_index: WebGlBuffer
+}
+
+struct Uniforms {
+    u_screen: u32,
+    u_opacity: f32,
+    u_wind: u32,
+    u_particles: u32,
+    u_color_ramp: u32,
+    u_particle_res: u32,
+    u_point_size: u32,
+    u_speed: f32,
+    u_diffusivity: f32,
+    u_drop: f32,
+    u_seed: f32, 
+    u_wind_max: Vec<f32>,
+    u_wind_min: Vec<f32>,
+    u_wind_res: Vec<f32>,
+    u_time: f32,
+}
 
 #[wasm_bindgen]
 struct WebGl {
     programs: Programs,
     webgl: WebGlRenderingContext,
-    textures: HashMap<String, WebGlTexture>,
+    textures: Textures,
     framebuffer: Option<WebGlFramebuffer>,
-    uniforms: HashMap<String, (String, Vec<f32>)>,
+    uniforms: Uniforms,
+    attributes: Attributes,
 }
 
 #[derive(Deserialize)]
@@ -188,16 +219,40 @@ struct Shaders {
     pub vertex: String,
     pub fragment: String,
 }
+#[derive(Deserialize)]
+struct Attribute {
+    name: String,
+    order: i32,
+    data: Vec<f32>,
+}
+#[derive(Deserialize)]
+struct Texture {
+    shape: Vec<i32>,
+    data: WebGlBuffer,
+    name: String,
+}
 
 #[wasm_bindgen]
 impl WebGl {
+    #[allow(dead_code)]
     #[wasm_bindgen(constructor)]
     pub fn new(
         canvas: &HtmlCanvasElement,
+        attributes: JsValue,
+        uniforms: JsValue,
         update: JsValue,
         screen: JsValue,
         draw: JsValue,
         noise: JsValue,
+        u_opacity: f32,
+        u_point_size: u32,
+        u_speed: f32, 
+        u_diffusivity: f32, 
+        u_drop: f32, 
+        u_seed: f32, 
+        u_wind_max: Vec<f32>, 
+        u_wind_min: Vec<f32>, 
+        u_wind_res: Vec<f32>
     ) -> Result<WebGl, JsValue> {
         let webgl = (*canvas)
             .get_context("webgl")
@@ -205,13 +260,15 @@ impl WebGl {
             .unwrap()
             .dyn_into::<WebGlRenderingContext>()
             .unwrap();
+        let width = canvas.width() as i32;
+        let height = canvas.height() as i32;
         let framebuffer = webgl.create_framebuffer();
         let update: Shaders = serde_wasm_bindgen::from_value(update).unwrap();
         let screen: Shaders = serde_wasm_bindgen::from_value(screen).unwrap();
         let draw: Shaders = serde_wasm_bindgen::from_value(draw).unwrap();
         let noise: Shaders = serde_wasm_bindgen::from_value(noise).unwrap();
         let update = Program::new(&webgl, &update.vertex, &update.fragment)?;
-        let screen = Program::new(&webgl, &screen.vertex, &screen.vertex)?;
+        let screen = Program::new(&webgl, &screen.vertex, &screen.fragment)?;
         let draw = Program::new(&webgl, &draw.vertex, &draw.fragment)?;
         let noise = Program::new(&webgl, &noise.vertex, &noise.fragment)?;
         let programs = Programs {
@@ -220,51 +277,81 @@ impl WebGl {
             draw,
             noise,
         };
-        Ok(WebGl {
+
+        let a_pos: Vec<f32> = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
+        let a_index: Vec<f32> = Vec::with_capacity((width * height * 4) as usize);
+        let attributes = Attributes { 
+            a_pos, 
+            a_index
+        };
+        let res = 16;
+        let screen = Vec::with_capacity((width * height * 4) as usize).as_slice();
+        let back = Vec::with_capacity((width * height * 4) as usize).as_slice();
+        let previous = Vec::with_capacity((res * res * 4) as usize).as_slice();
+        let state = Vec::with_capacity((res * res * 4) as usize).as_slice();
+        let textures = Textures{
+            screen: Self::texture_from_u8_array(&webgl, width, height, screen)?,
+            back: Self::texture_from_u8_array(&webgl, width, height, back)?,
+            previous: Self::texture_from_u8_array(&webgl, res, res, previous)?,
+            state: Self::texture_from_u8_array(&webgl, res, res, state)?,
+            color: None,
+            velocity: None
+        };
+        let uniforms = Uniforms { 
+            u_screen: 2, 
+            u_opacity, 
+            u_wind: 0, 
+            u_particles: 1, 
+            u_color_ramp: 2, 
+            u_particle_res: res as u32, 
+            u_point_size, 
+            u_speed, 
+            u_diffusivity, 
+            u_drop, 
+            u_seed, 
+            u_wind_max, 
+            u_wind_min, 
+            u_wind_res,
+            u_time: 0.0
+        };
+        let webgl = WebGl {
             webgl,
             programs,
-            textures: HashMap::new(),
             framebuffer,
-            uniforms: HashMap::new(),
-        })
-    }
-    pub fn bind_texture(&self, texture: &str, unit: u32) {
-        let texture = self.textures.get(texture).unwrap();
-        bind_texture(&self.webgl, texture, unit)
-    }
-
-    pub fn set_uniform(&mut self, name: String, data_type: String, value: Vec<f32>) {
-        self.uniforms.insert(name, (data_type, value)).unwrap();
+            textures,
+            uniforms,
+            attributes,
+        };
+        Ok(webgl)
     }
 
-    pub fn screen(
-        &self,
-        parameters: Vec<String>,
-        width: i32,
-        height: i32,
-        buffer: &WebGlBuffer,
-        time: f32,
-    ) {
+    pub fn bind_texture(&self, texture: &WebGlTexture, unit: u32) {
+        self.webgl
+            .active_texture(WebGlRenderingContext::TEXTURE0 + unit);
+        self.webgl
+            .bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(texture));
+    }
+
+    pub fn screen(&self, width: i32, height: i32, time: f32) -> Result<(), JsValue> {
         let key = "screen";
-        let texture = self.textures.get(key).unwrap();
         self.programs.screen.mount(
             &self.webgl,
             width,
             height,
             self.framebuffer.as_ref().unwrap(),
-            texture,
+            &self.textures.screen,
         );
-        self.bind_texture(&"uv", 0);
-        self.bind_texture(&"state", 1);
-        self.bind_texture(&"back", 2);
+        self.bind_texture(&self.textures.velocity.unwrap(), 0);
+        self.bind_texture(&self.textures.state, 1);
+        self.bind_texture(&self.textures.back, 2);
         self.programs
             .screen
-            .bind_attribute(&self.webgl, buffer, &"quad", 6);
+            .bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
         self.programs
             .screen
             .set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
-
-        for param in &parameters {
+        let parameters = self.programs.screen.uniforms.keys();
+        for param in parameters {
             let (data_type, value) = self.uniforms.get(param).unwrap();
             self.programs
                 .screen
@@ -272,35 +359,26 @@ impl WebGl {
         }
         self.webgl
             .draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
+        Ok(())
     }
 
-    pub fn draw(
-        &self,
-        parameters: Vec<String>,
-        width: i32,
-        height: i32,
-        buffer: &WebGlBuffer,
-        time: f32,
-        res: i32,
-    ) {
-        let key = "draw";
-        let texture = self.textures.get("screen").unwrap();
+    pub fn draw(&self, width: i32, height: i32, time: f32, res: i32) -> Result<(), JsValue> {
         self.programs.draw.mount(
             &self.webgl,
             width,
             height,
             self.framebuffer.as_ref().unwrap(),
-            texture,
+            &self.textures.screen,
         );
-        self.bind_texture(&"color", 2);
+        self.bind_texture(&self.textures.color.unwrap(), 2);
         self.programs
             .draw
-            .bind_attribute(&self.webgl, buffer, &"index", res * res * 4);
+            .bind_attribute(&self.webgl, &self.attributes.a_index, &"index", res * res * 4);
         self.programs
             .draw
             .set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
-
-        for param in &parameters {
+        let parameters = self.programs.screen.uniforms.keys();
+        for param in parameters {
             let (data_type, value) = self.uniforms.get(param).unwrap();
             self.programs
                 .draw
@@ -308,25 +386,21 @@ impl WebGl {
         }
         self.webgl
             .draw_arrays(WebGlRenderingContext::POINTS, 0, res * res);
+        Ok(())
     }
 
-    pub fn offscreen(
-        &self,
-        parameters: Vec<String>,
-        width: i32,
-        height: i32,
-        buffer: &WebGlBuffer,
-        time: f32,
-    ) {
+    pub fn offscreen(&self, width: i32, height: i32, time: f32) -> Result<(), JsValue> {
         self.programs.screen.offscreen(&self.webgl, width, height);
-        self.bind_texture("screen", 2);
+        self.bind_texture(&self.textures.screen, 2);
+        let buffer = self.attributes.get("a_pos").unwrap();
         self.programs
             .screen
             .bind_attribute(&self.webgl, buffer, &"quad", 6);
         self.programs
             .screen
             .set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
-        for param in &parameters {
+        let parameters = self.programs.screen.uniforms.keys();
+        for param in parameters {
             let (data_type, value) = self.uniforms.get(param).unwrap();
             self.programs
                 .screen
@@ -334,30 +408,26 @@ impl WebGl {
         }
         self.webgl
             .draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
+        Ok(())
     }
 
-    pub fn update(
-        &self,
-        parameters: Vec<String>,
-        width: i32,
-        height: i32,
-        buffer: &WebGlBuffer,
-        time: f32,
-        res: i32
-    ) {
-        let texture = self.textures.get("previous").unwrap();
+    pub fn update(&self, time: f32, res: i32) -> Result<(), JsValue> {
+        self.programs.update.mount(
+            &self.webgl,
+            res,
+            res,
+            self.framebuffer.as_ref().unwrap(),
+            &self.textures.previous,
+        );
+        self.bind_texture(&self.textures.color.unwrap(), 2);
         self.programs
             .update
-            .mount(&self.webgl, res, res, self.framebuffer.as_ref().unwrap(), texture);
-        self.bind_texture("color", 2);
-        self.programs
-            .update
-            .bind_attribute(&self.webgl, buffer, &"quad", 6);
+            .bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
         self.programs
             .update
             .set_uniform(&self.webgl, &"u_time", "f", vec![time]);
-
-        for param in &parameters {
+        let parameters = self.programs.screen.uniforms.keys();
+        for param in parameters {
             let (data_type, value) = self.uniforms.get(param).unwrap();
             self.programs
                 .update
@@ -365,25 +435,30 @@ impl WebGl {
         }
         self.webgl
             .draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
+        Ok(())
     }
-
-    pub fn swap_textures(&mut self, first: &str, second: &str) {
-        let (first, temp) = self.textures.remove_entry(first).unwrap();
-        let temp = self.textures.insert(second.to_string(), temp).unwrap();
-        self.textures.insert(first, temp);
-    }
-
-    /**
-     * Define a 2D array in GPU memory, and bind it for GL operations.
-     */
+    /// Memory buffers are used to store array data for visualization.
     #[wasm_bindgen]
+    pub fn create_buffer(ctx: &WebGlRenderingContext, data: &[f32]) -> WebGlBuffer {
+        let buffer = ctx.create_buffer();
+        ctx.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, buffer.as_ref());
+        unsafe {
+            ctx.buffer_data_with_array_buffer_view(
+                WebGlRenderingContext::ARRAY_BUFFER,
+                &js_sys::Float32Array::view(data),
+                WebGlRenderingContext::STATIC_DRAW,
+            );
+        }
+        return buffer.unwrap();
+    }
+    /// Define a 2D array in GPU memory, and bind it for GL operations.
     pub fn texture_from_color_map(
         &mut self,
         ctx: &CanvasRenderingContext2d,
         res: u32,
         colors: Vec<String>,
         name: String,
-    ) -> Result<(), JsValue> {
+    ) -> Result<WebGlTexture, JsValue> {
         let webgl = &self.webgl;
         let color_map_size = res * res;
         let gradient = ctx.create_linear_gradient(0.0, 0.0, color_map_size as f64, 0.0);
@@ -428,20 +503,15 @@ impl WebGl {
             Some(&buffer.data()),
         )?;
         webgl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
-        self.textures.insert(name, texture.unwrap());
-        Ok(())
+        Ok(texture.unwrap())
     }
-
-    /**
-     * Define a 2D array in GPU memory, and bind it for GL operations.
-     */
-    #[wasm_bindgen]
+    /// Define a 2D array in GPU memory, and bind it for GL operations.
     pub fn texture_from_image(
         &mut self,
         preview: &HtmlCanvasElement,
         data: &HtmlImageElement,
         name: String,
-    ) -> Result<(), JsValue> {
+    ) -> Result<WebGlTexture, JsValue> {
         let ctx = crate::context2d(preview);
         ctx.draw_image_with_html_image_element(data, 0.0, 0.0)?;
         let webgl = &self.webgl;
@@ -476,109 +546,49 @@ impl WebGl {
             data,
         )?;
         webgl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
-        self.textures.insert(name, texture.unwrap());
-        Ok(())
+        Ok(texture.unwrap())
     }
-}
-
-
-/**
- * Memory buffers are used to store array data for visualization.
- *
- * This could be colors, or positions, or offsets, or velocities.
- */
-#[wasm_bindgen]
-pub fn create_buffer(ctx: &WebGlRenderingContext, data: &[f32]) -> WebGlBuffer {
-    let buffer = ctx.create_buffer();
-    ctx.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, buffer.as_ref());
-    unsafe {
-        ctx.buffer_data_with_array_buffer_view(
-            WebGlRenderingContext::ARRAY_BUFFER,
-            &js_sys::Float32Array::view(data),
-            WebGlRenderingContext::STATIC_DRAW,
+    /// Texture from raw vertex data
+    fn texture_from_u8_array(
+        webgl: &WebGlRenderingContext,
+        width: i32,
+        height: i32,
+        data: &[u8]
+    ) -> Result<WebGlTexture, JsValue> {
+        let texture = webgl.create_texture();
+        webgl.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
+        webgl.tex_parameteri(
+            WebGlRenderingContext::TEXTURE_2D,
+            WebGlRenderingContext::TEXTURE_WRAP_S,
+            WebGlRenderingContext::CLAMP_TO_EDGE as i32,
         );
-    }
-    return buffer.unwrap();
-}
-
-/**
- * Activate the chosen texture so that GL operations on textures will target it. The
- * texture number is [0,...) and can be accessed sequentially by offset.  
- *
- * Currently we only support 2D textures, which can be stacked to emulate 3D.
- */
-#[wasm_bindgen]
-pub fn bind_texture(ctx: &WebGlRenderingContext, texture: &WebGlTexture, unit: u32) {
-    ctx.active_texture(WebGlRenderingContext::TEXTURE0 + unit);
-    ctx.bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(texture));
-}
-
-#[wasm_bindgen]
-pub fn texture_from_u8_array(
-    webgl: &WebGlRenderingContext,
-    width: i32,
-    height: i32,
-    data: &[u8],
-) -> Result<WebGlTexture, JsValue> {
-    let texture = webgl.create_texture();
-    webgl.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
-    webgl.tex_parameteri(
-        WebGlRenderingContext::TEXTURE_2D,
-        WebGlRenderingContext::TEXTURE_WRAP_S,
-        WebGlRenderingContext::CLAMP_TO_EDGE as i32,
-    );
-    webgl.tex_parameteri(
-        WebGlRenderingContext::TEXTURE_2D,
-        WebGlRenderingContext::TEXTURE_WRAP_T,
-        WebGlRenderingContext::CLAMP_TO_EDGE as i32,
-    );
-    webgl.tex_parameteri(
-        WebGlRenderingContext::TEXTURE_2D,
-        WebGlRenderingContext::TEXTURE_MIN_FILTER,
-        WebGlRenderingContext::NEAREST as i32,
-    );
-    webgl.tex_parameteri(
-        WebGlRenderingContext::TEXTURE_2D,
-        WebGlRenderingContext::TEXTURE_MAG_FILTER,
-        WebGlRenderingContext::NEAREST as i32,
-    );
-    webgl.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
-        WebGlRenderingContext::TEXTURE_2D,
-        0,
-        WebGlRenderingContext::RGBA as i32,
-        width,
-        height,
-        0,
-        WebGlRenderingContext::RGBA as u32,
-        WebGlRenderingContext::UNSIGNED_BYTE,
-        Some(data),
-    )?;
-    webgl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
-    Ok(texture.unwrap())
-}
-
-#[wasm_bindgen]
-pub struct Texture2D {
-    size: (usize, usize),
-}
-
-#[wasm_bindgen]
-impl Texture2D {
-    pub fn fill_canvas(ctx: &CanvasRenderingContext2d, _w: f64, _h: f64, _frame: f64, time: f64) {
-        let mut image_data = Vec::new();
-        for _ in 0..(_w as usize) {
-            for _ in 0..(_h as usize) {
-                image_data.push((255.0 * (time % 2000.0) / 2000.0) as u8);
-                image_data.push(0 as u8);
-                image_data.push((255.0 * (time % 6000.0) / 6000.0) as u8);
-                image_data.push(122);
-            }
-        }
-        ctx.put_image_data(
-            &ImageData::new_with_u8_clamped_array(Clamped(&mut image_data), _w as u32).unwrap(),
-            0.0,
-            0.0,
-        )
-        .unwrap();
+        webgl.tex_parameteri(
+            WebGlRenderingContext::TEXTURE_2D,
+            WebGlRenderingContext::TEXTURE_WRAP_T,
+            WebGlRenderingContext::CLAMP_TO_EDGE as i32,
+        );
+        webgl.tex_parameteri(
+            WebGlRenderingContext::TEXTURE_2D,
+            WebGlRenderingContext::TEXTURE_MIN_FILTER,
+            WebGlRenderingContext::NEAREST as i32,
+        );
+        webgl.tex_parameteri(
+            WebGlRenderingContext::TEXTURE_2D,
+            WebGlRenderingContext::TEXTURE_MAG_FILTER,
+            WebGlRenderingContext::NEAREST as i32,
+        );
+        webgl.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
+            WebGlRenderingContext::TEXTURE_2D,
+            0,
+            WebGlRenderingContext::RGBA as i32,
+            width,
+            height,
+            0,
+            WebGlRenderingContext::RGBA as u32,
+            WebGlRenderingContext::UNSIGNED_BYTE,
+            Some(data),
+        )?;
+        webgl.bind_texture(WebGlRenderingContext::TEXTURE_2D, None);
+        Ok(texture.unwrap())
     }
 }
