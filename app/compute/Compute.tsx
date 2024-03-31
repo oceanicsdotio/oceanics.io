@@ -219,31 +219,24 @@ export default function Compute({
         uniforms: [{
         },{
           name: "u_opacity",
-          data_type: "f",
           value: [opacity]
         },{
           name: "u_point_size",
-          data_type: "i",
           value: [pointSize]
         },{
           name: "speed",
-          data_type: "f",
           value: [speed]
         },{
           name: "diffusivity",
-          data_type: "f",
           value: [diffusivity]
         },{
           name: "drop",
-          data_type: "f",
           value: [drop]
         },{
           name: "seed",
-          data_type: "f",
           value: [Math.random()]
         }, {
           name: "u_wind_max",
-          data_type: "f",
           value: [u.max, v.max]
         }, {
           name: "u_wind_min",

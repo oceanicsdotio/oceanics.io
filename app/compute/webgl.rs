@@ -187,13 +187,13 @@ struct Attributes {
 }
 
 struct Uniforms {
-    u_screen: u32,
+    u_screen: i32,
     u_opacity: f32,
-    u_wind: u32,
-    u_particles: u32,
-    u_color_ramp: u32,
-    u_particle_res: u32,
-    u_point_size: u32,
+    u_wind: i32,
+    u_particles: i32,
+    u_color_ramp: i32,
+    u_particle_res: i32,
+    u_point_size: i32,
     u_speed: f32,
     u_diffusivity: f32,
     u_drop: f32,
@@ -202,6 +202,7 @@ struct Uniforms {
     u_wind_min: Vec<f32>,
     u_wind_res: Vec<f32>,
     u_time: f32,
+    u_bump: f32
 }
 
 #[wasm_bindgen]
@@ -245,7 +246,7 @@ impl WebGl {
         draw: JsValue,
         noise: JsValue,
         u_opacity: f32,
-        u_point_size: u32,
+        u_point_size: i32,
         u_speed: f32, 
         u_diffusivity: f32, 
         u_drop: f32, 
@@ -278,7 +279,8 @@ impl WebGl {
             noise,
         };
 
-        let a_pos: Vec<f32> = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
+        let a_pos: [f32; 6] = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
+        let a_pos = js_sys::Float32Array::view(&a_pos);
         let a_index: Vec<f32> = Vec::with_capacity((width * height * 4) as usize);
         let attributes = Attributes { 
             a_pos, 
@@ -303,7 +305,7 @@ impl WebGl {
             u_wind: 0, 
             u_particles: 1, 
             u_color_ramp: 2, 
-            u_particle_res: res as u32, 
+            u_particle_res: res as i32, 
             u_point_size, 
             u_speed, 
             u_diffusivity, 
@@ -312,7 +314,8 @@ impl WebGl {
             u_wind_max, 
             u_wind_min, 
             u_wind_res,
-            u_time: 0.0
+            u_time: 0.0,
+            u_bump: 1.0
         };
         let webgl = WebGl {
             webgl,
@@ -334,7 +337,8 @@ impl WebGl {
 
     pub fn screen(&self, width: i32, height: i32, time: f32) -> Result<(), JsValue> {
         let key = "screen";
-        self.programs.screen.mount(
+        let program = self.programs.screen;
+        program.mount(
             &self.webgl,
             width,
             height,
@@ -344,26 +348,17 @@ impl WebGl {
         self.bind_texture(&self.textures.velocity.unwrap(), 0);
         self.bind_texture(&self.textures.state, 1);
         self.bind_texture(&self.textures.back, 2);
-        self.programs
-            .screen
-            .bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
-        self.programs
-            .screen
-            .set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
-        let parameters = self.programs.screen.uniforms.keys();
-        for param in parameters {
-            let (data_type, value) = self.uniforms.get(param).unwrap();
-            self.programs
-                .screen
-                .set_uniform(&self.webgl, param, data_type, value.clone());
-        }
-        self.webgl
-            .draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
+        program.bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
+        self.webgl.uniform1f(program.uniforms.get("u_time"), time);
+        self.webgl.uniform1f(program.uniforms.get("u_opacity"), self.uniforms.u_opacity);
+        self.webgl.uniform1i(program.uniforms.get("u_screen"), self.uniforms.u_screen);
+        self.webgl.draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
         Ok(())
     }
 
     pub fn draw(&self, width: i32, height: i32, time: f32, res: i32) -> Result<(), JsValue> {
-        self.programs.draw.mount(
+        let program = self.programs.draw;
+        program.mount(
             &self.webgl,
             width,
             height,
@@ -371,48 +366,35 @@ impl WebGl {
             &self.textures.screen,
         );
         self.bind_texture(&self.textures.color.unwrap(), 2);
-        self.programs
-            .draw
-            .bind_attribute(&self.webgl, &self.attributes.a_index, &"index", res * res * 4);
-        self.programs
-            .draw
-            .set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
-        let parameters = self.programs.screen.uniforms.keys();
-        for param in parameters {
-            let (data_type, value) = self.uniforms.get(param).unwrap();
-            self.programs
-                .draw
-                .set_uniform(&self.webgl, param, data_type, value.clone());
-        }
-        self.webgl
-            .draw_arrays(WebGlRenderingContext::POINTS, 0, res * res);
+        program.bind_attribute(&self.webgl, &self.attributes.a_index, &"index", res * res * 4);
+        self.webgl.uniform1f(program.uniforms.get("u_time"), time);
+        self.webgl.uniform1i(program.uniforms.get("u_particles_res"), self.uniforms.u_particle_res);
+        self.webgl.uniform1i(program.uniforms.get("u_particles"), self.uniforms.u_particles);
+        self.webgl.uniform1i(program.uniforms.get("u_point_size"), self.uniforms.u_point_size);
+        self.webgl.uniform1i(program.uniforms.get("u_wind"), self.uniforms.u_wind);
+        self.webgl.uniform1i(program.uniforms.get("u_color_ramp"), self.uniforms.u_color_ramp);
+        self.webgl.uniform2f(program.uniforms.get("u_wind_max"), self.uniforms.u_wind_max[0], self.uniforms.u_wind_max[1]);
+        self.webgl.uniform2f(program.uniforms.get("u_wind_min"), self.uniforms.u_wind_min[0], self.uniforms.u_wind_min[1]);
+        self.webgl.draw_arrays(WebGlRenderingContext::POINTS, 0, res * res);
         Ok(())
     }
 
     pub fn offscreen(&self, width: i32, height: i32, time: f32) -> Result<(), JsValue> {
-        self.programs.screen.offscreen(&self.webgl, width, height);
+        let program = self.programs.screen;
+        program.offscreen(&self.webgl, width, height);
         self.bind_texture(&self.textures.screen, 2);
-        let buffer = self.attributes.get("a_pos").unwrap();
-        self.programs
-            .screen
-            .bind_attribute(&self.webgl, buffer, &"quad", 6);
-        self.programs
-            .screen
-            .set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
-        let parameters = self.programs.screen.uniforms.keys();
-        for param in parameters {
-            let (data_type, value) = self.uniforms.get(param).unwrap();
-            self.programs
-                .screen
-                .set_uniform(&self.webgl, param, data_type, value.clone());
-        }
-        self.webgl
-            .draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
+        program.bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
+        program.set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
+        self.webgl.uniform1f(program.uniforms.get("u_time"), time);
+        self.webgl.uniform1f(program.uniforms.get("u_opacity"), self.uniforms.u_opacity);
+        self.webgl.uniform1i(program.uniforms.get("u_screen"), self.uniforms.u_screen);
+        self.webgl.draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
         Ok(())
     }
 
     pub fn update(&self, time: f32, res: i32) -> Result<(), JsValue> {
-        self.programs.update.mount(
+        let program = self.programs.update;
+        program.mount(
             &self.webgl,
             res,
             res,
@@ -420,21 +402,18 @@ impl WebGl {
             &self.textures.previous,
         );
         self.bind_texture(&self.textures.color.unwrap(), 2);
-        self.programs
-            .update
-            .bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
-        self.programs
-            .update
-            .set_uniform(&self.webgl, &"u_time", "f", vec![time]);
-        let parameters = self.programs.screen.uniforms.keys();
-        for param in parameters {
-            let (data_type, value) = self.uniforms.get(param).unwrap();
-            self.programs
-                .update
-                .set_uniform(&self.webgl, param, data_type, value.clone());
-        }
-        self.webgl
-            .draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
+        program.bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
+        self.webgl.uniform1f(program.uniforms.get("u_time"), time);
+        self.webgl.uniform1f(program.uniforms.get("u_seed"), self.uniforms.u_seed);
+        self.webgl.uniform1f(program.uniforms.get("u_speed"), self.uniforms.u_speed);
+        self.webgl.uniform1f(program.uniforms.get("u_drop"), self.uniforms.u_drop);
+        self.webgl.uniform1f(program.uniforms.get("u_bump"), self.uniforms.u_bump);
+        self.webgl.uniform1i(program.uniforms.get("u_particles"), self.uniforms.u_particles);
+        self.webgl.uniform1i(program.uniforms.get("u_wind"), self.uniforms.u_wind);
+        self.webgl.uniform2f(program.uniforms.get("u_wind_max"), self.uniforms.u_wind_max[0], self.uniforms.u_wind_max[1]);
+        self.webgl.uniform2f(program.uniforms.get("u_wind_min"), self.uniforms.u_wind_min[0], self.uniforms.u_wind_min[1]);
+        self.webgl.uniform2f(program.uniforms.get("u_wind_res"), self.uniforms.u_wind_res[0], self.uniforms.u_wind_res[1]);
+        self.webgl.draw_arrays(WebGlRenderingContext::TRIANGLES, 0, 6);
         Ok(())
     }
     /// Memory buffers are used to store array data for visualization.
