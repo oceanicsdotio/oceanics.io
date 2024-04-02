@@ -182,8 +182,8 @@ struct Textures {
     velocity: Option<WebGlTexture>,
 }
 struct Attributes {
-    a_pos: WebGlBuffer,
-    a_index: WebGlBuffer
+    a_pos: Vec<f32>,
+    a_index: Vec<f32>
 }
 
 struct Uniforms {
@@ -229,7 +229,7 @@ struct Attribute {
 #[derive(Deserialize)]
 struct Texture {
     shape: Vec<i32>,
-    data: WebGlBuffer,
+    data: Vec<f32>,
     name: String,
 }
 
@@ -279,23 +279,22 @@ impl WebGl {
             noise,
         };
 
-        let a_pos: [f32; 6] = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
-        let a_pos = js_sys::Float32Array::view(&a_pos);
+        let a_pos: Vec<f32> = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
         let a_index: Vec<f32> = Vec::with_capacity((width * height * 4) as usize);
         let attributes = Attributes { 
             a_pos, 
             a_index
         };
         let res = 16;
-        let screen = Vec::with_capacity((width * height * 4) as usize).as_slice();
-        let back = Vec::with_capacity((width * height * 4) as usize).as_slice();
-        let previous = Vec::with_capacity((res * res * 4) as usize).as_slice();
-        let state = Vec::with_capacity((res * res * 4) as usize).as_slice();
+        let screen = Vec::with_capacity((width * height * 4) as usize);
+        let back = Vec::with_capacity((width * height * 4) as usize);
+        let previous = Vec::with_capacity((res * res * 4) as usize);
+        let state = Vec::with_capacity((res * res * 4) as usize);
         let textures = Textures{
-            screen: Self::texture_from_u8_array(&webgl, width, height, screen)?,
-            back: Self::texture_from_u8_array(&webgl, width, height, back)?,
-            previous: Self::texture_from_u8_array(&webgl, res, res, previous)?,
-            state: Self::texture_from_u8_array(&webgl, res, res, state)?,
+            screen: Self::texture_from_u8_array(&webgl, width, height, &screen)?,
+            back: Self::texture_from_u8_array(&webgl, width, height, &back)?,
+            previous: Self::texture_from_u8_array(&webgl, res, res, &previous)?,
+            state: Self::texture_from_u8_array(&webgl, res, res, &state)?,
             color: None,
             velocity: None
         };
@@ -337,7 +336,7 @@ impl WebGl {
 
     pub fn screen(&self, width: i32, height: i32, time: f32) -> Result<(), JsValue> {
         let key = "screen";
-        let program = self.programs.screen;
+        let program = &self.programs.screen;
         program.mount(
             &self.webgl,
             width,
@@ -345,10 +344,11 @@ impl WebGl {
             self.framebuffer.as_ref().unwrap(),
             &self.textures.screen,
         );
-        self.bind_texture(&self.textures.velocity.unwrap(), 0);
+        self.bind_texture(&self.textures.velocity.as_ref().unwrap(), 0);
         self.bind_texture(&self.textures.state, 1);
         self.bind_texture(&self.textures.back, 2);
-        program.bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
+        let buffer = WebGl::create_buffer(&self.webgl, &self.attributes.a_pos);
+        program.bind_attribute(&self.webgl, &buffer, &"quad", 6);
         self.webgl.uniform1f(program.uniforms.get("u_time"), time);
         self.webgl.uniform1f(program.uniforms.get("u_opacity"), self.uniforms.u_opacity);
         self.webgl.uniform1i(program.uniforms.get("u_screen"), self.uniforms.u_screen);
@@ -357,7 +357,7 @@ impl WebGl {
     }
 
     pub fn draw(&self, width: i32, height: i32, time: f32, res: i32) -> Result<(), JsValue> {
-        let program = self.programs.draw;
+        let program = &self.programs.draw;
         program.mount(
             &self.webgl,
             width,
@@ -365,8 +365,9 @@ impl WebGl {
             self.framebuffer.as_ref().unwrap(),
             &self.textures.screen,
         );
-        self.bind_texture(&self.textures.color.unwrap(), 2);
-        program.bind_attribute(&self.webgl, &self.attributes.a_index, &"index", res * res * 4);
+        self.bind_texture(&self.textures.color.as_ref().unwrap(), 2);
+        let buffer = WebGl::create_buffer(&self.webgl, &self.attributes.a_index);
+        program.bind_attribute(&self.webgl, &buffer, &"index", res * res * 4);
         self.webgl.uniform1f(program.uniforms.get("u_time"), time);
         self.webgl.uniform1i(program.uniforms.get("u_particles_res"), self.uniforms.u_particle_res);
         self.webgl.uniform1i(program.uniforms.get("u_particles"), self.uniforms.u_particles);
@@ -380,10 +381,11 @@ impl WebGl {
     }
 
     pub fn offscreen(&self, width: i32, height: i32, time: f32) -> Result<(), JsValue> {
-        let program = self.programs.screen;
+        let program = &self.programs.screen;
         program.offscreen(&self.webgl, width, height);
         self.bind_texture(&self.textures.screen, 2);
-        program.bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
+        let buffer = WebGl::create_buffer(&self.webgl, &self.attributes.a_pos);
+        program.bind_attribute(&self.webgl, &buffer, &"quad", 6);
         program.set_uniform(&self.webgl, &"u_time", &"i", vec![time]);
         self.webgl.uniform1f(program.uniforms.get("u_time"), time);
         self.webgl.uniform1f(program.uniforms.get("u_opacity"), self.uniforms.u_opacity);
@@ -393,7 +395,7 @@ impl WebGl {
     }
 
     pub fn update(&self, time: f32, res: i32) -> Result<(), JsValue> {
-        let program = self.programs.update;
+        let program = &self.programs.update;
         program.mount(
             &self.webgl,
             res,
@@ -401,8 +403,9 @@ impl WebGl {
             self.framebuffer.as_ref().unwrap(),
             &self.textures.previous,
         );
-        self.bind_texture(&self.textures.color.unwrap(), 2);
-        program.bind_attribute(&self.webgl, &self.attributes.a_pos, &"quad", 6);
+        self.bind_texture(&self.textures.color.as_ref().unwrap(), 2);
+        let buffer = WebGl::create_buffer(&self.webgl, &self.attributes.a_pos);
+        program.bind_attribute(&self.webgl, &buffer, &"quad", 6);
         self.webgl.uniform1f(program.uniforms.get("u_time"), time);
         self.webgl.uniform1f(program.uniforms.get("u_seed"), self.uniforms.u_seed);
         self.webgl.uniform1f(program.uniforms.get("u_speed"), self.uniforms.u_speed);

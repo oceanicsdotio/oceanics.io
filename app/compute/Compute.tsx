@@ -214,75 +214,75 @@ export default function Compute({
         { length: res * res * 4 },
         () => Math.floor(Math.random() * 256)
       ))
-      const webgl = new WebGl(
-        canvas,
-        uniforms: [{
-        },{
-          name: "u_opacity",
-          value: [opacity]
-        },{
-          name: "u_point_size",
-          value: [pointSize]
-        },{
-          name: "speed",
-          value: [speed]
-        },{
-          name: "diffusivity",
-          value: [diffusivity]
-        },{
-          name: "drop",
-          value: [drop]
-        },{
-          name: "seed",
-          value: [Math.random()]
-        }, {
-          name: "u_wind_max",
-          value: [u.max, v.max]
-        }, {
-          name: "u_wind_min",
-          data_type: "f",
-          value: [u.min, v.min]
-        }, {
-          name: "u_wind_res",
-          data_type: "f",
-          value: [width, height]
-        }],
-        {
-          vertex: quadVertex,
-          fragment: updateFragment,
-        },
-        {
-          vertex: quadVertex,
-          fragment: screenFragment,
-        },
-        {
-          vertex: drawVertex,
-          fragment: drawFragment,
-        },
-        {
-          vertex: noiseVertex,
-          fragment: noiseFragment,
-        }
-      );
-      data.addEventListener(
-        "load",
-        () => {
-          webgl.texture_from_image(canvas, data, "velocity");
-          console.debug(webgl.textures());
-        },
-        { capture: true, once: true }
-      );
-      data.crossOrigin = "";
-      data.src = velocity.source;
-      webgl.texture_from_color_map(ctx, res, colors, "color");
-      handle.addEventListener("message", handleMessage, { passive: true, capture: true });
-      setInteractive({
-        webgl,
-      });
+      // const webgl = new WebGl(
+      //   canvas,
+      //   uniforms: [{
+      //   },{
+      //     name: "u_opacity",
+      //     value: [opacity]
+      //   },{
+      //     name: "u_point_size",
+      //     value: [pointSize]
+      //   },{
+      //     name: "speed",
+      //     value: [speed]
+      //   },{
+      //     name: "diffusivity",
+      //     value: [diffusivity]
+      //   },{
+      //     name: "drop",
+      //     value: [drop]
+      //   },{
+      //     name: "seed",
+      //     value: [Math.random()]
+      //   }, {
+      //     name: "u_wind_max",
+      //     value: [u.max, v.max]
+      //   }, {
+      //     name: "u_wind_min",
+      //     data_type: "f",
+      //     value: [u.min, v.min]
+      //   }, {
+      //     name: "u_wind_res",
+      //     data_type: "f",
+      //     value: [width, height]
+      //   }],
+      //   {
+      //     vertex: quadVertex,
+      //     fragment: updateFragment,
+      //   },
+      //   {
+      //     vertex: quadVertex,
+      //     fragment: screenFragment,
+      //   },
+      //   {
+      //     vertex: drawVertex,
+      //     fragment: drawFragment,
+      //   },
+      //   {
+      //     vertex: noiseVertex,
+      //     fragment: noiseFragment,
+      //   }
+      // );
+      // data.addEventListener(
+      //   "load",
+      //   () => {
+      //     webgl.texture_from_image(canvas, data, "velocity");
+      //     console.debug(webgl.textures());
+      //   },
+      //   { capture: true, once: true }
+      // );
+      // data.crossOrigin = "";
+      // data.src = velocity.source;
+      // webgl.texture_from_color_map(ctx, res, colors, "color");
+      // handle.addEventListener("message", handleMessage, { passive: true, capture: true });
+      // setInteractive({
+      //   webgl,
+      // });
     })();
-    return () => {
-      handle.removeEventListener("message", handleMessage);
-    };
+    // return () => {
+    //   handle.removeEventListener("message", handleMessage);
+    // };
   }, [res, metadataFile, opacity, speed, pointSize, diffusivity, drop, velocity.source, colors]);
 
   return (
