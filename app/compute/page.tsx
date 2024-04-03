@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Simulation from "./Simulation";
+import Compute from "./Compute";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,14 +10,24 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <Suspense>
-        <Simulation
-           velocity={{
-            metadataFile: "",
-            source: ""
-           }}
-        ></Simulation>
-        </Suspense>
+      <Suspense fallback={<p>Loading...</p>}>
+        <Compute
+          velocity={{
+            metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.json",
+            source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.png",
+          }}
+          res={16}
+          colors={[
+            "#deababff",
+            "#660066ff",
+          ]}
+          opacity = {0.92}
+          speed ={ 0.00007}
+          diffusivity = {0.004}
+          pointSize = {1.0}
+          drop = {0.01}
+        ></Compute>
+      </Suspense>
     </>
   );
 }

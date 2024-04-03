@@ -19,7 +19,7 @@ varying vec2 v_tex_pos;
 /*
  * Sample a 2D texture to determine the color.
  * 
- * Texture sample position set from attribute in vertex shader `quad-vertex.glsl`.
+ * Texture sample position set in vertex shader `quad-vertex.glsl`.
  */
 void main() {
     gl_FragColor = texture2D(u_screen, 1.0 - v_tex_pos) * u_opacity;
