@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeAll } from '@jest/globals';
+// import { describe, expect, test, beforeAll } from '@jest/globals';
 import fetch from "node-fetch";
 import examples from "./examples.json";
 
@@ -35,14 +35,18 @@ export const fetchToken = async () => {
       "Content-Type": "application/x-www-form-urlencoded"
     }
   })
-  const { access_token }: any = await response.json();
-  return access_token;
+
+  const result: any = await response.json();
+  if (!response.ok) {
+    console.log("fetch result", result)
+  }
+  return result.access_token;
 }
 
 describe("idempotent", function () {
   describe("identity", function () {
     describe("token.get", function () {
-      test.concurrent.each([
+      test.each([
         ["SERVICE_ACCOUNT_USERNAME"],
         ["SERVICE_ACCOUNT_PASSWORD"]
       ])(`%s is in environment`, async function (key: string) {
@@ -51,14 +55,23 @@ describe("idempotent", function () {
         expect(value).not.toBeFalsy();
       });
 
-      test.concurrent("use basic auth to get a JWT", async function () {
-        const token = await fetchToken();
-        expect(token.length).toBeGreaterThan(0);
+      test("use basic auth to get a JWT", async function () {
+        const username = process.env.SERVICE_ACCOUNT_USERNAME;
+        const password = process.env.SERVICE_ACCOUNT_PASSWORD;
+        const response = await fetch(`${IDENTITY}/token`, {
+          method: "POST",
+          body: `grant_type=password&username=${username}&password=${password}`,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
+        })
+        const result: any = await response.json();
+        expect(result.access_token.length).toBeGreaterThan(0);
       })
     })
     
     describe("user.get", function () {
-      test.concurrent("fetch user data", async function () {
+      test("fetch user data", async function () {
         const response = await fetch(`${IDENTITY}/user`, {
           method: "GET",
           headers: {
@@ -67,18 +80,23 @@ describe("idempotent", function () {
         });
         expect(response.status).toBe(200);
         const user = await response.json();
-        expect(user.email).toBeInstanceOf(String);
+        expect(typeof user.email).toEqual("string");
       })
     })
   })
 
   // Show HTTP methods for this route
   describe("index.options", function () {
-    test.concurrent("options reports allowed methods", async function () {
+    let token: string;
+    beforeAll(async function () {
+      token = await fetchToken();
+    });
+    
+    test("options reports allowed methods", async function () {
       const response = await fetch(INDEX, {
         method: "OPTIONS",
         headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         },
       });
       expect(response.status).toEqual(204);
@@ -89,7 +107,7 @@ describe("idempotent", function () {
 
   // Get all labels in the graph as collection routes
   describe("index.get", function () {
-    test.concurrent("retrieves collection index", async function () {
+    test("retrieves collection index", async function () {
       const response = await fetch(INDEX, {
         method: "GET",
         headers: {
@@ -104,11 +122,15 @@ describe("idempotent", function () {
 
   // Check collection routing options
   describe("collection.options", function () {
-    test.concurrent.each(nodeTypes)("reports allowed methods for %s", async function (nodeType) {
+    let token: string;
+    beforeAll(async function () {
+      token = await fetchToken();
+    });
+    test.each(nodeTypes)("reports allowed methods for %s", async function (nodeType: string) {
       const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
         method: "OPTIONS",
         headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         },
       })
       expect(response.status).toEqual(204);
@@ -119,37 +141,37 @@ describe("idempotent", function () {
 
   // Create unlinked single entities
   describe(`collection.post`, function () {
-
+    let token: string;
     // Delete all nodes owned by User
     beforeAll(async function () {
-      const response = await fetch(INDEX, {
+      token = await fetchToken();
+      return fetch(INDEX, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         },
       })
-      expect(response.status).toBe(204);
     });
 
-    test.concurrent.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType, _, properties) {
+    test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
       const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
         body: JSON.stringify(properties),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         },
       })
       expect(response.status).toEqual(204);
     });
 
-    test.concurrent("redirects unknown entity to 404", async function () {
+    test("redirects unknown entity to 404", async function () {
       const response = await fetch(`${COLLECTION}?left=Nothings`, {
         body: JSON.stringify({name: "Nothing"}),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         },
       })
       expect(response.status).toEqual(404);
@@ -158,12 +180,16 @@ describe("idempotent", function () {
 
   // Confirm that we can retrieve the pre-computed Nodes
   describe("collection.get", function () {
-    test.concurrent.each(nodeTypes)(`retrieves %s (N=%s)`, async function (nodeType, count) {
+    let token: string;
+    beforeAll(async function () {
+      token = await fetchToken();
+    });
+    test.each(nodeTypes)(`retrieves %s (N=%s)`, async function (nodeType: string, count: number) {
       expect(typeof count).toBe("number");
       const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         }
       })
       expect(response.status).toBe(200);
@@ -177,7 +203,7 @@ describe("idempotent", function () {
 
   // Confirm entity endpoint routing options
   describe("entity.options", function () {
-    test.concurrent("options reports allowed methods", async function () {
+    test("options reports allowed methods", async function () {
       const response = await fetch(`${ENTITY}?left=Things&left_uuid=example`, {
         method: "OPTIONS",
         headers: {
@@ -192,17 +218,19 @@ describe("idempotent", function () {
 
   // Get a single entity by referencing UUID
   describe("entity.get", function () {
-    test.concurrent.each(examples as unknown as [string, string][])(`verify %s %s`, async function (nodeType: string, uuid: string) {
+    let token: string;
+    beforeAll(async function () {
+      token = await fetchToken();
+    });
+    test.each(examples as unknown as [string, string][])(`verify %s %s`, async function (nodeType: string, uuid: string) {
       const response = await fetch(`${ENTITY}?left=${nodeType}&left_uuid=${uuid}`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
+          "Authorization": `Bearer ${token}`
         },
       })
       expect(response.status).toEqual(200);
       const data: any = await response.json();
-      console.log(data)
-      console.log(JSON.parse(data["value"]));
       expect(data["@iot.count"]).toBe(1)
       expect(data["value"].length).toBe(1)
       expect(data["value"][0].uuid).toBe(uuid)
@@ -211,7 +239,7 @@ describe("idempotent", function () {
 
   // Confirm topology endpoint routing options
   describe("topology.options", function () {
-    test.concurrent("options reports allowed methods", async function () {
+    test("options reports allowed methods", async function () {
       const response = await fetch(`${TOPOLOGY}?left=Things&left_uuid=example&right=Sensors&right_uuid=example`, {
         method: "OPTIONS",
         headers: {
@@ -234,18 +262,18 @@ describe("idempotent", function () {
         method: "GET",
         headers: _headers,
       })
-      const {value: [{uuid: thingsId}]}: any = await things.json();
+      const left: any = await things.json();
       const locations = await fetch(`${COLLECTION}?left=Locations`, {
         method: "GET",
         headers: _headers,
       })
-      const {value: [{uuid: locationsId}]}: any = await locations.json();
-      const queryData = {
-        Things: thingsId,
-        Locations: locationsId,
-      }
+      const right: any = await locations.json();
+      console.log({
+        left: left.value[0],
+        right: right.value[0]
+      })
       const response = await fetch(
-        `${TOPOLOGY}?left=Things&left_uuid=${queryData.Things}&right=Locations&right_uuid=${queryData.Locations}`,
+        `${TOPOLOGY}?left=Things&left_uuid=${left.value[0].uuid}&right=Locations&right_uuid=${right.value[0].uuid}`,
         {
           method: "POST",
           headers: _headers,

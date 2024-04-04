@@ -1,6 +1,5 @@
 use crate::{
     cypher::{Cypher, Links, Node, QueryResult, Summary},
-    log,
     openapi::{DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
 };
 use serde::{Serialize, Deserialize};
@@ -76,7 +75,6 @@ async fn get(url: &String, access_key: &String) -> JsValue {
     let cypher = Cypher::new(query, "READ".to_string());
     let data = cypher.run(url, access_key).await;
     let result: IndexResult = serde_wasm_bindgen::from_value(data).unwrap();
-    log(result.summary.query.text);
     let routes: Vec<IndexCollection> = result.records
         .iter()
         .map(IndexCollection::parse)
@@ -95,6 +93,9 @@ async fn delete(
     let cypher = Links::new(Some("Create".to_string()), None).delete_child(&left, &right);
     let data = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();
-    log(result.summary.query.text);
-    NoContentResponse::new()
+    if result.summary.counters.stats.nodes_deleted >= 1 {
+        NoContentResponse::new()
+    } else {
+        ErrorResponse::server_error()
+    }
 }

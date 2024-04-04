@@ -31,7 +31,7 @@ export default async (req: Request, _: Context) => {
         return new Response("Method not supported", {
             status: 405
         })
-    };
+    }
 
     const {host} = new URL(req.url);
     const secret = new TextEncoder().encode(process.env.JWT_SIGNING_KEY);

@@ -22,7 +22,8 @@
     "specification.json",
   ]
   external_node_modules = [
-    "@oceanics/functions"
+    "@oceanics/functions",
+    "neo4j-driver"
   ]
 
 [[headers]]

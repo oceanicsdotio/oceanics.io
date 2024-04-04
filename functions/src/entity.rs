@@ -1,13 +1,14 @@
+use std::collections::HashMap;
+
 use crate::{
     cypher::{Links, Node, QueryResult},
     openapi::{
         ErrorResponse, DataResponse, HandlerContext, HandlerEvent, NoContentResponse,
         OptionsResponse, Path,
-    },
-    stringify,
+    }
 };
 use wasm_bindgen::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
@@ -54,11 +55,14 @@ pub async fn get(
     let cypher = Links::wildcard().query(&user, &left, left.symbol.clone());
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    let flattened: Vec<String> = result.records.iter().map(
-        |rec| stringify(rec.fields[0].properties.clone())).collect();
+    let flattened: Vec<HashMap<String, Value>> = result.records.iter().map(
+        |rec| serde_wasm_bindgen::from_value(rec.fields[0].properties.clone()).unwrap()
+    ).collect();
+    let count = flattened.len();
+    
     DataResponse::new(json!({
-        "@iot.count": flattened.len(),
-        "value": format!("[{}]", flattened.join(","))
+        "@iot.count": count,
+        "value": flattened
     }).to_string())
 }
 
@@ -78,7 +82,7 @@ pub async fn delete(
     let cypher = Links::wildcard().delete_child(&user, &left);
     let raw = cypher.run(&url, &access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    if result.summary.counters.stats.nodes_created == 1 {
+    if result.summary.counters.stats.nodes_deleted == 1 {
         NoContentResponse::new()
     } else {
         ErrorResponse::server_error()
