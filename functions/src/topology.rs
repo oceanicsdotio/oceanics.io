@@ -1,6 +1,5 @@
 use crate::{
     cypher::{Links, Node, QueryResult},
-    log,
     openapi::{ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
 };
 use wasm_bindgen::prelude::*;
@@ -40,16 +39,23 @@ async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsVal
     let cypher = Links::wildcard().drop(&left, &right);
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    log(result.summary.query.text);
-    NoContentResponse::new()
+    if result.summary.counters.stats.relationships_deleted == 1 {
+        NoContentResponse::new()
+    } else {
+        ErrorResponse::server_error()
+    }
 }
 
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let left = Node::from_uuid(event.query.left.unwrap(), event.query.left_uuid.unwrap());
-    let right = Node::from_uuid(event.query.right.unwrap(), event.query.right_uuid.unwrap());
-    let cypher = Links::wildcard().join(&left, &right);
+    let mut right = Node::from_uuid(event.query.right.unwrap(), event.query.right_uuid.unwrap());
+    right.symbol = "b".to_string();
+    let cypher = Links::new(Some("Join".to_string()), None).join(&left, &right);
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    log(result.summary.query.text);
-    NoContentResponse::new()
+    if result.summary.counters.stats.relationships_created == 1 {
+        NoContentResponse::new()
+    } else {
+        ErrorResponse::server_error()
+    }
 }
