@@ -17,7 +17,7 @@ functions/lib: $(shell find functions -type f -name '*.rs') functions/Cargo.lock
 	@ touch -m $@
 
 coverage:
-	@ cargo llvm-cov --manifest-path rust/Cargo.toml --html --output-dir $@
+	@ cargo llvm-cov --manifest-path functions/Cargo.toml --html --output-dir $@
 	@ touch -m $@
 
 # Build the WASM library from Rust sources
