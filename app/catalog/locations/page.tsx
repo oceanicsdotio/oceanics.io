@@ -1,7 +1,5 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { Metadata } from "next";
-import Link from "next/link";
-import layout from "@app/layout.module.css";
 import Locations from "./Locations";
 
 export const metadata: Metadata = {
@@ -12,10 +10,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <h2>Locations</h2>
-      <Suspense fallback={<p>Querying locations...</p>}>
-        <Locations />
-      </Suspense>
+      <Locations />
     </>
   );
 }

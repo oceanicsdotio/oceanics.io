@@ -1,12 +1,10 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
-import styles from "../catalog.module.css"
-
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "DataStreams";
+const left = "HistoricalLocations";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -19,7 +17,7 @@ const MESSAGES = {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function DataStreams({}) {
+export default function Locations({}) {
   /**
    * Ref to Web Worker.
    */
@@ -27,7 +25,7 @@ export default function DataStreams({}) {
   /**
    * Node data.
    */
-  let [dataStreams, setDataStreams] = useState<any[]>([]);
+  let [locations, setLocations] = useState<any[]>([]);
   /**
    * Summary message displaying load state.
    */
@@ -42,7 +40,7 @@ export default function DataStreams({}) {
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
         case MESSAGES.collection:
-          setDataStreams(data.data.value);
+          setLocations(data.data.value);
           setMessage(`We found ${data.data.value.length} matching nodes:`)
           return;
         case MESSAGES.error:
@@ -79,9 +77,9 @@ export default function DataStreams({}) {
   return (
     <div>
       <p>{message}</p>
-      {dataStreams.map((each: { uuid: string; name: string }) => {
-        let href = `/catalog/data_streams/${each.uuid}`;
-        return (<p key={each.uuid}><Link href={href}>{each.name}</Link></p>)
+      {locations.map((each: { uuid: string; name: string }) => {
+        let href = `/catalog/historical_locations/${each.uuid}`;
+        return (<p key={each.uuid}><Link href={href}>{each.name??each.uuid}</Link></p>)
       })}
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
@@ -12,15 +12,12 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <h2>
-        Data Streams
-      </h2>
       <p>
         <Link className={layout.link} href={"/catalog/data_streams/example"}>
           Example
         </Link>
       </p>
-      <Suspense><DataStreams></DataStreams></Suspense>
+      <DataStreams/>
     </>
   );
 }

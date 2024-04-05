@@ -11,13 +11,8 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <h2>
-        Things
-      </h2>
       <p>{components.schemas.Things.description}</p>
-      <Suspense fallback={<p>Loading...</p>}>
-        <Things/>
-      </Suspense>
+      <Things/>
     </>
   );
 }

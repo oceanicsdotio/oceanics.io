@@ -1,21 +1,21 @@
-import React, { Suspense } from "react";
 import Catalog from "./Catalog";
+import Markdown from "react-markdown";
+import React from "react";
+import styles from "./catalog.module.css";
+import specification from "../../specification.json";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Catalog",
-  description: "Manage your data.",
+  description: "Access and manage ocean data.",
 };
 
 export default function Page() {
   return (
-    <>
-      <Suspense>
-        <Catalog
-          zoomLevel={10}
-          accessToken={process.env.NEXT_MAPBOX_ACCESS_TOKEN ?? ""}
-        ></Catalog>
-      </Suspense>
-    </>
+    <div className={styles.catalog}>
+      <h2>{specification.info.title}</h2>
+      <Markdown>{specification.info.description}</Markdown>
+      <Catalog />
+    </div>
   );
 }
