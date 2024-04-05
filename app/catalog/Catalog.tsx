@@ -7,6 +7,7 @@ import React, {
   type MouseEventHandler,
   useState,
   type MutableRefObject,
+  Suspense,
 } from "react";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
@@ -241,7 +242,7 @@ function ApiOperation({
   );
 }
 
-type ChannelType = {
+type CollectionType = {
   id: string;
   /**
    * Source of the raw data
@@ -285,13 +286,13 @@ type ChannelType = {
 /**
  * A channel abstracts access to a data source.
  */
-function Channel({
+function Collection({
   id,
   url,
   maxzoom = 21,
   minzoom = 1,
   zoomLevel,
-}: ChannelType) {
+}: CollectionType) {
   const inView = zoomLevel >= minzoom && zoomLevel <= maxzoom;
   return (
     <div>
@@ -303,6 +304,55 @@ function Channel({
       </div>
       <a href={url}>{"download"}</a>
     </div>
+  );
+}
+
+function Index({}) {
+  /**
+   * Index data loaded from the API
+   */
+  const [index, setIndex] = useState<null | { name: string; url: string }[]>(
+    null
+  );
+  /**
+   * Fetch index from the API.
+   */
+  useEffect(() => {
+    let user: string = localStorage.getItem("gotrue.user") ?? "";
+    let {
+      token: { access_token },
+    }: any = JSON.parse(user);
+    console.log("token", access_token);
+    (async function () {
+      let response = await fetch("/.netlify/functions/index", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      let result = await response.json();
+      setIndex(result);
+      console.log("result", result);
+    })();
+  }, []);
+  return (
+    <>
+      {index?.map((each) => {
+        let relative = each.name
+          .split(/\.?(?=[A-Z])/)
+          .join("_")
+          .toLowerCase();
+        let absolute = `/catalog/${relative}`;
+        let name = each.name.split(/\.?(?=[A-Z])/).join(" ");
+        return (
+          <p key={each.name}>
+            <Link className={layout.link} href={absolute}>
+              {name}
+            </Link>
+          </p>
+        );
+      })}
+    </>
   );
 }
 
@@ -458,9 +508,9 @@ export default function Catalog({
       <h2>{specification.info.title}</h2>
       <Markdown>{specification.info.description}</Markdown>
       {/* <Suspense>{operations}</Suspense> */}
-      <p>
-        <Link className={layout.link} href={"/catalog/data_streams"}>Data Streams</Link>
-      </p>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Index />
+      </Suspense>
     </div>
   );
 }
