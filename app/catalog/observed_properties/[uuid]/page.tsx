@@ -1,29 +1,30 @@
 "use client";
-import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
-import { getLinkedCollections } from "@app/catalog/Catalog";
-import specification from "@app/../specification.json";
-import Markdown from "react-markdown";
-const { properties, description } =
-  specification.components.schemas.DataStreams;
-const links = getLinkedCollections(properties);
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import layout from "@app/layout.module.css";
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "DataStreams";
+const left = "ObservedProperties";
 /**
  * Web worker messages that are explicitly handled in this
- * context. The shared worker may understand/send other types.
+ * context. The shared worker understands/sends others.
  */
 const MESSAGES = {
-  collection: "collection",
   error: "error",
+  entity: "entity",
 };
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function DataStreams({}) {
+export default function Page() {
+  const path = usePathname();
+  const uuid = path
+    .split("/")
+    .filter((some) => some)
+    .pop();
   /**
    * Ref to Web Worker.
    */
@@ -31,7 +32,7 @@ export default function DataStreams({}) {
   /**
    * Node data.
    */
-  let [dataStreams, setDataStreams] = useState<any[]>([]);
+  let [observedProperty, setObservedProperty] = useState<any>({});
   /**
    * Summary message displaying load state.
    */
@@ -48,8 +49,8 @@ export default function DataStreams({}) {
     );
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
-        case MESSAGES.collection:
-          setDataStreams(data.data.value);
+        case MESSAGES.entity:
+          setObservedProperty(data.data.value[0]);
           setMessage(`✓ Found ${data.data.value.length}`);
           return;
         case MESSAGES.error:
@@ -66,9 +67,10 @@ export default function DataStreams({}) {
     const user_data = localStorage.getItem("gotrue.user");
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
-        type: MESSAGES.collection,
+        type: MESSAGES.entity,
         data: {
           left,
+          left_uuid: uuid,
           user: user_data,
         },
       });
@@ -79,24 +81,20 @@ export default function DataStreams({}) {
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, []);
+  }, [uuid]);
   /**
    * Client Component
    */
   return (
-    <div>
-      <Markdown>{description}</Markdown>
-      <p>
-        You can link <code>DataStreams</code> to {links}
-      </p>
+    <>
+      <>
+        {"/"}
+        <Link className={layout.link} style={{ display: "inline" }} href={path}>
+          {uuid}
+        </Link>
+      </>
       <p>{message}</p>
-      {dataStreams.map((each: { uuid: string; name: string }) => {
-        return (
-          <p key={each.uuid}>
-            <Link href={each.uuid}>{each.name}</Link>
-          </p>
-        );
-      })}
-    </div>
+      <p>{observedProperty.name}</p>
+    </>
   );
 }

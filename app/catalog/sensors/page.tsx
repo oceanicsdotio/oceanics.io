@@ -1,29 +1,23 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
-import { getLinkedCollections } from "@app/catalog/Catalog";
-import specification from "@app/../specification.json";
-import Markdown from "react-markdown";
-const { properties, description } =
-  specification.components.schemas.DataStreams;
-const links = getLinkedCollections(properties);
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "DataStreams";
+const left = "Sensors";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
  */
 const MESSAGES = {
   collection: "collection",
-  error: "error",
-};
+  error: "error"
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function DataStreams({}) {
+export default function Sensors({}) {
   /**
    * Ref to Web Worker.
    */
@@ -31,7 +25,7 @@ export default function DataStreams({}) {
   /**
    * Node data.
    */
-  let [dataStreams, setDataStreams] = useState<any[]>([]);
+  let [sensors, setSensors] = useState<any[]>([]);
   /**
    * Summary message displaying load state.
    */
@@ -40,17 +34,14 @@ export default function DataStreams({}) {
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(
-      new URL("@app/catalog/worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
+    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
+      type: "module",
+    });
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
         case MESSAGES.collection:
-          setDataStreams(data.data.value);
-          setMessage(`✓ Found ${data.data.value.length}`);
+          setSensors(data.data.value);
+          setMessage(`✓ Found ${data.data.value.length}`)
           return;
         case MESSAGES.error:
           console.error(data.type, data.data);
@@ -69,7 +60,7 @@ export default function DataStreams({}) {
         type: MESSAGES.collection,
         data: {
           left,
-          user: user_data,
+          user: user_data
         },
       });
     } else {
@@ -85,17 +76,10 @@ export default function DataStreams({}) {
    */
   return (
     <div>
-      <Markdown>{description}</Markdown>
-      <p>
-        You can link <code>DataStreams</code> to {links}
-      </p>
       <p>{message}</p>
-      {dataStreams.map((each: { uuid: string; name: string }) => {
-        return (
-          <p key={each.uuid}>
-            <Link href={each.uuid}>{each.name}</Link>
-          </p>
-        );
+      {sensors.map((each: { uuid: string; name: string }) => {
+        let href = `/catalog/sensors/${each.uuid}`;
+        return (<p key={each.uuid}><Link href={href}>{each.name}</Link></p>)
       })}
     </div>
   );

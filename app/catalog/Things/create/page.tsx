@@ -1,16 +1,16 @@
 "use client";
-import Link from "next/link";
-import React, { useEffect, useState, useRef } from "react";
-import { getLinkedCollections } from "@app/catalog/Catalog";
+import React, { useEffect, useRef } from "react";
+import styles from "@app/catalog/catalog.module.css";
 import specification from "@app/../specification.json";
-import Markdown from "react-markdown";
-const { properties, description } =
-  specification.components.schemas.DataStreams;
-const links = getLinkedCollections(properties);
+import { Input } from "@app/catalog/Catalog";
+/**
+ * Get Things properties from OpenAPI schema
+ */
+const { properties, description } = specification.components.schemas.Things;
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "DataStreams";
+const left = "Things";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -23,19 +23,11 @@ const MESSAGES = {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function DataStreams({}) {
+export default function Create({}) {
   /**
    * Ref to Web Worker.
    */
   const worker = useRef<Worker>();
-  /**
-   * Node data.
-   */
-  let [dataStreams, setDataStreams] = useState<any[]>([]);
-  /**
-   * Summary message displaying load state.
-   */
-  let [message, setMessage] = useState("↻ Searching");
   /**
    * Load Web Worker on component mount
    */
@@ -48,10 +40,6 @@ export default function DataStreams({}) {
     );
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
-        case MESSAGES.collection:
-          setDataStreams(data.data.value);
-          setMessage(`✓ Found ${data.data.value.length}`);
-          return;
         case MESSAGES.error:
           console.error(data.type, data.data);
           return;
@@ -84,19 +72,18 @@ export default function DataStreams({}) {
    * Client Component
    */
   return (
-    <div>
-      <Markdown>{description}</Markdown>
-      <p>
-        You can link <code>DataStreams</code> to {links}
-      </p>
-      <p>{message}</p>
-      {dataStreams.map((each: { uuid: string; name: string }) => {
-        return (
-          <p key={each.uuid}>
-            <Link href={each.uuid}>{each.name}</Link>
-          </p>
-        );
-      })}
-    </div>
+    <form className={styles.form}>
+      <p>{description}</p>
+      <Input id={"uuid"} description={properties.uuid.description}></Input>
+      <Input id={"name"} description={properties.name.description}></Input>
+      <Input
+        id={"description"}
+        description={properties.description.description}
+      ></Input>
+      <Input
+        id={"properties"}
+        description={properties.properties.description}
+      ></Input>
+    </form>
   );
 }

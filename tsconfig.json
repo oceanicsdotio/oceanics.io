@@ -11,6 +11,9 @@
     "paths": {
       "@app/*": [
         "app/*"
+      ],
+      "@catalog/*": [
+        "app/catalog/*"
       ]
     },
     "allowJs": true,

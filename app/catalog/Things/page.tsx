@@ -1,16 +1,16 @@
 "use client";
+import layout from "@app/layout.module.css";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
+import Markdown from "react-markdown";
 import { getLinkedCollections } from "@app/catalog/Catalog";
 import specification from "@app/../specification.json";
-import Markdown from "react-markdown";
-const { properties, description } =
-  specification.components.schemas.DataStreams;
+const { properties, description } = specification.components.schemas.Things;
 const links = getLinkedCollections(properties);
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "DataStreams";
+const left = "Things";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -23,7 +23,7 @@ const MESSAGES = {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function DataStreams({}) {
+export default function Page({}) {
   /**
    * Ref to Web Worker.
    */
@@ -31,7 +31,7 @@ export default function DataStreams({}) {
   /**
    * Node data.
    */
-  let [dataStreams, setDataStreams] = useState<any[]>([]);
+  let [things, setThings] = useState<any[]>([]);
   /**
    * Summary message displaying load state.
    */
@@ -40,16 +40,13 @@ export default function DataStreams({}) {
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(
-      new URL("@app/catalog/worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
+    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
+      type: "module",
+    });
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
         case MESSAGES.collection:
-          setDataStreams(data.data.value);
+          setThings(data.data.value);
           setMessage(`✓ Found ${data.data.value.length}`);
           return;
         case MESSAGES.error:
@@ -84,19 +81,24 @@ export default function DataStreams({}) {
    * Client Component
    */
   return (
-    <div>
+    <>
       <Markdown>{description}</Markdown>
       <p>
-        You can link <code>DataStreams</code> to {links}
+        You can{" "}
+        <Link className={layout.link} href={"create"}>
+          create
+        </Link>{" "}
+        <code>Things</code>, and link them to {links}.
       </p>
       <p>{message}</p>
-      {dataStreams.map((each: { uuid: string; name: string }) => {
+      {things.map((each: { uuid: string; name: string }) => {
+        let href = `${each.uuid}`;
         return (
           <p key={each.uuid}>
-            <Link href={each.uuid}>{each.name}</Link>
+            <Link href={href}>{each.name}</Link>
           </p>
         );
       })}
-    </div>
+    </>
   );
 }

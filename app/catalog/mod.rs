@@ -1,6 +1,8 @@
 pub mod data_streams;
 pub mod features_of_interest;
+pub mod historical_locations;
 pub mod locations;
+pub mod observations;
 pub mod observed_properties;
 pub mod sensors;
 pub mod things;

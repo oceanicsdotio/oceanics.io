@@ -30,7 +30,13 @@ const COMMANDS = {
   // Sending a layer style to MapBox
   layer: "layer",
   // Get object storage buffer
-  fragment: "fragment"
+  fragment: "fragment",
+  // Get index of API collections
+  index: "index",
+  // Get entities in a collection
+  collection: "collection",
+  count: "count",
+  entity: "entity"
 }
 
 /**
@@ -60,7 +66,7 @@ async function getFileSystem(url: string): Promise<FileSystem> {
   })
   const text = await response.text();
   const xmlDoc = parser.parseFromString(text, "text/xml");
-  const [{childNodes}] = Object.values(xmlDoc.childNodes).filter(
+  const [{ childNodes }] = Object.values(xmlDoc.childNodes).filter(
     (x) => x.nodeName === "ListBucketResult"
   );
   const nodes: FileObject[] = Array.from(childNodes)
@@ -376,10 +382,108 @@ const getFragment = async (target: string, key: string) => {
       ]
     }
   }
-
 };
 
 
+const MOBILE = Boolean(
+  navigator.userAgent.match(
+    /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
+  )
+);
+
+let _access_token: string = "";
+
+const getToken = (user?: string): string => {
+  if (_access_token.length > 0) {
+    return _access_token
+  }
+  if (typeof user !== "undefined") {
+    const { token }: any = JSON.parse(user);
+    _access_token = token.access_token;
+  }
+  return _access_token
+}
+
+async function getIndex(user: string) {
+  let access_token = getToken(user);
+  if (!access_token) {
+    return {
+      type: COMMANDS.error,
+      data: "Missing Netlify Access Token"
+    }
+  }
+  let response = await fetch("/.netlify/functions/index", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+  });
+  const result = await response.json();
+  const index = result.map(({ name }: any) => {
+    const key = name
+      .split(/\.?(?=[A-Z])/)
+      .join("_")
+      .toLowerCase();
+    const href = `/catalog/${key}`;
+    const content = name.split(/\.?(?=[A-Z])/).join(" ");
+    return {
+      left: name,
+      href,
+      content
+    }
+  })
+  return {
+    type: COMMANDS.index, data: {
+      index,
+      mobile: MOBILE
+    }
+  }
+}
+
+async function getApi(url: string, user?: string) {
+  const access_token = getToken(user);
+  if (!access_token) {
+    throw Error("Missing Netlify Access Token");
+  }
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+  });
+  return await response.json();
+}
+
+async function getCount({left, user}: {left: string, user?: string}) {
+  const result = await getApi(`/.netlify/functions/collection?left=${left}`, user);
+  return {
+    type: COMMANDS.count,
+    data: {
+      count: result["@iot.count"],
+      left
+    }
+  }
+}
+
+async function getCollection({left, user}: {left: string, user?: string}) {
+  const result = await getApi(`/.netlify/functions/collection?left=${left}`, user);
+  return {
+    type: COMMANDS.collection,
+    data: {
+      value: result.value
+    }
+  }
+}
+
+async function getEntity({left, left_uuid, user}: {left: string, left_uuid: string, user?: string}) {
+  const result = await getApi(`/.netlify/functions/entity?left=${left}&left_uuid=${left_uuid}`, user);
+  return {
+    type: COMMANDS.entity,
+    data: {
+      value: result.value
+    }
+  }
+}
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
@@ -426,6 +530,18 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
         data: await getFragment(...(data.data as [string, string])),
       });
       return;
+    case COMMANDS.index:
+      await getIndex(data.data).then(ctx.postMessage);
+      return;
+    case COMMANDS.count:
+      await getCount(data.data).then(ctx.postMessage);
+      return;
+    case COMMANDS.collection:
+      await getCollection(data.data).then(ctx.postMessage);
+      return;
+    case COMMANDS.entity:
+      await getEntity(data.data).then(ctx.postMessage);
+      return
     // Error on unspecified message type
     default:
       ctx.postMessage({

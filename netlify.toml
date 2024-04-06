@@ -1,6 +1,6 @@
 [build]
   base = "/"
-  publish = "out"
+  publish = ".next"
   command = "make next"
   functions = "functions/src"
 
@@ -11,7 +11,7 @@
 
 [dev]
   port = 8888
-  framework = "#static"
+  # framework = "#static"
 
 [[plugins]]
   package = "@netlify/plugin-csp-nonce"
@@ -37,23 +37,20 @@
   status = 200
   headers = {X-From = "Netlify"}
 
-[[redirects]]
-  from = "/catalog/*" 
-  to = "/catalog/:splat"
-  status = 200
-  force = true
-  conditions = { Role = ["admin"] }
+# [[redirects]]
+#   from = "/catalog/*" 
+#   to = "/"
+#   status = 401
+#   force = true
 
 [[redirects]]
   from = "/compute/*" 
-  to = "/compute/:splat"
-  status = 200
+  to = "/"
+  status = 401
   force = true
-  conditions = { Role = ["admin"] }
 
 [[redirects]]
   from = "/read/*" 
-  to = "/read/:splat"
-  status = 200
+  to = "/"
+  status = 401
   force = true
-  conditions = { Role = ["admin"] }

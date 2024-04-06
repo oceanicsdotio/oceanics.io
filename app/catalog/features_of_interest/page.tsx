@@ -1,16 +1,12 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
-import { getLinkedCollections } from "@app/catalog/Catalog";
-import specification from "@app/../specification.json";
+import { components } from "@app/../specification.json";
 import Markdown from "react-markdown";
-const { properties, description } =
-  specification.components.schemas.DataStreams;
-const links = getLinkedCollections(properties);
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "DataStreams";
+const left = "FeaturesOfInterest";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -21,9 +17,9 @@ const MESSAGES = {
 };
 /**
  * Display an index of all or some subset of the
- * available nodes in the database.
+ * available Features of Interest in the database.
  */
-export default function DataStreams({}) {
+export default function FeaturesOfInterest({}) {
   /**
    * Ref to Web Worker.
    */
@@ -31,13 +27,13 @@ export default function DataStreams({}) {
   /**
    * Node data.
    */
-  let [dataStreams, setDataStreams] = useState<any[]>([]);
+  let [features, setFeatures] = useState<any[]>([]);
   /**
    * Summary message displaying load state.
    */
   let [message, setMessage] = useState("↻ Searching");
   /**
-   * Load Web Worker on component mount
+   * Load Web Worker on component mount. 
    */
   useEffect(() => {
     worker.current = new Worker(
@@ -49,7 +45,7 @@ export default function DataStreams({}) {
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
         case MESSAGES.collection:
-          setDataStreams(data.data.value);
+          setFeatures(data.data.value);
           setMessage(`✓ Found ${data.data.value.length}`);
           return;
         case MESSAGES.error:
@@ -85,12 +81,9 @@ export default function DataStreams({}) {
    */
   return (
     <div>
-      <Markdown>{description}</Markdown>
-      <p>
-        You can link <code>DataStreams</code> to {links}
-      </p>
+      <Markdown>{components.schemas.FeaturesOfInterest.description}</Markdown>
       <p>{message}</p>
-      {dataStreams.map((each: { uuid: string; name: string }) => {
+      {features.map((each: { uuid: string; name: string }) => {
         return (
           <p key={each.uuid}>
             <Link href={each.uuid}>{each.name}</Link>
