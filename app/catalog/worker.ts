@@ -1,17 +1,14 @@
-
 import { DOMParser } from "@xmldom/xmldom";
-
-export type FileObject = {
+type ModuleType = typeof import("@oceanics/app");
+type FileObject = {
   key: string;
   updated: string;
   size: number;
 };
-
-export type FileSystem = {
+type FileSystem = {
   objects: FileObject[];
 };
 const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("@oceanics/app");
 
 // Possible types of message
 const COMMANDS = {
@@ -21,8 +18,6 @@ const COMMANDS = {
   home: "home",
   // Sending a data source to MapBox
   source: "source",
-  // Signal from `useWorker()` hook 
-  start: "start",
   // Respond with Worker status
   status: "status",
   // Get object storage index
@@ -36,18 +31,55 @@ const COMMANDS = {
   // Get entities in a collection
   collection: "collection",
   count: "count",
-  entity: "entity"
+  entity: "entity",
+  create: "create",
+  deleteEntity: "deleteEntity"
 }
-
 /**
- * Runtime handle to which we will memoize the active runtime. 
+ * Global WASM handle for reuse. 
  */
-let runtime: ModuleType | null = null;
+let _runtime: ModuleType | null = null;
 /**
- * Global for reuse
+ * Import Rust-WASM runtime, and add a panic hook to give 
+ * more informative error messages on failure. 
  */
-let parser: DOMParser | null = null;
-
+async function startRuntimeOnce() {
+  if (!_runtime) {
+    _runtime = await import("@oceanics/app");
+    _runtime.panic_hook();
+  }
+  return _runtime
+}
+/**
+ * Detect whether on mobile, for example: to throttle requests,
+ * or add paging parameters.
+ */
+const _mobile = Boolean(
+  navigator.userAgent.match(
+    /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
+  )
+);
+/**
+ * Global handle for reuse.
+ */
+let _access_token: string = "";
+/**
+ * Parse and set the global access token for authenticating
+ * API requests with Netlify Identity.
+ */
+const getToken = (user?: string): string => {
+  if (_access_token.length > 0) {
+    return _access_token
+  }
+  if (typeof user !== "undefined") {
+    const { token }: any = JSON.parse(user);
+    _access_token = token.access_token;
+  }
+  if (!_access_token) {
+    throw Error("Missing Netlify Access Token");
+  }
+  return _access_token
+}
 /**
  * Retrieve remote file metadata and format it as a
  * serializable message. 
@@ -58,14 +90,14 @@ let parser: DOMParser | null = null;
  * because window.DOMParser is not available in Web Worker 
  */
 async function getFileSystem(url: string): Promise<FileSystem> {
-  if (!parser) parser = new DOMParser();
+  let _parser = new DOMParser();
   const response = await fetch(url, {
     method: "GET",
     mode: "cors",
     cache: "no-cache"
   })
   const text = await response.text();
-  const xmlDoc = parser.parseFromString(text, "text/xml");
+  const xmlDoc = _parser.parseFromString(text, "text/xml");
   const [{ childNodes }] = Object.values(xmlDoc.childNodes).filter(
     (x) => x.nodeName === "ListBucketResult"
   );
@@ -81,24 +113,6 @@ async function getFileSystem(url: string): Promise<FileSystem> {
     objects: nodes.filter((node: FileObject) => node.size > 0)
   };
 }
-
-/**
- * Import Rust-WASM runtime, and add a panic hook to give 
- * more informative error messages on failure. 
- * 
- * Using dynamic import this way with Webpack requires the path to be 
- * hard-coded, and not supplied as a variable:
- * https://stackoverflow.com/questions/42908116/webpack-critical-dependency-the-request-of-a-dependency-is-an-expression
- * https://github.com/wasm-tool/wasm-pack-plugin
- * 
- * We pass back the status and error message to the main
- * thread for troubleshooting.
- */
-async function start() {
-  runtime = await import("@oceanics/app");
-  runtime.panic_hook();
-}
-
 /**
  * Single Point Feature
  */
@@ -122,7 +136,7 @@ interface PointFeatureSource {
   };
   attribution: "";
 }
-export interface PointFeatureChannel {
+interface PointFeatureChannel {
   id: string;
   type: "circle" | "symbol";
   source: string;
@@ -385,40 +399,12 @@ const getFragment = async (target: string, key: string) => {
 };
 
 
-const MOBILE = Boolean(
-  navigator.userAgent.match(
-    /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
-  )
-);
 
-let _access_token: string = "";
-
-const getToken = (user?: string): string => {
-  if (_access_token.length > 0) {
-    return _access_token
-  }
-  if (typeof user !== "undefined") {
-    const { token }: any = JSON.parse(user);
-    _access_token = token.access_token;
-  }
-  return _access_token
-}
 
 async function getIndex(user: string) {
-  let access_token = getToken(user);
-  if (!access_token) {
-    return {
-      type: COMMANDS.error,
-      data: "Missing Netlify Access Token"
-    }
-  }
-  let response = await fetch("/.netlify/functions/index", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  const result = await response.json();
+  const access_token = getToken(user);
+  const {getIndex} = await startRuntimeOnce();
+  const result = await getIndex(access_token);
   const index = result.map(({ name }: any) => {
     const key = name
       .split(/\.?(?=[A-Z])/)
@@ -435,27 +421,15 @@ async function getIndex(user: string) {
   return {
     type: COMMANDS.index, data: {
       index,
-      mobile: MOBILE
+      mobile: _mobile
     }
   }
 }
 
-async function getApi(url: string, user?: string) {
+async function getCount({left, user}: {left: string, user: string}) {
   const access_token = getToken(user);
-  if (!access_token) {
-    throw Error("Missing Netlify Access Token");
-  }
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  return await response.json();
-}
-
-async function getCount({left, user}: {left: string, user?: string}) {
-  const result = await getApi(`/.netlify/functions/collection?left=${left}`, user);
+  const {getCollection} = await startRuntimeOnce();
+  const result = await getCollection(left, access_token);
   return {
     type: COMMANDS.count,
     data: {
@@ -465,8 +439,10 @@ async function getCount({left, user}: {left: string, user?: string}) {
   }
 }
 
-async function getCollection({left, user}: {left: string, user?: string}) {
-  const result = await getApi(`/.netlify/functions/collection?left=${left}`, user);
+async function getCollection({left, user}: {left: string, user: string}) {
+  const access_token = getToken(user);
+  const {getCollection} = await startRuntimeOnce();
+  const result = await getCollection(left, access_token);
   return {
     type: COMMANDS.collection,
     data: {
@@ -475,8 +451,10 @@ async function getCollection({left, user}: {left: string, user?: string}) {
   }
 }
 
-async function getEntity({left, left_uuid, user}: {left: string, left_uuid: string, user?: string}) {
-  const result = await getApi(`/.netlify/functions/entity?left=${left}&left_uuid=${left_uuid}`, user);
+async function getEntity({left, left_uuid, user}: {left: string, left_uuid: string, user: string}) {
+  const access_token = getToken(user);
+  const {getEntity} = await startRuntimeOnce();
+  const result = await getEntity(left, left_uuid, access_token);
   return {
     type: COMMANDS.entity,
     data: {
@@ -484,20 +462,66 @@ async function getEntity({left, left_uuid, user}: {left: string, left_uuid: stri
     }
   }
 }
+
+async function createEntity({left, user, body}: {left: string, user?: string, body: string}) {
+  const access_token = getToken(user);
+  const response = await fetch(`/.netlify/functions/collection?left=${left}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+    body
+  });
+  if (response.ok) {
+    return {
+      type: COMMANDS.create,
+      data: {
+        ok: response.ok
+      }
+    }
+  } 
+  let result = await response.json();
+  return {
+    type: COMMANDS.error,
+    data: {
+      result
+    }
+  }
+}
+
+async function deleteEntity({left, left_uuid, user}: {left: string, left_uuid: string, user?: string}) {
+  let runtime = await import("@oceanics/app");
+  const access_token = getToken(user);
+  const response = await fetch(`/.netlify/functions/entity?left=${left}&left_uuid=${left_uuid}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    }
+  });
+  if (response.ok) {
+    return {
+      type: COMMANDS.deleteEntity,
+      data: {
+        ok: response.ok
+      }
+    }
+  } 
+  let result = await response.json();
+  return {
+    type: COMMANDS.error,
+    data: {
+      result
+    }
+  }
+}
+
+
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
 ctx.addEventListener("message", async ({ data }: MessageEvent) => {
   switch (data.type) {
-    // Start the worker
-    case COMMANDS.start:
-      await start();
-      ctx.postMessage({
-        type: COMMANDS.status,
-        data: "ready",
-      });
-      return;
     // Respond with status
     case COMMANDS.status:
       ctx.postMessage({
@@ -542,6 +566,11 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
     case COMMANDS.entity:
       await getEntity(data.data).then(ctx.postMessage);
       return
+    case COMMANDS.create:
+      await createEntity(data.data).then(ctx.postMessage);
+      return
+    case COMMANDS.deleteEntity:
+      await deleteEntity(data.data).then(ctx.postMessage);
     // Error on unspecified message type
     default:
       ctx.postMessage({

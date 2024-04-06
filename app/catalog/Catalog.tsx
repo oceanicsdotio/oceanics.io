@@ -3,18 +3,8 @@ import React, { useRef, useEffect, useState, MutableRefObject } from "react";
 import Markdown from "react-markdown";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
-import styles from "@app/catalog/catalog.module.css";
 import specification from "@app/../specification.json";
 
-export function Input({ description, id }: any) {
-  return (
-    <div className={styles.input}>
-      <label htmlFor={id}>{id}</label>
-      <input id={id} type={"text"} />
-      <Markdown>{description}</Markdown>
-    </div>
-  );
-}
 export function getLinkedCollections(properties: any) {
   const related = Object.keys(properties).filter((key: string) =>
     key.includes("@")
@@ -28,10 +18,10 @@ export function getLinkedCollections(properties: any) {
       prepend = ", ";
     }
     return (
-      <>
+      <span key={`linked-${index}`}>
         {prepend}
         <code>{name}</code>
-      </>
+      </span>
     );
   });
   return links;
@@ -69,7 +59,7 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
   const spec: any = (specification.components.schemas as any)[left];
   /**
    * Get count of nodes for a single collection */
-  const [message, setMessage] = useState(`Querying...`);
+  const [message, setMessage] = useState(` ↻`);
   /**
    * On load request collection metadata from our API.
    * The web worker will handle this to prevent blocking interaction.
@@ -79,7 +69,7 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
       switch ((data.type, data.data.left)) {
         // Only handle messages related to the collection.
         case (MESSAGES.count, left):
-          setMessage(`N=${data.data.count}`);
+          setMessage(` ✓ N=${data.data.count}`);
           return;
         // Let parent and siblings handle all other messages.
         default:
@@ -107,8 +97,9 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
         <Link className={layout.link} href={href}>
           {content}
         </Link>
-        <span>{` (${message})`}</span>
+        <span>{message}</span>
       </p>
+      
       <Markdown>{spec.description}</Markdown>
     </div>
   );
@@ -127,10 +118,14 @@ export default function Catalog({}) {
    */
   const [index, setIndex] = useState<ICollection[]>([]);
   /**
+   * Display message, workaround Suspense Data Fetching debacle.
+   */
+  const [message, setMessage] = useState("↻ Searching");
+  /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("./worker.ts", import.meta.url), {
+    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
       type: "module",
     });
     let workerMessageHandler = ({ data }: any) => {
@@ -138,6 +133,7 @@ export default function Catalog({}) {
         // Use worker to populate navigation data
         case MESSAGES.index:
           setIndex(data.data.index);
+          setMessage(`✓ Found ${data.data.index.length}`);
           return;
         // Handled elsewhere, fallthrough
         case MESSAGES.count:
@@ -173,6 +169,7 @@ export default function Catalog({}) {
    */
   return (
     <div>
+      <p>{message}</p>
       {index.map((each, index) => (
         <Collection key={`collection-${index}`} worker={worker} {...each} />
       ))}

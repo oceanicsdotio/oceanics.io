@@ -1,18 +1,13 @@
 "use client";
-import Markdown from "react-markdown";
 import React, {
   useRef,
   useEffect,
   type MouseEventHandler,
   useState,
   type MutableRefObject,
-  Suspense,
 } from "react";
-import Link from "next/link";
-import layout from "@app/layout.module.css";
 import styles from "./catalog.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
-import specification from "@app/../specification.json";
 import { Map, type AnyLayer, type AnySourceData, type Style } from "mapbox-gl";
 
 const MESSAGES = {
@@ -152,39 +147,6 @@ function Collection({
   );
 }
 
-async function Index({}) {
-  let user: string = localStorage.getItem("gotrue.user") ?? "";
-  let {
-    token: { access_token },
-  }: any = JSON.parse(user);
-  let response = await fetch("/.netlify/functions/index", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  let result = await response.json();
-  
-  return (
-    <>
-      {result.value.map((each: any) => {
-        let relative = each.name
-          .split(/\.?(?=[A-Z])/)
-          .join("_")
-          .toLowerCase();
-        let absolute = `/catalog/${relative}`;
-        let name = each.name.split(/\.?(?=[A-Z])/).join(" ");
-        return (
-          <p key={each.name}>
-            <Link className={layout.link} href={absolute}>
-              {name}
-            </Link>
-          </p>
-        );
-      })}
-    </>
-  );
-}
 
 /**
  * The OpenApi component uses an OpenAPI specification for a
@@ -334,12 +296,7 @@ export default function Catalog({
 
   return (
     <div className={styles.catalog}>
-      {/* <div ref={ref} /> */}
-      <h2>{specification.info.title}</h2>
-      <Markdown>{specification.info.description}</Markdown>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Index />
-      </Suspense>
+      <div ref={ref} />
     </div>
   );
 }

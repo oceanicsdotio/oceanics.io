@@ -14,6 +14,7 @@ const left = "Things";
 const MESSAGES = {
   error: "error",
   entity: "entity",
+  deleteEntity: "deleteEntity"
 };
 /**
  * Display an index of all or some subset of the
@@ -83,6 +84,20 @@ export default function Page() {
     };
   }, [uuid]);
   /**
+   * Delete this resource
+   */
+  const onDelete = () => {
+    const user_data = localStorage.getItem("gotrue.user");
+    worker.current?.postMessage({
+      type: MESSAGES.deleteEntity,
+      data: {
+        left,
+        left_uuid: uuid,
+        user: user_data,
+      },
+    });
+  }
+  /**
    * Client Component
    */
   return (
@@ -95,6 +110,7 @@ export default function Page() {
       </>
       <p>{message}</p>
       <p>{thing.name}</p>
+      <button onClick={onDelete}>Delete</button>
     </>
   );
 }

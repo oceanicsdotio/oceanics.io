@@ -5,8 +5,8 @@ import React, { useEffect, useState, useRef } from "react";
 import Markdown from "react-markdown";
 import { getLinkedCollections } from "@app/catalog/Catalog";
 import specification from "@app/../specification.json";
-const { properties, description } = specification.components.schemas.Things;
-const links = getLinkedCollections(properties);
+const { Things } = specification.components.schemas;
+const links = getLinkedCollections(Things.properties);
 /**
  * Pascal case disambiguation for API matching and queries.
  */
@@ -82,7 +82,7 @@ export default function Page({}) {
    */
   return (
     <>
-      <Markdown>{description}</Markdown>
+      <Markdown>{Things.description}</Markdown>
       <p>
         You can{" "}
         <Link className={layout.link} href={"create"}>
@@ -91,11 +91,10 @@ export default function Page({}) {
         <code>Things</code>, and link them to {links}.
       </p>
       <p>{message}</p>
-      {things.map((each: { uuid: string; name: string }) => {
-        let href = `${each.uuid}`;
+      {things.map((each: { uuid: string; name: string }, index) => {
         return (
-          <p key={each.uuid}>
-            <Link href={href}>{each.name}</Link>
+          <p key={`${Things.title}-${index}`}>
+            <Link href={each.uuid}>{each.name}</Link>
           </p>
         );
       })}

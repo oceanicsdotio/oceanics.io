@@ -6,15 +6,11 @@ info:
   version: "3.0.0"
   description: |
 
-    Bathysphere is a store and registry for public and proprietary geospatial data. The system is designed to support marine research in the North Atlantic, but can be configured or extended for many applications.
-
-    We ingest sensor and simulation data and automatically parse them into discoverable databases. Representing complex relationships between heterogenous data is simplified by applying a graph-native framework.
+    Bathysphere is a graph-native store and registry for public and proprietary Ocean data. We ingest heterogenous sensor and simulation data and parse them into discoverable databases, accessible to both humans and machines. 
     
-    This approach applies to many flexible, high-level cases, from NASA managing their lessons-learned mission database, to modeling virtual economies.
-
-    You probably have to share data anyway. Our middleware can enhance your data science and management experience by providing granular access control and  provenance based on open standards.
-
-    By assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an asset sharing model, which may be preferable to redundant operational and capital expenses.
+    You probably have to share data anyway. Our software can enhance your data science and management experience by providing granular access control and provenance tracking based on open standards. 
+    
+    By assessing data and service availability over shared domain, projects can allocate resources to fill coverage gaps, share assets, and eliminate redundant operational and capital expenses.
 
   contact:
     name: Oceanicsdotio LLC
@@ -722,6 +718,7 @@ components:
                 type: object
 
     Things:
+      title: "Things"
       examples:
         - name: Sealab
         - name: R/V Lloigor

@@ -29,3 +29,4 @@ web-sys = { version = "0.3.69", features = [
     "Response",
 ] }
 wasm-bindgen = { version = "0.2.92", features = ["serde-serialize"] }
+cargo-watch = "8.5.2"

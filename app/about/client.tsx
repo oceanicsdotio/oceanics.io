@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, Suspense, useState, useEffect } from "react";
 import type { FormEventHandler, ReactNode } from "react";
-import style from "./about.module.css";
+import style from "@about/page.module.css";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -83,7 +83,6 @@ export default function Subscribe({ children, sitekey, verify }: ISubscribe) {
   };
 
   return (
-    
         <form
           className={style.form}
           data-netlify="true"

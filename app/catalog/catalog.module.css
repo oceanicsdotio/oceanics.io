@@ -5,48 +5,10 @@
     padding: 0;
 }
 
-.form {
-    padding: 0;
-    margin: 0;
-    -webkit-appearance: none; 
-    -moz-appearance: none;
-    appearance: none;
-}
-
 .input {
     background-color: #222222;
     padding: 0.5rem;
     margin: 1rem 0;
-    border-radius: 5px;
-}
-
-.form input {
-    width: 100%;
-    display: block;
-    padding: 0.25rem;
-    margin: 0.5rem 0;
-    appearance: none;
-    -webkit-appearance: none; 
-    -moz-appearance: none;
-    font-family: inherit;
-    font-size: inherit;
-    color: lightgray;
-    border: 1px dashed;
-    border-radius: 5px;
-    background-color: #110022;
-}
-
-.form label {
-    display: block;
-    margin: 0;
-    width: 100%;
-    display: block;
-    padding: 0.25rem;
-    appearance: none;
-    -webkit-appearance: none; 
-    -moz-appearance: none;
-    font-family: inherit;
-    font-size: inherit;
     border-radius: 5px;
 }
 
@@ -58,4 +20,4 @@
     border-radius: 10px;
     border: 1px solid lightblue;
 }
-  
+
