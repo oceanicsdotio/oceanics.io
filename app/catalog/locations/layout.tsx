@@ -4,13 +4,12 @@ import layout from "../../layout.module.css";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <h2>
-        <Link className={layout.link} href={"/catalog/locations/"}>
-          Locations
-        </Link>
-      </h2>
+    <>
+      {"/"}
+      <Link className={layout.link} href={"/catalog/locations/"}>
+        Locations
+      </Link>
       {children}
-    </div>
+    </>
   );
 }

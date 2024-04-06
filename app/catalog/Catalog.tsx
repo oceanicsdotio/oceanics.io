@@ -3,7 +3,16 @@ import React, { useRef, useEffect, useState, MutableRefObject } from "react";
 import Markdown from "react-markdown";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
+import styles from "@app/catalog/catalog.module.css";
 import specification from "@app/../specification.json";
+
+export function Input({description, id}: any) {
+  return (<div className={styles.input}>
+    <label htmlFor={id}>{id}</label>
+    <input id={id} type={"text"} />
+    <Markdown>{description}</Markdown>
+  </div>)
+}
 /**
  * Active web worker messages.
  * Worker itself knows more message types.

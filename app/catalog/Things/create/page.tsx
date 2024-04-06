@@ -1,48 +1,45 @@
 "use client";
-import Link from "next/link";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+import styles from "@app/catalog/catalog.module.css";
+import specification from "@app/../specification.json";
+import { Input } from "@app/catalog/Catalog";
+/**
+ * Get Things properties from OpenAPI schema
+ */
+const { properties, description } = specification.components.schemas.Things;
 /**
  * Pascal case disambiguation for API matching and queries.
  */
-const left = "HistoricalLocations";
+const left = "Things";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
  */
 const MESSAGES = {
   collection: "collection",
-  error: "error"
-}
+  error: "error",
+};
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function Locations({}) {
+export default function Create({}) {
   /**
    * Ref to Web Worker.
    */
   const worker = useRef<Worker>();
   /**
-   * Node data.
-   */
-  let [locations, setLocations] = useState<any[]>([]);
-  /**
-   * Summary message displaying load state.
-   */
-  let [message, setMessage] = useState("Loading...");
-  /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("../worker.ts", import.meta.url), {
-      type: "module",
-    });
+    worker.current = new Worker(
+      new URL("@app/catalog/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
-        case MESSAGES.collection:
-          setLocations(data.data.value);
-          setMessage(`We found ${data.data.value.length} matching nodes:`)
-          return;
         case MESSAGES.error:
           console.error(data.type, data.data);
           return;
@@ -60,7 +57,7 @@ export default function Locations({}) {
         type: MESSAGES.collection,
         data: {
           left,
-          user: user_data
+          user: user_data,
         },
       });
     } else {
@@ -75,12 +72,18 @@ export default function Locations({}) {
    * Client Component
    */
   return (
-    <div>
-      <p>{message}</p>
-      {locations.map((each: { uuid: string; name: string }) => {
-        let href = `/catalog/historical_locations/${each.uuid}`;
-        return (<p key={each.uuid}><Link href={href}>{each.name??each.uuid}</Link></p>)
-      })}
-    </div>
+    <form className={styles.form}>
+      <p>{description}</p>
+      <Input id={"uuid"} description={properties.uuid.description}></Input>
+      <Input id={"name"} description={properties.name.description}></Input>
+      <Input
+        id={"description"}
+        description={properties.description.description}
+      ></Input>
+      <Input
+        id={"properties"}
+        description={properties.properties.description}
+      ></Input>
+    </form>
   );
 }

@@ -1,13 +1,23 @@
-.form {
-    display: block;
-    padding: 1rem 1rem;
+.catalog {
+    min-height: 100vh;
+    width: auto;
     margin: 0;
-    border-radius: 5px;
-    background-color: #222222;
-    color: #cccccc;
+    padding: 0;
+}
+
+.form {
+    padding: 0;
+    margin: 0;
     -webkit-appearance: none; 
     -moz-appearance: none;
     appearance: none;
+}
+
+.input {
+    background-color: #222222;
+    padding: 0.5rem;
+    margin: 1rem 0;
+    border-radius: 5px;
 }
 
 .form input {
@@ -21,16 +31,13 @@
     font-family: inherit;
     font-size: inherit;
     color: lightgray;
-    border: 1px dashed grey;
+    border: 1px dashed;
     border-radius: 5px;
-    background-color: darkgrey;
+    background-color: #110022;
 }
 
 .form label {
     display: block;
-    font-size: smaller;
-    font-style: italic;
-    text-transform: lowercase;
     margin: 0;
     width: 100%;
     display: block;
@@ -40,43 +47,5 @@
     -moz-appearance: none;
     font-family: inherit;
     font-size: inherit;
-    color: lightgray;
-    border: 1px dashed grey;
     border-radius: 5px;
-    background-color: darkgrey;
-}
-
-.catalog {
-    grid-row: 1;
-    grid-column: 1;
-    min-height: 100vh;
-    width: auto;
-    margin: 0;
-    padding: 0;
-}
-
-.zoom {
-    color: orange;
-    border-radius: 5px;
-    background-color: black;
-    padding: 0;
-    border: 1px solid grey;
-}
-
-.zoom div {
-    height: auto;
-    border: 1px solid;
-    border-radius: 5px;
-    text-align: center;
-    background-color: black;
-    padding: 3px;
-    /* margin-left: ${({minzoom})=>(minzoom-1)/22*100}%;
-    margin-right: ${({maxzoom})=>(22-maxzoom)/22*100}%;
-    color: ${({ minzoom, maxzoom, zoomLevel}) => 
-        (zoomLevel === null || (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)) ? ghost : grey
-    }; */
-}
-
-.visible {
-    color: white
 }

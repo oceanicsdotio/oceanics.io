@@ -35,7 +35,8 @@ const COMMANDS = {
   index: "index",
   // Get entities in a collection
   collection: "collection",
-  count: "count"
+  count: "count",
+  entity: "entity"
 }
 
 /**
@@ -439,21 +440,22 @@ async function getIndex(user: string) {
   }
 }
 
-async function getCount({left, user}: {left: string, user?: string}) {
+async function getApi(url: string, user?: string) {
   const access_token = getToken(user);
   if (!access_token) {
-    return {
-      type: COMMANDS.error,
-      data: "Missing Netlify Access Token"
-    }
+    throw Error("Missing Netlify Access Token");
   }
-  const response = await fetch(`/.netlify/functions/collection?left=${left}`, {
+  const response = await fetch(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${access_token}`,
     },
   });
-  const result = await response.json();
+  return await response.json();
+}
+
+async function getCount({left, user}: {left: string, user?: string}) {
+  const result = await getApi(`/.netlify/functions/collection?left=${left}`, user);
   return {
     type: COMMANDS.count,
     data: {
@@ -464,22 +466,19 @@ async function getCount({left, user}: {left: string, user?: string}) {
 }
 
 async function getCollection({left, user}: {left: string, user?: string}) {
-  const access_token = getToken(user);
-  if (!access_token) {
-    return {
-      type: COMMANDS.error,
-      data: "Missing Netlify Access Token"
-    }
-  }
-  const response = await fetch(`/.netlify/functions/collection?left=${left}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  const result = await response.json();
+  const result = await getApi(`/.netlify/functions/collection?left=${left}`, user);
   return {
     type: COMMANDS.collection,
+    data: {
+      value: result.value
+    }
+  }
+}
+
+async function getEntity({left, left_uuid, user}: {left: string, left_uuid: string, user?: string}) {
+  const result = await getApi(`/.netlify/functions/entity?left=${left}&left_uuid=${left_uuid}`, user);
+  return {
+    type: COMMANDS.entity,
     data: {
       value: result.value
     }
@@ -540,6 +539,9 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
     case COMMANDS.collection:
       await getCollection(data.data).then(ctx.postMessage);
       return;
+    case COMMANDS.entity:
+      await getEntity(data.data).then(ctx.postMessage);
+      return
     // Error on unspecified message type
     default:
       ctx.postMessage({

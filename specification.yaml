@@ -673,27 +673,25 @@ components:
 
     FeaturesOfInterest:
       examples:
-        - name: Gulf of Maine Mesh
-        - name: Midcoast Maine Mesh
-        - name: Damariscotta River Estuary shellfish growing area
-          description: Traditional growing area for oysters in Maine.
+        - name: Damariscotta River Estuary shellfish production
+          description: Dynamics of a traditional growing area for oysters in Maine.
       type: object
       description: |
-        Features of interest are usually Locations
+        `FeaturesOfInterest` are similar to `Locations`, in that they are spatial phenomena. However, 
+        they may be poorly defined in space and time, and therefore are represented through linked 
+        `Observations`. 
       additionalProperties: false
       required: [uuid, name]
       properties:
         uuid:
           type: string
           format: uuid
-          description: |
-            Unique integer identifier for entity.
-
+          description: Globally unique identifier for `FeaturesOfInterest`.
         name:
           type:
             - "string"
             - "null"
-          description: Human readable entity name for displaying data.
+          description: Human readable name for displaying data. This may change over time.
 
         description:
           type:
@@ -725,60 +723,23 @@ components:
 
     Things:
       examples:
-        - name: Landsat-7
-          description: Satellite mission
-        - name: Land Ocean Biogeochemical Observatory
-          description: |
-            Moored buoy deployment of the Sustainable Ecological Aquaculture Network
         - name: Sealab
-          properties:
-            home: Farm
-            capacity: 6
-            icon: laboratory
         - name: R/V Lloigor
-          properties:
-            capacity: 2
-            icon: boat
-            meters:
-              - name: starboard aft fuel
-                value: 2
-                max: 20
-                high: 15
-                low: 10
-            
-              - name: port aft fuel
-                value: 12
-                max: 20
-                high: 15
-                low: 10
-            
-              - name: starboard forward fuel
-                value: 5.5
-                max: 20
-                high: 15
-                low: 10
-            
-              - name: port forward fuel
-                value: 15.5
-                max: 20
-                high: 15
-                low: 10
 
       type: object
       description: |
-        A thing is an object of the physical or information world that is capable of of being identified
+        `Things` are objects of the physical or information world that can be identified
         and integrated into communication networks.
       required: [uuid, name]
       additionalProperties: false
       properties:
-
         uuid:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity. This usually auto-generated, but is different that the default node
-            IDs within the Neo4j database, since those are not guaranteed to persist.
-
+            Unique identifier for entity. This is usually auto-generated, 
+            but different than the default node IDs within the Neo4j database, 
+            since those are not guaranteed to persist.
         name:
           type:
             - "string"
@@ -981,6 +942,10 @@ components:
 
       type: object
       additionalProperties: false
+      description: |
+        `HistoricalLocations` create a timestamped relationship between `Locations`,
+        and `Things`, which move over time. This allows you to use either position or time
+        to query related data in the graph.
       required: [ uuid, time ]
       properties:
         uuid:
@@ -1035,6 +1000,9 @@ components:
         - name: Chlorophyll fluorometer
           description: For measuring plankton stuff
       type: object
+      description: |
+        `Sensors` contain technical and codec data about `DataStreams`. You might think
+        they are connected to `Things`, and they are, but only through multi-segment links.
       additionalProperties: false
       required: [ uuid, name ]
       properties:
@@ -1257,6 +1225,10 @@ components:
           resultTime: "2018-04-01T09:45:00Z"
           result: 11.7
       type: object
+      description: |
+        `Observations` are connecting nodes in a multi-segment path between `DataStreams` 
+        and `FeaturesOfInterest`. You might want to directly access this resource for
+        data annotation or correction.
       additionalProperties: false
       required: [uuid, resultTime, result]
       properties:
@@ -1408,6 +1380,8 @@ components:
         - name: water velocity
 
       type: object
+      description: |
+        `ObservedProperties` describe `DataStreams`.
       additionalProperties: false
       required: [uuid, name]
       properties:
@@ -1433,7 +1407,7 @@ components:
           type:
             - "string"
             - "null"
-          description: Reference to resource that defines the property. We default to trying Wikipedia.
+          description: Reference to resource that defines the property.
 
         DataStreams@iot.navigation:
           readOnly: true
@@ -1494,7 +1468,6 @@ components:
       type: [object, "null"]
       readOnly: true
       description: |
-
         Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
         interval.
 
