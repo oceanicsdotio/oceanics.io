@@ -1,23 +1,102 @@
-import React from "react";
-import { Metadata } from "next";
+"use client";
 import Link from "next/link";
-import layout from "@app/layout.module.css";
-import DataStreams from "./DataStreams";
-
-export const metadata: Metadata = {
-  title: "Oceanics.io | Data Streams",
-  description: "Streaming and synthetic time series data.",
+import React, { useEffect, useState, useRef } from "react";
+import { getLinkedCollections } from "@app/catalog/Catalog";
+import specification from "@app/../specification.json";
+import Markdown from "react-markdown";
+const { properties, description } =
+  specification.components.schemas.DataStreams;
+const links = getLinkedCollections(properties);
+/**
+ * Pascal case disambiguation for API matching and queries.
+ */
+const left = "DataStreams";
+/**
+ * Web worker messages that are explicitly handled in this
+ * context. The shared worker may understand/send other types.
+ */
+const MESSAGES = {
+  collection: "collection",
+  error: "error",
 };
-
-export default function Page() {
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
+ */
+export default function DataStreams({}) {
+  /**
+   * Ref to Web Worker.
+   */
+  const worker = useRef<Worker>();
+  /**
+   * Node data.
+   */
+  let [dataStreams, setDataStreams] = useState<any[]>([]);
+  /**
+   * Summary message displaying load state.
+   */
+  let [message, setMessage] = useState("↻ Searching");
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    worker.current = new Worker(
+      new URL("@app/catalog/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    const workerMessageHandler = ({ data }: any) => {
+      switch (data.type) {
+        case MESSAGES.collection:
+          setDataStreams(data.data.value);
+          setMessage(`✓ Found ${data.data.value.length}`);
+          return;
+        case MESSAGES.error:
+          console.error(data.type, data.data);
+          return;
+        default:
+          console.warn(data.type, data.data);
+          return;
+      }
+    };
+    worker.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
+    const user_data = localStorage.getItem("gotrue.user");
+    if (typeof user_data !== "undefined") {
+      worker.current.postMessage({
+        type: MESSAGES.collection,
+        data: {
+          left,
+          user: user_data,
+        },
+      });
+    } else {
+      console.error("User is not logged in.");
+    }
+    const handle = worker.current;
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, []);
+  /**
+   * Client Component
+   */
   return (
-    <>
+    <div>
+      <Markdown>{description}</Markdown>
       <p>
-        <Link className={layout.link} href={"/catalog/data_streams/example"}>
-          Example
-        </Link>
+        You can link <code>DataStreams</code> to {links}
       </p>
-      <DataStreams/>
-    </>
+      <p>{message}</p>
+      {dataStreams.map((each: { uuid: string; name: string }) => {
+        return (
+          <p key={each.uuid}>
+            <Link href={each.uuid}>{each.name}</Link>
+          </p>
+        );
+      })}
+    </div>
   );
 }

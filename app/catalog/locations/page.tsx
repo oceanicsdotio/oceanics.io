@@ -29,19 +29,19 @@ export default function Locations({}) {
   /**
    * Summary message displaying load state.
    */
-  let [message, setMessage] = useState("Searching");
+  let [message, setMessage] = useState("↻ Searching");
   /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("../worker.ts", import.meta.url), {
+    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
       type: "module",
     });
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
         case MESSAGES.collection:
           setLocations(data.data.value);
-          setMessage(`Found ${data.data.value.length}`);
+          setMessage(`✓ Found ${data.data.value.length}`);
           return;
         case MESSAGES.error:
           console.error(data.type, data.data);

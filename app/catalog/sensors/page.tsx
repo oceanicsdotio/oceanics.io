@@ -29,19 +29,19 @@ export default function Sensors({}) {
   /**
    * Summary message displaying load state.
    */
-  let [message, setMessage] = useState("Loading...");
+  let [message, setMessage] = useState("↻ Searching");
   /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("../worker.ts", import.meta.url), {
+    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
       type: "module",
     });
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
         case MESSAGES.collection:
           setSensors(data.data.value);
-          setMessage(`We found ${data.data.value.length} matching nodes:`)
+          setMessage(`✓ Found ${data.data.value.length}`)
           return;
         case MESSAGES.error:
           console.error(data.type, data.data);

@@ -46,7 +46,7 @@ export default function FeaturesOfInterest({}) {
       switch (data.type) {
         case MESSAGES.collection:
           setFeatures(data.data.value);
-          setMessage(`Found ${data.data.value.length}`);
+          setMessage(`✓ Found ${data.data.value.length}`);
           return;
         case MESSAGES.error:
           console.error(data.type, data.data);

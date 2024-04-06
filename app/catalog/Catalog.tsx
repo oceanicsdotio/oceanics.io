@@ -6,12 +6,35 @@ import layout from "@app/layout.module.css";
 import styles from "@app/catalog/catalog.module.css";
 import specification from "@app/../specification.json";
 
-export function Input({description, id}: any) {
-  return (<div className={styles.input}>
-    <label htmlFor={id}>{id}</label>
-    <input id={id} type={"text"} />
-    <Markdown>{description}</Markdown>
-  </div>)
+export function Input({ description, id }: any) {
+  return (
+    <div className={styles.input}>
+      <label htmlFor={id}>{id}</label>
+      <input id={id} type={"text"} />
+      <Markdown>{description}</Markdown>
+    </div>
+  );
+}
+export function getLinkedCollections(properties: any) {
+  const related = Object.keys(properties).filter((key: string) =>
+    key.includes("@")
+  );
+  const links = related.map((key: string, index: number) => {
+    let name = key.split("@")[0];
+    let prepend = "";
+    if (index === related.length - 1) {
+      prepend = " and ";
+    } else if (index > 0) {
+      prepend = ", ";
+    }
+    return (
+      <>
+        {prepend}
+        <code>{name}</code>
+      </>
+    );
+  });
+  return links;
 }
 /**
  * Active web worker messages.
@@ -27,30 +50,25 @@ const MESSAGES = {
  * Data passed back from worker to render collection link
  */
 interface ICollection {
-  left: string
-  href: string
-  content: string
+  left: string;
+  href: string;
+  content: string;
 }
 /**
  * Data passed into the collection link component.
  */
 interface ICollectionComponent extends ICollection {
   worker: MutableRefObject<Worker | undefined>;
-} 
+}
 /**
  * Link item for listing available collections. We don't care about order,
  * because we have no way of knowing which collections have nodes until
  * we make further queries.
  */
-function Collection({
-  left,
-  href,
-  content,
-  worker,
-}: ICollectionComponent) {
+function Collection({ left, href, content, worker }: ICollectionComponent) {
   const spec: any = (specification.components.schemas as any)[left];
   /**
-   * Get count of nodes for a single collection */ 
+   * Get count of nodes for a single collection */
   const [message, setMessage] = useState(`Querying...`);
   /**
    * On load request collection metadata from our API.
@@ -58,7 +76,7 @@ function Collection({
    */
   useEffect(() => {
     let workerMessageHandler = ({ data }: any) => {
-      switch (data.type, data.data.left) {
+      switch ((data.type, data.data.left)) {
         // Only handle messages related to the collection.
         case (MESSAGES.count, left):
           setMessage(`N=${data.data.count}`);
@@ -74,7 +92,7 @@ function Collection({
     worker.current?.postMessage({
       type: MESSAGES.count,
       data: {
-        left
+        left,
       },
     });
     let handle = worker.current;
@@ -84,12 +102,12 @@ function Collection({
   }, [left, worker]);
   return (
     <div key={href}>
-      <hr/>
+      <hr />
       <p>
-      <Link className={layout.link} href={href}>
-        {content}
-      </Link>
-      <span>{` (${message})`}</span>
+        <Link className={layout.link} href={href}>
+          {content}
+        </Link>
+        <span>{` (${message})`}</span>
       </p>
       <Markdown>{spec.description}</Markdown>
     </div>

@@ -1,27 +1,12 @@
 "use client";
 import layout from "@app/layout.module.css";
-import specification from "@app/../specification.json";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
+import Markdown from "react-markdown";
+import { getLinkedCollections } from "@app/catalog/Catalog";
+import specification from "@app/../specification.json";
 const { properties, description } = specification.components.schemas.Things;
-const related = Object.keys(properties).filter((key: string) =>
-  key.includes("@")
-);
-const links = related.map((key: string, index: number) => {
-  let name = key.split("@")[0];
-  let prepend = "";
-  if (index === related.length - 1) {
-    prepend = " and ";
-  } else if (index > 0) {
-    prepend = ", ";
-  }
-  return (
-    <>
-      {prepend}
-      <code>{name}</code>
-    </>
-  );
-});
+const links = getLinkedCollections(properties);
 /**
  * Pascal case disambiguation for API matching and queries.
  */
@@ -97,7 +82,7 @@ export default function Page({}) {
    */
   return (
     <>
-      <p>{description}</p>
+      <Markdown>{description}</Markdown>
       <p>
         You can{" "}
         <Link className={layout.link} href={"create"}>

@@ -29,7 +29,7 @@ export default function ObservedProperties({}) {
   /**
    * Summary message displaying load state.
    */
-  let [message, setMessage] = useState("Searching");
+  let [message, setMessage] = useState("↻ Searching");
   /**
    * Load Web Worker on component mount
    */

@@ -1065,7 +1065,9 @@ components:
           description: Just another chlorophyll series
       type: object
       description: |
-        DataStreams are collections of `Observations` from the same `Sensors`.
+        `DataStreams` are collections of `Observations` from the same `Sensors`. These time series
+        are one of the central models, and connect many of the other nodes. 
+        We support in browser data visualization and analysis.
       additionalProperties: false
       required: [ uuid, name ]
       properties:
