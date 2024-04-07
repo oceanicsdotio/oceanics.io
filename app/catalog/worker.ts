@@ -9,41 +9,9 @@ const MOBILE = Boolean(
   )
 );
 /**
- * Only perform startup routine once
- */
-async function startup(message: MessageEvent){
-  const { user } = message.data.data;
-  if (typeof user === "undefined") {
-    throw Error(`worker missing user data`)
-  }
-  const { token: { access_token = null } }: any = JSON.parse(user);
-  if (!access_token) {
-    throw Error(`worker missing access token`)
-  }
-  const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity } = await import("@oceanics/app");
-  panic_hook()
-  return {
-    handlers: {
-      getIndex: async () => {
-        const result = await getIndex(access_token);
-        const index = result.index.map(transform)
-        return {
-          index,
-          mobile: MOBILE
-        }
-      },
-      getCollection: getCollection.bind(undefined, access_token),
-      getCount: getCollection.bind(undefined, access_token),
-      getEntity: getEntity.bind(undefined, access_token),
-      createEntity: createEntity.bind(undefined, access_token),
-      deleteEntity: deleteEntity.bind(undefined, access_token)
-    }
-  }
-}
-/**
  * Transformation of database index is much easy in JS
  */
-function transform ({ name: left }: {name: string}) {
+function transformIndex ({ name: left }: {name: string}) {
   const key = left
     .split(/\.?(?=[A-Z])/)
     .join("_")
@@ -57,6 +25,44 @@ function transform ({ name: left }: {name: string}) {
   }
 }
 /**
+ * Only perform startup routine once
+ */
+async function startup(message: MessageEvent){
+  const { data: user } = message.data;
+  if (typeof user === "undefined") {
+    throw Error(`worker missing user data: ${JSON.stringify(message)}`)
+  }
+  const { token: { access_token = null } }: any = JSON.parse(user);
+  if (!access_token) {
+    throw Error(`worker missing access token`)
+  }
+  const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity } = await import("@oceanics/app");
+  panic_hook();
+  return {
+    handlers: {
+      getIndex: async () => {
+        const result = await getIndex(access_token);
+        const index = result.map(transformIndex)
+        return {
+          index,
+          mobile: MOBILE
+        }
+      },
+      getCollection: getCollection.bind(undefined, access_token),
+      getCount: async (message: {left:  string}) => {
+        const result = await getCollection(access_token, message);
+        return {
+          count: result["@iot.count"],
+          left: message.left
+        }
+      },
+      getEntity: getEntity.bind(undefined, access_token),
+      createEntity: createEntity.bind(undefined, access_token),
+      deleteEntity: deleteEntity.bind(undefined, access_token)
+    }
+  }
+}
+/**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
@@ -67,7 +73,7 @@ async function listen(message: MessageEvent) {
     } catch (error: any) {
       self.postMessage({
         type: "error",
-        message: error.message
+        data: error.message
       });
       return
     }
@@ -76,7 +82,7 @@ async function listen(message: MessageEvent) {
   if (!handler) {
     self.postMessage({
       type: "error",
-      message: `unknown message format: ${message.data.type}`
+      data: `unknown message format: ${message.data.type}`
     });
     return
   }
@@ -89,11 +95,11 @@ async function listen(message: MessageEvent) {
   } catch (error: any) {
     self.postMessage({
       type: "error",
-      message: error.message
+      data: error.message
     });
   }
 }
 /**
  * Respond to messages
  */
-self.addEventListener("message", listen)
+self.addEventListener("message", listen);

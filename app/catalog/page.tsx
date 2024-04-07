@@ -1,11 +1,21 @@
 "use client";
-import React, { useRef, useEffect, useState, MutableRefObject } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  MutableRefObject,
+  useCallback,
+} from "react";
 import Markdown from "react-markdown";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
 import styles from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
-
+/**
+ * Convenience method to extract the expected/possible types
+ * of connected entities, according to the OpenAPI spec.
+ * This is used in entity specific pages.
+ */
 export function getLinkedCollections(properties: any) {
   const related = Object.keys(properties).filter((key: string) =>
     key.includes("@")
@@ -32,10 +42,9 @@ export function getLinkedCollections(properties: any) {
  * Worker itself knows more message types.
  */
 const MESSAGES = {
-  status: "status",
-  index: "index",
+  getIndex: "getIndex",
+  getCount: "getCount",
   error: "error",
-  count: "count",
 };
 /**
  * Data passed back from worker to render collection link
@@ -49,7 +58,7 @@ interface ICollection {
  * Data passed into the collection link component.
  */
 interface ICollectionComponent extends ICollection {
-  worker: MutableRefObject<Worker | undefined>;
+  worker: MutableRefObject<Worker | null>;
 }
 /**
  * Link item for listing available collections. We don't care about order,
@@ -57,40 +66,46 @@ interface ICollectionComponent extends ICollection {
  * we make further queries.
  */
 function Collection({ left, href, content, worker }: ICollectionComponent) {
-  const spec: any = (specification.components.schemas as any)[left];
   /**
-   * Get count of nodes for a single collection */
+   * Specification for one entity model.
+   */
+  const { description }: any = (specification.components.schemas as any)[left];
+  /**
+   * Get count of nodes for a single collection
+   */
   const [message, setMessage] = useState(` ↻`);
+  /**
+   * Process worker messages, ignore unknown and allow siblings and
+   * parent to catch it.
+   */
+  const workerMessageHandler = useCallback(
+    ({ data: { type, data } }: any) => {
+      if (type === MESSAGES.getCount && data.left === left) {
+        setMessage(` ✓ N=${data.count}`);
+      }
+    },
+    [left]
+  );
   /**
    * On load request collection metadata from our API.
    * The web worker will handle this to prevent blocking interaction.
    */
   useEffect(() => {
-    let workerMessageHandler = ({ data }: any) => {
-      switch ((data.type, data.data.left)) {
-        // Only handle messages related to the collection.
-        case (MESSAGES.count, left):
-          setMessage(` ✓ N=${data.data.count}`);
-          return;
-        // Let parent and siblings handle all other messages.
-        default:
-          return;
-      }
-    };
-    worker.current?.addEventListener("message", workerMessageHandler, {
+    if (!worker.current) return;
+    worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    worker.current?.postMessage({
-      type: MESSAGES.count,
+    worker.current.postMessage({
+      type: MESSAGES.getCount,
       data: {
         left,
       },
     });
     let handle = worker.current;
     return () => {
-      handle?.removeEventListener("message", workerMessageHandler);
+      handle.removeEventListener("message", workerMessageHandler);
     };
-  }, [left, worker]);
+  }, [left, worker, workerMessageHandler]);
   return (
     <div key={href}>
       <hr />
@@ -100,8 +115,7 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
         </Link>
         <span>{message}</span>
       </p>
-
-      <Markdown>{spec.description}</Markdown>
+      <Markdown>{description}</Markdown>
     </div>
   );
 }
@@ -113,7 +127,7 @@ export default function Page({}) {
   /**
    * Ref to Web Worker.
    */
-  const worker = useRef<Worker>();
+  const worker = useRef<Worker | null>(null);
   /**
    * Index data loaded from the API.
    */
@@ -122,6 +136,23 @@ export default function Page({}) {
    * Display message, workaround Suspense Data Fetching debacle.
    */
   const [message, setMessage] = useState("↻ Searching");
+  /**
+   * Process messages from Web Worker. Warn on unprocessed.
+   */
+  const workerMessageHandler = useCallback(({ data: {type, data} }: any) => {
+    switch (type) {
+      case MESSAGES.getIndex:
+        setIndex(data.index);
+        setMessage(`✓ Found ${data.index.length}`);
+        return;
+      case MESSAGES.error:
+        console.error("worker", type, data);
+        return;
+      default:
+        console.warn("client", type, data);
+        return;
+    }
+  }, []);
   /**
    * Load Web Worker on component mount
    */
@@ -132,32 +163,13 @@ export default function Page({}) {
         type: "module",
       }
     );
-    let workerMessageHandler = ({ data }: any) => {
-      switch (data.type) {
-        // Use worker to populate navigation data
-        case MESSAGES.index:
-          setIndex(data.data.index);
-          setMessage(`✓ Found ${data.data.index.length}`);
-          return;
-        // Handled elsewhere, fallthrough
-        case MESSAGES.count:
-        case MESSAGES.status:
-          return;
-        case MESSAGES.error:
-          console.error(data.type, data.data);
-          return;
-        default:
-          console.warn(data.type, data.data);
-          return;
-      }
-    };
     worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
     const user_data = localStorage.getItem("gotrue.user");
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
-        type: MESSAGES.index,
+        type: MESSAGES.getIndex,
         data: user_data,
       });
     } else {
@@ -167,7 +179,7 @@ export default function Page({}) {
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, []);
+  }, [workerMessageHandler]);
   /**
    * Client Component.
    */
