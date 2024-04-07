@@ -3,7 +3,7 @@ import Link from "next/link";
 import layout from "@app/layout.module.css";
 import React, { useState, useEffect, useRef } from "react";
 import type { InteractiveDataStream, DataStreamStyle } from "@oceanics/app";
-import styles from "@app/catalog/catalog.module.css";
+import styles from "@catalog/page.module.css";
 import { usePathname } from "next/navigation";
 /**
  * Buffer of visible/stored observations.
@@ -81,7 +81,7 @@ export default function Page({}) {
    */
   useEffect(() => {
     worker.current = new Worker(
-      new URL("@app/catalog/worker.ts", import.meta.url),
+      new URL("@catalog/worker.ts", import.meta.url),
       {
         type: "module",
       }

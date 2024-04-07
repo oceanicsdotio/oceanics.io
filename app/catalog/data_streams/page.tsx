@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
-import { getLinkedCollections } from "@app/catalog/Catalog";
+import { getLinkedCollections } from "@catalog/page";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
 const { properties, description } =
@@ -41,7 +41,7 @@ export default function DataStreams({}) {
    */
   useEffect(() => {
     worker.current = new Worker(
-      new URL("@app/catalog/worker.ts", import.meta.url),
+      new URL("@catalog/worker.ts", import.meta.url),
       {
         type: "module",
       }

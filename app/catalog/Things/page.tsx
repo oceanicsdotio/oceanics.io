@@ -3,7 +3,7 @@ import layout from "@app/layout.module.css";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
 import Markdown from "react-markdown";
-import { getLinkedCollections } from "@app/catalog/Catalog";
+import { getLinkedCollections } from "@catalog/page";
 import specification from "@app/../specification.json";
 const { Things } = specification.components.schemas;
 const links = getLinkedCollections(Things.properties);
@@ -40,7 +40,7 @@ export default function Page({}) {
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
+    worker.current = new Worker(new URL("@catalog/worker.ts", import.meta.url), {
       type: "module",
     });
     const workerMessageHandler = ({ data }: any) => {

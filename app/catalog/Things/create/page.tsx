@@ -44,7 +44,7 @@ export default function Create({}) {
    */
   useEffect(() => {
     worker.current = new Worker(
-      new URL("@app/catalog/worker.ts", import.meta.url),
+      new URL("@catalog/worker.ts", import.meta.url),
       {
         type: "module",
       }

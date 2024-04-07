@@ -34,7 +34,7 @@ export default function Page({}) {
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
+    worker.current = new Worker(new URL("@catalog/worker.ts", import.meta.url), {
       type: "module",
     });
     const workerMessageHandler = ({ data }: any) => {

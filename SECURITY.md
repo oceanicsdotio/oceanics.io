@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We don't maintain backwards compatibility while in semver <2.0.0.
+We don't maintain backwards compatibility. Fork it.
 
 ## Reporting a Vulnerability
 

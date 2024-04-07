@@ -74,6 +74,11 @@ struct Storage {
     pub lock_file: String,
 }
 
+#[derive(Deserialize)]
+struct Query {
+    left: Option<String>,
+    left_uuid: Option<String>
+}
 
 #[wasm_bindgen(js_name="getIndex")]
 pub async fn get_index(access_token: String) -> Result<Promise, JsValue> {
@@ -97,13 +102,53 @@ pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsVal
 }
 
 #[wasm_bindgen(js_name="getCollection")]
-pub async fn get_collection(left: String, access_token: String) -> Result<Promise, JsValue> {
+pub async fn get_collection(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
+    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
+    let left = query.left.unwrap();
     let url = format!("/.netlify/functions/collection?left={}", left);
     get_api(url, access_token).await
 }
 
 #[wasm_bindgen(js_name="getEntity")]
-pub async fn get_entity(left: String, left_uuid: String, access_token: String) -> Result<Promise, JsValue> {
+pub async fn get_entity(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
+    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
+    let left = query.left.unwrap();
+    let left_uuid = query.left_uuid.unwrap();
     let url = format!("/.netlify/functions/entity?left={}&left_uiud={}", left, left_uuid);
     get_api(url, access_token).await
+}
+
+#[wasm_bindgen(js_name="createEntity")]
+pub async fn create_entity(access_token: String, query: JsValue, body: JsValue) -> Result<bool, JsValue> {
+    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
+    let left = query.left.unwrap();
+    let url = format!("/.netlify/functions/collection?left={}", left);
+    let mut opts = RequestInit::new();
+    opts.method("POST");
+    opts.body(Some(&body));
+    let request = Request::new_with_str_and_init(&url, &opts)?;
+    request.headers().set("Accept", "application/json")?;
+    let authorization = format!("Bearer {}", access_token);
+    request.headers().set("Authorization", &authorization)?;
+    let response = fetch(&request, &opts);
+    let resp_value = JsFuture::from(response).await?;
+    let resp: Response = resp_value.dyn_into().unwrap();
+    Ok(resp.ok())
+}
+
+#[wasm_bindgen(js_name="deleteEntity")]
+pub async fn delete_entity(access_token: String, query: JsValue) -> Result<bool, JsValue> {
+    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
+    let left = query.left.unwrap();
+    let left_uuid = query.left_uuid.unwrap();
+    let url = format!("/.netlify/functions/entity?left={}&left_uuid={}", left, left_uuid);
+    let mut opts = RequestInit::new();
+    opts.method("DELETE");
+    let request = Request::new_with_str_and_init(&url, &opts)?;
+    let authorization = format!("Bearer {}", access_token);
+    request.headers().set("Authorization", &authorization)?;
+    let response = fetch(&request, &opts);
+    let resp_value = JsFuture::from(response).await?;
+    let resp: Response = resp_value.dyn_into().unwrap();
+    Ok(resp.ok())
 }
