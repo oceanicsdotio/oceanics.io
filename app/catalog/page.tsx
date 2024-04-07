@@ -170,7 +170,7 @@ export default function Page({}) {
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
         type: MESSAGES.getIndex,
-        data: user_data,
+        data: {user: user_data},
       });
     } else {
       console.error("User is not logged in.");

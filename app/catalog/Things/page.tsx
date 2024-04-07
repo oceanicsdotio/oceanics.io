@@ -1,7 +1,7 @@
 "use client";
 import layout from "@app/layout.module.css";
 import Link from "next/link";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import Markdown from "react-markdown";
 import { getLinkedCollections } from "@catalog/page";
 import specification from "@app/../specification.json";
@@ -15,8 +15,8 @@ const left = "Things";
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
  */
-const MESSAGES = {
-  collection: "collection",
+const ACTIONS = {
+  getCollection: "getCollection",
   error: "error",
 };
 /**
@@ -37,33 +37,36 @@ export default function Page({}) {
    */
   let [message, setMessage] = useState("↻ Searching");
   /**
+   * Process web worker messages.
+   */
+  const workerMessageHandler = useCallback(({ data: {data, type} }: MessageEvent) => {
+    switch (type) {
+      case ACTIONS.getCollection:
+        setThings(data.value);
+        setMessage(`✓ Found ${data.value.length}`);
+        return;
+      case ACTIONS.error:
+        console.error("worker", type, data);
+        return;
+      default:
+        console.warn("client", type, data);
+        return;
+    }
+  }, []);
+  /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
     worker.current = new Worker(new URL("@catalog/worker.ts", import.meta.url), {
       type: "module",
     });
-    const workerMessageHandler = ({ data }: any) => {
-      switch (data.type) {
-        case MESSAGES.collection:
-          setThings(data.data.value);
-          setMessage(`✓ Found ${data.data.value.length}`);
-          return;
-        case MESSAGES.error:
-          console.error(data.type, data.data);
-          return;
-        default:
-          console.warn(data.type, data.data);
-          return;
-      }
-    };
     worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
     const user_data = localStorage.getItem("gotrue.user");
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
-        type: MESSAGES.collection,
+        type: ACTIONS.getCollection,
         data: {
           left,
           user: user_data,
@@ -76,7 +79,7 @@ export default function Page({}) {
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, []);
+  }, [workerMessageHandler]);
   /**
    * Client Component
    */

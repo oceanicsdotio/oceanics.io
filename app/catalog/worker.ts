@@ -28,7 +28,7 @@ function transformIndex ({ name: left }: {name: string}) {
  * Only perform startup routine once
  */
 async function startup(message: MessageEvent){
-  const { data: user } = message.data;
+  const { data: {user} } = message.data;
   if (typeof user === "undefined") {
     throw Error(`worker missing user data: ${JSON.stringify(message)}`)
   }
@@ -67,6 +67,7 @@ async function startup(message: MessageEvent){
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
+  
   if (!CACHE) {
     try {
       CACHE = await startup(message);
