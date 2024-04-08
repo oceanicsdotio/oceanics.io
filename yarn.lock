@@ -4718,15 +4718,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=da7dec&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4e7aa1ade623457d93906fbae2255f9248791664a127cc55852623de7a380cd831e1d60c8e32a4776026050093433935ebb6a14f259de5f0b50783eb41224722
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=21d476&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/c162a98a4b8286c684ca557118b53cdf6996900894e63e50833a222ba5a35ee9e1749a247e5514069476ff115a62d8193639eadcc3fcb54b671e863b17abc617
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -22298,9 +22298,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.7.1":
-  version: 4.7.1
-  resolution: "tsx@npm:4.7.1"
+"tsx@npm:^4.7.2":
+  version: 4.7.2
+  resolution: "tsx@npm:4.7.2"
   dependencies:
     esbuild: "npm:~0.19.10"
     fsevents: "npm:~2.3.3"
@@ -22310,7 +22310,7 @@ __metadata:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10/3a462b595f31ae58b31f9c6e8c450577dc87660b1225012bd972b6b58d7d2f6c4034728763ebc53bb731acff68de8b0fa50586e4c1ec4c086226f1788ccf9b7d
+  checksum: 10/3a06564f6926cc26bcdbf2752c361408d8e594a30abf15dc4639d4b964e98eedd3358c34ccd56ea15021519ebafe27a003d6cf26de0f530ea2cc34cb63fd0bfb
   languageName: node
   linkType: hard
 
@@ -23738,7 +23738,7 @@ __metadata:
     styled-components: "npm:^6.1.1"
     ts-jest: "npm:^29.1.2"
     tsconfig-paths-webpack-plugin: "npm:^4.0.0"
-    tsx: "npm:^4.7.1"
+    tsx: "npm:^4.7.2"
     typescript: "npm:^5.4.3"
     typography: "npm:^0.16.24"
     webpack: "npm:^5.91.0"
