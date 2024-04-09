@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import type { MiniMap } from "@oceanics/app";
-import style from "./oceanics.module.css";
-import icons from "./oceanics.json";
+import style from "@app/oceanics.module.css";
+import icons from "@app/oceanics.json";
 
 /**
  * Main page animation.

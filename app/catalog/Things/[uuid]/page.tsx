@@ -13,7 +13,8 @@ const left = "Things";
  */
 const MESSAGES = {
   error: "error",
-  entity: "entity",
+  getEntity: "getEntity",
+  deleteEntity: "deleteEntity"
 };
 /**
  * Display an index of all or some subset of the
@@ -42,14 +43,14 @@ export default function Page() {
    */
   useEffect(() => {
     worker.current = new Worker(
-      new URL("@app/catalog/worker.ts", import.meta.url),
+      new URL("@catalog/worker.ts", import.meta.url),
       {
         type: "module",
       }
     );
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
-        case MESSAGES.entity:
+        case MESSAGES.getEntity:
           setThing(data.data.value[0]);
           setMessage(`✓ Found ${data.data.value.length}`);
           return;
@@ -67,7 +68,7 @@ export default function Page() {
     const user_data = localStorage.getItem("gotrue.user");
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
-        type: MESSAGES.entity,
+        type: MESSAGES.getEntity,
         data: {
           left,
           left_uuid: uuid,
@@ -83,6 +84,20 @@ export default function Page() {
     };
   }, [uuid]);
   /**
+   * Delete this resource
+   */
+  const onDelete = () => {
+    const user_data = localStorage.getItem("gotrue.user");
+    worker.current?.postMessage({
+      type: MESSAGES.deleteEntity,
+      data: {
+        left,
+        left_uuid: uuid,
+        user: user_data,
+      },
+    });
+  }
+  /**
    * Client Component
    */
   return (
@@ -95,6 +110,7 @@ export default function Page() {
       </>
       <p>{message}</p>
       <p>{thing.name}</p>
+      <button onClick={onDelete}>Delete</button>
     </>
   );
 }

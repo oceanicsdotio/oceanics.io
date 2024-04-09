@@ -1,7 +1,7 @@
 [build]
   base = "/"
   publish = ".next"
-  command = "make next"
+  command = "yarn next build"
   functions = "functions/src"
 
 [build.environment]

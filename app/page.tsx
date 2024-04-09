@@ -33,7 +33,7 @@ export default function Page() {
 
       <p>
         We analyze public and proprietary ocean data and{" "}
-        <a className={layout.link} href="/openapi">
+        <a className={layout.link} href="catalog">
           serve you synthetic and aggregate products
         </a>{" "}
         to manage risk and conflict.
@@ -45,7 +45,7 @@ export default function Page() {
       </p>
       <div className={layout.nested} data-netlify-identity-button></div>
       <p className={layout.nested}>
-        <Link className={layout.link} href="/about">
+        <Link className={layout.link} href="about">
           Get in touch
         </Link>
       </p>

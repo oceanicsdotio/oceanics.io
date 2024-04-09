@@ -1,5 +1,5 @@
 use crate::{
-    cypher::{Links, Node, QueryResult}, openapi::{
+    cypher::{Links, Node, QueryResult}, log, openapi::{
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
     }
 };
@@ -74,6 +74,7 @@ async fn post(
     if result.summary.counters.stats.nodes_created == 1 {
         NoContentResponse::new()
     } else {
+        log(result.summary.query.text);
         ErrorResponse::server_error()
     }
 }
