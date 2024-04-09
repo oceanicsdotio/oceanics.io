@@ -13,7 +13,7 @@ const left = "Things";
  */
 const MESSAGES = {
   error: "error",
-  entity: "entity",
+  getEntity: "getEntity",
   deleteEntity: "deleteEntity"
 };
 /**
@@ -50,7 +50,7 @@ export default function Page() {
     );
     const workerMessageHandler = ({ data }: any) => {
       switch (data.type) {
-        case MESSAGES.entity:
+        case MESSAGES.getEntity:
           setThing(data.data.value[0]);
           setMessage(`✓ Found ${data.data.value.length}`);
           return;
@@ -68,7 +68,7 @@ export default function Page() {
     const user_data = localStorage.getItem("gotrue.user");
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
-        type: MESSAGES.entity,
+        type: MESSAGES.getEntity,
         data: {
           left,
           left_uuid: uuid,

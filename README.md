@@ -42,7 +42,7 @@ These environment variables must be present for things to work:
 - `STORAGE_ENDPOINT`: the region and host for cloud storage
 - `BUCKET_NAME`: the prefix to the storage endpoint
 - `SERVICE_PROVIDER_API_KEY`: Provider API key for registering accounts
-- `SIGNING_KEY`: A signing ket for producing JWT in-application
+- `JWT_SIGNING_KEY`: A signing ket for producing JWT in-application
 - `SERVICE_ACCOUNT_USERNAME`: email for service account
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
 - `SERVICE_ACCOUNT_SECRET`: string for salting service key password
