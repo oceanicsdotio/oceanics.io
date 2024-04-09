@@ -86,7 +86,7 @@
         "rehype-stringify": "^10.0.0",
         "ts-jest": "^29.1.2",
         "tsconfig-paths-webpack-plugin": "^4.0.0",
-        "tsx": "^4.7.1",
+        "tsx": "^4.7.2",
         "typescript": "^5.4.3",
         "webpack": "^5.91.0",
         "yaml": "^2.4.1"
