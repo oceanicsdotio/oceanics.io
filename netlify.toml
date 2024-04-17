@@ -38,11 +38,11 @@
   status = 200
   headers = {X-From = "Netlify"}
 
-# [[redirects]]
-#   from = "/catalog/*" 
-#   to = "/"
-#   status = 401
-#   force = true
+[[redirects]]
+  from = "/catalog/*" 
+  to = "/"
+  status = 401
+  force = true
 
 [[redirects]]
   from = "/compute/*" 
