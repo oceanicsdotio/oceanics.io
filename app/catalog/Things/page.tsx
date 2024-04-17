@@ -16,13 +16,33 @@ const left = "Things";
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
+function Thing({
+  thing,
+  onDelete,
+}: {
+  thing: any;
+  onDelete: (uuid: string) => void;
+}) {
+  const url = `/.netlify/functions/entity/?left=Things&left_uuid=${thing.uuid}`;
+  return (
+    <div>
+      <p>{thing.name}</p>
+      <Link href={`/.netlify/functions/entity/?left=Things&left_uuid=${thing.uuid}`}>{url}</Link>
+      <button onClick={onDelete.bind(undefined, thing.uuid)}>Delete</button>
+    </div>
+  );
+}
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
+ */
 export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const {collection, message} = useCollection({left});
+  const { collection, message, onDelete } = useCollection({ left });
   /**
-   * Client Component
+   * Client Component.
    */
   return (
     <>
@@ -37,9 +57,11 @@ export default function Page({}) {
       <p>{message}</p>
       {collection.map((each: { uuid: string; name: string }, index) => {
         return (
-          <p key={`${Things.title}-${index}`}>
-            <Link href={each.uuid}>{each.name}</Link>
-          </p>
+          <Thing
+            key={`${Things.title}-${index}`}
+            onDelete={onDelete}
+            thing={each}
+          ></Thing>
         );
       })}
     </>

@@ -1,6 +1,6 @@
 [build]
   base = "/"
-  publish = ".next"
+  publish = "out"
   command = "yarn next build"
   functions = "functions/src"
 
@@ -8,10 +8,11 @@
   NODE_VERSION = "20"
   AWS_LAMBDA_JS_RUNTIME = "nodejs20.x"
   UV_THREADPOOL_SIZE = 16
+  NETLIFY_NEXT_PLUGIN_SKIP = true
 
 [dev]
   port = 8888
-  # framework = "#static"
+  framework = "#static"
 
 [[plugins]]
   package = "@netlify/plugin-csp-nonce"
@@ -37,11 +38,11 @@
   status = 200
   headers = {X-From = "Netlify"}
 
-# [[redirects]]
-#   from = "/catalog/*" 
-#   to = "/"
-#   status = 401
-#   force = true
+[[redirects]]
+  from = "/catalog/*" 
+  to = "/"
+  status = 401
+  force = true
 
 [[redirects]]
   from = "/compute/*" 

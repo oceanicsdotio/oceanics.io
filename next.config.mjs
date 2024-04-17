@@ -5,7 +5,7 @@
 import withMDX from '@next/mdx'
 
 const nextConfig = {
-  // output: "export",
+  output: "export",
   reactStrictMode: false,
   pageExtensions: ['mdx', 'tsx'],
   trailingSlash: true,

@@ -1,3 +1,4 @@
+import { deleteEntity } from "@oceanics/app";
 import { useEffect, useState, useRef, useCallback } from "react";
 /**
  * Web worker messages that are explicitly handled in this
@@ -5,6 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
  */
 const ACTIONS = {
   getCollection: "getCollection",
+  deleteEntity: "deleteEntity",
   error: "error",
 };
 /**
@@ -55,13 +57,13 @@ export default function useCollection({
     worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    const user_data = localStorage.getItem("gotrue.user");
-    if (typeof user_data !== "undefined") {
+    const user = localStorage.getItem("gotrue.user");
+    if (typeof user !== "undefined") {
       worker.current.postMessage({
         type: ACTIONS.getCollection,
         data: {
           left,
-          user: user_data,
+          user,
         },
       });
     } else {
@@ -72,11 +74,27 @@ export default function useCollection({
       handle.removeEventListener("message", workerMessageHandler);
     };
   }, [workerMessageHandler, left]);
+    /**
+   * Delete a resource
+   */
+    const onDelete = (uuid: string) => {
+      const user = localStorage.getItem("gotrue.user");
+      worker.current?.postMessage({
+        type: ACTIONS.deleteEntity,
+        data: {
+          left,
+          left_uuid: uuid,
+          user,
+        },
+      });
+    };
   /**
    * Client Component
    */
   return {
     collection,
-    message
+    message,
+    worker,
+    onDelete
   };
 }
