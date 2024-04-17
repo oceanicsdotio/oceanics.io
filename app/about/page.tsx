@@ -19,8 +19,15 @@ export default function Page() {
       <p>
         Oceanicsdotio LLC is a Rockland Maine business developing digital tools
         for civilian marine operators. We like innovative business models that
-        nuture <strong>autonomy</strong>, <strong>prosperity</strong>, and{" "}
+        nurture <strong>autonomy</strong>, <strong>prosperity</strong>, and{" "}
         <strong>accountability</strong> in the blue economy.
+      </p>
+      <h2>
+        You can <strong>hire us</strong>.
+      </h2>
+      <p>
+        We will help design, implement, and operate data and 
+        technology projects. Just ask!
       </p>
       <h2>
         Subscribe to <strong>Out of the Blue</strong>

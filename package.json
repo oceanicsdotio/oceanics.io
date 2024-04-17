@@ -54,6 +54,7 @@
         "@babel/preset-env": "^7.24.0",
         "@babel/preset-typescript": "^7.24.1",
         "@netlify/plugin-csp-nonce": "^1.2.6",
+        "@netlify/plugin-nextjs": "^4.41.3",
         "@redocly/cli": "^1.10.6",
         "@types/cors": "^2",
         "@types/express": "^4",

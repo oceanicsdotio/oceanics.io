@@ -5,7 +5,7 @@
 import withMDX from '@next/mdx'
 
 const nextConfig = {
-  // output: "export",
+  output: "export",
   reactStrictMode: false,
   pageExtensions: ['mdx', 'tsx'],
   trailingSlash: true,
@@ -23,7 +23,7 @@ const nextConfig = {
   },
   webpack(config) {
     // Ensures that web workers can import scripts.
-    config.output.publicPath = "/_next/";
+    // config.output.publicPath = "/_next/";
     // https://github.com/wojtekmaj/react-pdf
     config.resolve.alias.canvas = false;
     // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665

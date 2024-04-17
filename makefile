@@ -37,14 +37,14 @@ examples.json: examples.ts specification.json
 	@ yarn exec tsx examples.ts specification.json examples.json
 
 # Build the next site within Netlify to pick up env/config.
-.next: $(SRC) next.config.mjs tsconfig.json netlify.toml public/openapi.html examples.json 
+out: $(SRC) next.config.mjs tsconfig.json netlify.toml public/openapi.html examples.json 
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@
 
 # Start up local development environment.
-dev: .next
+dev: out
 	@ yarn netlify dev
 .PHONY: dev
 
@@ -54,18 +54,20 @@ coverage:
 	@ touch -m $@
 
 # Create examples with static UUID values for deterministic testing.
-test: .next coverage
+test: out coverage
 	@ yarn jest
 .PHONY: test
 
 # Deploy to production.
-deploy: .next
+deploy: out
 	@ yarn netlify deploy --prod --message "Makefile Deploy" --open
 .PHONY: deploy
 
 # Remove build artifacts.
 clean:
 	@ rm -f examples.json
+	@ rm -f specification.json
+	@ rm -f public/openapi.html
 	@ rm -rf functions/lib
 	@ rm -rf functions/target
 	@ rm -rf app/lib
