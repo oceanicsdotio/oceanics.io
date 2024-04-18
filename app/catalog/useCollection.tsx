@@ -39,6 +39,11 @@ export default function useCollection({
         setCollection(data.value);
         setMessage(`✓ Found ${data.value.length}`);
         return;
+      case ACTIONS.deleteEntity:
+        setCollection((previous: any[]) => {
+          return previous.filter((each) => each.uuid !== data.uuid)
+        });
+        setMessage(`✓ Deleted 1`);
       case ACTIONS.error:
         console.error("worker", type, data);
         return;

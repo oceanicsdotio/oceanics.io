@@ -1061,6 +1061,7 @@ components:
           name: chlorophyll
           description: Just another chlorophyll series
       type: object
+      title: DataStreams
       description: |
         `DataStreams` are collections of `Observations` from the same `Sensors`. These time series
         are one of the central models, and connect many of the other nodes. 

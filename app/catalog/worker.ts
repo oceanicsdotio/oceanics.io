@@ -58,7 +58,13 @@ async function startup(message: MessageEvent){
       },
       getEntity: getEntity.bind(undefined, access_token),
       createEntity: createEntity.bind(undefined, access_token),
-      deleteEntity: deleteEntity.bind(undefined, access_token)
+      deleteEntity: async (query: any) => {
+        const result = await deleteEntity(access_token, query)
+        return {
+          success: result,
+          uuid: query.left_uuid
+        }
+      }
     }
   }
 }
