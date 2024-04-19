@@ -1074,13 +1074,16 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique integer identifier across `DataStreams` and all other
+            types of entity.
 
         name:
           type:
             - "string"
             - "null"
-          description: Human readable entity name for displaying data.
+          description: |
+            Human readable `DataStreams` name for displaying data. 
+            This need not be unique, but it is helpful if it is.
 
         description:
           type:
@@ -1115,7 +1118,7 @@ components:
             - "string"
             - "null"
           description: |
-            Data model of child `Observations`. Usually a `Measurement`.
+            Data model of child `Observations`. Usually an `OM_Measurement`.
           enum:
             - "OM_CategoryObservation"
             - "OM_CountObservation"
@@ -1380,6 +1383,7 @@ components:
         - name: water velocity
 
       type: object
+      title: ObservedProperties
       description: |
         `ObservedProperties` describe `DataStreams`.
       additionalProperties: false

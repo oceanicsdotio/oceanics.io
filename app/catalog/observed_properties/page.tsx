@@ -2,19 +2,17 @@
 import Link from "next/link";
 import React from "react";
 import useCollection from "@catalog/useCollection";
-/**
- * Pascal case disambiguation for API matching and queries.
- */
-const left = "ObservedProperties";
+import specification from "@app/../specification.json";
+const {ObservedProperties} = specification.components.schemas;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function ObservedProperties({}) {
+export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({ left });
+  const { collection, message } = useCollection({ left: ObservedProperties.title });
   /**
    * Client Component
    */

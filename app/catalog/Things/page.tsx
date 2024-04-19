@@ -42,18 +42,14 @@ function Thing({
     <div>
       <hr />
       <h3>
-        <Link className={styles.link} href={url}>{name}</Link>
+        <Link className={styles.link} href={url} prefetch={false}>{name}</Link>
       </h3>
       {showDetails && 
         <div>
-          <label>uuid</label>
-          <p>{uuid}</p>
-          <label>name</label>
-          <p>{name}</p>
-          <label>description</label>
-          <p>{description??"None"}</p>
-          <label>properties</label>
-          <p>{properties??"None"}</p>
+          <p>uuid: {uuid}</p>
+          <p>name: {name}</p>
+          <p>description: {description??"n/a"}</p>
+          <p>properties: {properties??"n/a"}</p>
         </div>
       }
       <div>
@@ -80,7 +76,7 @@ export default function Page({}) {
       <Markdown>{description}</Markdown>
       <p>
         You can{" "}
-        <Link className={layout.link} href={"create"}>
+        <Link className={layout.link} href={"create/"}>
           create
         </Link>{" "}
         <code>Things</code>, and link them to {links}.

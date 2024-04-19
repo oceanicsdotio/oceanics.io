@@ -31,6 +31,7 @@ let bins = 10;
  * System time scalar
  */
 let timeConstant = 1 / capacity;
+let detailLevels = 3;
 /**
  * Drawing style type is from WASM, but we have to leave
  * out bound methods.
@@ -60,6 +61,7 @@ function DataStream({
   wasm: WasmInteraction;
   onDelete: (uuid: string) => void;
 }) {
+  const unitOfMeasurement: any = JSON.parse(dataStream.unitOfMeasurement ?? "{}")
   /**
    * Render target
    */
@@ -150,7 +152,7 @@ function DataStream({
    * Increment detail level
    */
   function onDetails() {
-    setDetailLevel(prev => (prev + 1) % 2);
+    setDetailLevel(prev => (prev + 1) % detailLevels);
   }
   /**
    * Switch between histogram and time series view
@@ -193,6 +195,7 @@ function DataStream({
       <p>
         <Link
           href={`/.netlify/functions/entity/?left=${left}&left_uuid=${dataStream.uuid}`}
+          prefetch={false}
         >
           {dataStream.name}
         </Link>
@@ -202,28 +205,27 @@ function DataStream({
       </div>
       {detailLevel > 0 && (
         <div>
-          <label>uuid</label>
-          <p>{dataStream.uuid}</p>
-          <label>name</label>
-          <p>{dataStream.name}</p>
-          <label>description</label>
-          <p>{dataStream.description}</p>
-          <label>unit of measurement</label>
-          <p>{dataStream.unitOfMeasurement??
-          "n/a"}</p>
-          <label>observation type</label>
-          <p>{dataStream.observationType??"n/a"}</p>
-          <label>phenomenon time</label>
-          <p>n/a</p>
-          <label>result time</label>
-          <p>n/a</p>
+          <p>uuid: {dataStream.uuid}</p>
+          <p>name: {dataStream.name}</p>
+          <p>description: {dataStream.description}</p>
+        </div>
+      )}
+      {detailLevel > 1 && (
+        <div>
+          <p>unit of measurement:</p>
+          <p>    name: {unitOfMeasurement.name??"n/a"}</p>
+          <p>    symbol: {unitOfMeasurement.symbol??"n/a"}</p>
+          <p>    definition: {unitOfMeasurement.definition??"n/a"}</p>
+          <p>observation type: {dataStream.observationType??"n/a"}</p>
+          <p>phenomenon time: n/a</p>
+          <p>result time: n/a</p>
         </div>
       )}
       <button onClick={onDetails}>Details</button>
       <button onClick={onSummary}>Summary</button>
-      <button onClick={onPlay}>Play</button>
-      <button onClick={onPause}>Pause</button>
-      <button onClick={onRestart}>Restart</button>
+      <button onClick={onPlay} disabled={play}>Play</button>
+      <button onClick={onPause} disabled={!play}>Pause</button>
+      <button onClick={onRestart} disabled={!clock.start}>Restart</button>
       <button onClick={onDelete.bind(undefined, dataStream.uuid ?? "")}>
         Delete
       </button>
@@ -262,7 +264,7 @@ export default function Page({}) {
     <div>
       <Markdown>{description}</Markdown>
       <p>
-        You can link <code>DataStreams</code> to {links}.
+        You can <Link href={"create/"}>create</Link> new <code>DataStreams</code> and link them with {links}.
       </p>
       <p>{message}</p>
       {collection.map((dataStream) => {

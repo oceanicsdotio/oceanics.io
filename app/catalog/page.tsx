@@ -98,7 +98,9 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
     worker.current.postMessage({
       type: MESSAGES.getCount,
       data: {
-        left,
+        query: {
+          left,
+        },
       },
     });
     let handle = worker.current;
@@ -139,7 +141,7 @@ export default function Page({}) {
   /**
    * Process messages from Web Worker. Warn on unprocessed.
    */
-  const workerMessageHandler = useCallback(({ data: {type, data} }: any) => {
+  const workerMessageHandler = useCallback(({ data: { type, data } }: any) => {
     switch (type) {
       case MESSAGES.getIndex:
         setIndex(data.index);
@@ -170,7 +172,7 @@ export default function Page({}) {
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
         type: MESSAGES.getIndex,
-        data: {user: user_data},
+        data: { user: user_data },
       });
     } else {
       console.error("User is not logged in.");

@@ -1,4 +1,3 @@
-import { deleteEntity } from "@oceanics/app";
 import { useEffect, useState, useRef, useCallback } from "react";
 /**
  * Web worker messages that are explicitly handled in this
@@ -13,11 +12,7 @@ const ACTIONS = {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function useCollection({
-    left
-}: {
-    left: string
-}) {
+export default function useCollection({ left }: { left: string }) {
   /**
    * Ref to Web Worker.
    */
@@ -33,32 +28,38 @@ export default function useCollection({
   /**
    * Process web worker messages.
    */
-  const workerMessageHandler = useCallback(({ data: {data, type} }: MessageEvent) => {
-    switch (type) {
-      case ACTIONS.getCollection:
-        setCollection(data.value);
-        setMessage(`✓ Found ${data.value.length}`);
-        return;
-      case ACTIONS.deleteEntity:
-        setCollection((previous: any[]) => {
-          return previous.filter((each) => each.uuid !== data.uuid)
-        });
-        setMessage(`✓ Deleted 1`);
-      case ACTIONS.error:
-        console.error("worker", type, data);
-        return;
-      default:
-        console.warn("client", type, data);
-        return;
-    }
-  }, []);
+  const workerMessageHandler = useCallback(
+    ({ data: { data, type } }: MessageEvent) => {
+      switch (type) {
+        case ACTIONS.getCollection:
+          setCollection(data.value);
+          setMessage(`✓ Found ${data.value.length}`);
+          return;
+        case ACTIONS.deleteEntity:
+          setCollection((previous: any[]) => {
+            return previous.filter((each) => each.uuid !== data.uuid);
+          });
+          setMessage(`✓ Deleted 1`);
+        case ACTIONS.error:
+          console.error("@worker", type, data);
+          return;
+        default:
+          console.warn("@client", type, data);
+          return;
+      }
+    },
+    []
+  );
   /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.current = new Worker(new URL("@catalog/worker.ts", import.meta.url), {
-      type: "module",
-    });
+    worker.current = new Worker(
+      new URL("@catalog/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
     worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
@@ -67,7 +68,7 @@ export default function useCollection({
       worker.current.postMessage({
         type: ACTIONS.getCollection,
         data: {
-          left,
+          query: { left },
           user,
         },
       });
@@ -79,20 +80,26 @@ export default function useCollection({
       handle.removeEventListener("message", workerMessageHandler);
     };
   }, [workerMessageHandler, left]);
-    /**
+  /**
    * Delete a resource
    */
-    const onDelete = (uuid: string) => {
-      const user = localStorage.getItem("gotrue.user");
-      worker.current?.postMessage({
-        type: ACTIONS.deleteEntity,
-        data: {
-          left,
-          left_uuid: uuid,
-          user,
-        },
-      });
-    };
+  const onDelete = (left_uuid: string) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this node and its relationships?"
+      )
+    ) {
+      return;
+    }
+    const user = localStorage.getItem("gotrue.user");
+    worker.current?.postMessage({
+      type: ACTIONS.deleteEntity,
+      data: {
+        query: { left, left_uuid },
+        user,
+      },
+    });
+  };
   /**
    * Client Component
    */
@@ -100,6 +107,6 @@ export default function useCollection({
     collection,
     message,
     worker,
-    onDelete
+    onDelete,
   };
 }
