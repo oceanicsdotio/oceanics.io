@@ -8,13 +8,12 @@ import layout from "@app/layout.module.css";
 import Markdown from "react-markdown";
 const {title: left, description} = components.schemas.Locations;
 interface ILocations extends Omit<LocationsType, "free"> {
-  location?: any,
   onDelete: (uuid: string) => void
 }
 /**
  * Item level component
  */
-function Location({uuid, name, onDelete}: ILocations) {
+function Location({uuid, name, description, encodingType, location, onDelete}: ILocations) {
   return (
     <>
     <hr />
@@ -24,6 +23,11 @@ function Location({uuid, name, onDelete}: ILocations) {
     <button onClick={onDelete.bind(undefined, uuid)}>Delete</button>
     <p>uuid: {uuid}</p>
     <p>name: {name}</p>
+    <p>description: {description??"n/a"}</p>
+    <p>encoding type: {encodingType??"n/a"}</p>
+    <p>location:</p>
+    <p>{`   type: ${location?.type??"n/a"}`}</p>
+    <p>{`   coordinates: ${location?.coordinates??"n/a"}`}</p>
     </>
    
   );

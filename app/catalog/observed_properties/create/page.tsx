@@ -20,6 +20,7 @@ export default function Create({}) {
   const uuid = useRef<HTMLInputElement | null>(null);
   const name = useRef<HTMLInputElement | null>(null);
   const description = useRef<HTMLInputElement | null>(null);
+  const definition = useRef<HTMLInputElement | null>(null);
   /**
    * Web Worker.
    */
@@ -35,6 +36,7 @@ export default function Create({}) {
       uuid: uuid.current?.value,
       name: name.current?.value,
       description: description.current?.value,
+      definition: definition.current?.value
     };
   };
   /**
@@ -68,6 +70,11 @@ export default function Create({}) {
           inputRef={description}
           required
           description={properties.description.description}
+        ></TextInput>
+        <TextInput
+          name={"definition"}
+          inputRef={definition}
+          description={properties.definition.description}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
           Create

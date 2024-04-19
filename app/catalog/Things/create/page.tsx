@@ -7,7 +7,7 @@ import useCreate, { TextInput } from "@catalog/useCreate";
 /**
  * Get Things properties from OpenAPI schema
  */
-const { Things } = specification.components.schemas;
+const { title: left, description, properties } = specification.components.schemas.Things;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -27,16 +27,16 @@ export default function Create({}) {
   /**
    * Freeform text description input reference.
    */
-  const description = useRef<HTMLInputElement | null>(null);
+  const _description = useRef<HTMLInputElement | null>(null);
   /**
    * JSON format input.
    */
-  const properties = useRef<HTMLInputElement | null>(null);
+  const _properties = useRef<HTMLInputElement | null>(null);
   /**
    * Web Worker initialization.
    */
   const { message, create, disabled, onSubmit } = useCreate({
-    left: Things.title,
+    left
   });
   /**
    * On submission, we delegate the request to our background
@@ -46,8 +46,8 @@ export default function Create({}) {
     return {
       uuid: uuid.current?.value,
       name: name.current?.value,
-      description: description.current?.value,
-      properties: properties.current?.value,
+      description: _description.current?.value,
+      properties: _properties.current?.value,
     };
   };
   /**
@@ -55,7 +55,7 @@ export default function Create({}) {
    */
   return (
     <>
-      <Markdown>{Things.description}</Markdown>
+      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form
@@ -67,25 +67,25 @@ export default function Create({}) {
           name={"uuid"}
           required
           inputRef={uuid}
-          description={Things.properties.uuid.description}
+          description={properties.uuid.description}
           defaultValue={crypto.randomUUID()}
         ></TextInput>
         <TextInput
           name={"name"}
           required
           inputRef={name}
-          description={Things.properties.name.description}
+          description={properties.name.description}
         ></TextInput>
         <TextInput
           name={"description"}
           required
-          inputRef={description}
-          description={Things.properties.description.description}
+          inputRef={_description}
+          description={properties.description.description}
         ></TextInput>
         <TextInput
           name={"properties"}
-          inputRef={properties}
-          description={Things.properties.properties.description}
+          inputRef={_properties}
+          description={properties.properties.description}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
           Create

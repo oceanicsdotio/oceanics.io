@@ -798,13 +798,6 @@ components:
               items:
                 type: object
 
-    LocationEncodingType:
-      type: string
-      enum:
-        - "application/vnd.geo+json"
-      default: "application/vnd.geo+json"
-      description: The encoding rendered in the location response
-
     Locations:
       examples:
         - name: Lower Damariscotta
@@ -886,7 +879,11 @@ components:
           description: Short but useful explanation of what the entity is.
 
         encodingType:
-          $ref: '#/components/schemas/LocationEncodingType'
+          type: string
+          enum:
+            - "application/vnd.geo+json"
+          default: "application/vnd.geo+json"
+          description: The encoding rendered in the location response
 
         location:
           type: object
@@ -894,9 +891,14 @@ components:
           properties:
             type:
               type: string
+              description: |
+                The type of geometry, limited to values we know how to process. 
+                This includes `Point` and `Polygon` geometries.
               enum: ["Point", "Polygon"]
             coordinates:
               type: array
+              description: |
+                Spatial coordinates. Need the type and encoding to be sure how to interpret.
               minLength: 2
               maxLength: 3
               items:
@@ -1028,11 +1030,16 @@ components:
 
         encodingType:
           type: string
+          description: |
+            Explains the format of `metadata`.
           enum: [application/pdf, "http://www.opengis.net/doc/IS/SensorML/2.0"]
           default: "http://www.opengis.net/doc/IS/SensorML/2.0"
 
         metadata:
           type: object
+          description: |
+            Metadata about the sensor. Contents are described by the `encodingType`
+            property.
 
         DataStreams@iot.navigation:
           readOnly: true

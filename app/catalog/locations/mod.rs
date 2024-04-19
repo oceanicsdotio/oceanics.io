@@ -16,6 +16,7 @@ pub struct Locations {
     pub uuid: String,
     pub name: String,
     pub description: Option<String>,
+    #[wasm_bindgen(js_name=encodingType)]
     pub encoding_type: Option<String>,
     pub location: Option<LocationData>,
 }

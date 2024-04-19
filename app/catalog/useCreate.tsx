@@ -1,5 +1,11 @@
 "use client";
-import React, { type FormEventHandler, type MutableRefObject, useEffect, useRef, useState } from "react";
+import React, {
+  type FormEventHandler,
+  type MutableRefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import style from "@catalog/things/create/page.module.css";
 import Markdown from "react-markdown";
 
@@ -11,18 +17,51 @@ const ACTIONS = {
   createEntity: "createEntity",
   error: "error",
 };
-export function TextInput({
+
+export function NumberInput({
   name,
   inputRef,
   description,
   required = false,
-  defaultValue
+  defaultValue,
 }: {
   name: string;
   inputRef: MutableRefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
-  defaultValue?: string
+  defaultValue?: number;
+}) {
+  return (
+    <>
+      <label className={style.label} htmlFor={name}>
+        <code>{name}</code>
+        <span>{required ? " (required)" : ""}</span>
+      </label>
+      <input
+        className={style.input}
+        id={name}
+        type={"number"}
+        name={name}
+        ref={inputRef}
+        defaultValue={defaultValue}
+        required={required}
+      />
+      <Markdown>{description}</Markdown>
+    </>
+  );
+}
+export function TextInput({
+  name,
+  inputRef,
+  description,
+  required = false,
+  defaultValue,
+}: {
+  name: string;
+  inputRef: MutableRefObject<HTMLInputElement | null>;
+  description: string;
+  required?: boolean;
+  defaultValue?: string;
 }) {
   return (
     <>
@@ -48,7 +87,7 @@ export function TextInput({
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function useCreate({left}: {left: string}) {
+export default function useCreate({ left }: { left: string }) {
   /**
    * Web Worker.
    */
@@ -57,7 +96,7 @@ export default function useCreate({left}: {left: string}) {
    * Form handle, used to reset inputs on successful submission,
    * as reported through the worker message.
    */
-  const create = useRef<HTMLFormElement | null>(null)
+  const create = useRef<HTMLFormElement | null>(null);
   /**
    * Controls disabled until the worker is ready.
    */
@@ -65,7 +104,7 @@ export default function useCreate({left}: {left: string}) {
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading")
+  const [message, setMessage] = useState("↻ Loading");
   /**
    * Load Web Worker and perform startup on component mount.
    */
@@ -82,14 +121,14 @@ export default function useCreate({left}: {left: string}) {
           console.log("@client", data.type, data.data);
           if (data.data) {
             create.current?.reset();
-            setMessage("✓ Created 1")
+            setMessage("✓ Created 1");
           } else {
-            setMessage("! Something Went Wrong")
+            setMessage("! Something Went Wrong");
           }
           return;
         case ACTIONS.error:
           console.error("@client", data.type, data.data);
-          setMessage("! Something Went Wrong")
+          setMessage("! Something Went Wrong");
           return;
         default:
           console.warn("@client", data.type, data.data);
@@ -110,26 +149,28 @@ export default function useCreate({left}: {left: string}) {
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
    */
-  const onSubmit = (callback: any): FormEventHandler => (event) => {
-    event.preventDefault();
-    const user = localStorage.getItem("gotrue.user");
-    worker.current?.postMessage({
-      type: ACTIONS.createEntity,
-      data: {
-        query: { left },
-        user,
-        body: JSON.stringify(callback()),
-      },
-    });
-    setMessage("↻ Working");
-    window.scrollTo({top: 0, behavior: "smooth"});
-  };
+  const onSubmit =
+    (callback: any): FormEventHandler =>
+    (event) => {
+      event.preventDefault();
+      const user = localStorage.getItem("gotrue.user");
+      worker.current?.postMessage({
+        type: ACTIONS.createEntity,
+        data: {
+          query: { left },
+          user,
+          body: JSON.stringify(callback()),
+        },
+      });
+      setMessage("↻ Working");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
   return {
     worker,
     message,
     disabled,
     onSubmit,
-    create
-  }
+    create,
+  };
 }
