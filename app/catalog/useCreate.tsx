@@ -1,5 +1,8 @@
 "use client";
-import { type FormEventHandler, useEffect, useRef, useState } from "react";
+import React, { type FormEventHandler, type MutableRefObject, useEffect, useRef, useState } from "react";
+import style from "@catalog/things/create/page.module.css";
+import Markdown from "react-markdown";
+
 /**
  * Web worker messages handled in this context.
  * The shared worker may understand/send other types.
@@ -8,6 +11,36 @@ const ACTIONS = {
   createEntity: "createEntity",
   error: "error",
 };
+export function TextInput({
+  name,
+  inputRef,
+  description,
+  required = false,
+}: {
+  name: string;
+  inputRef: MutableRefObject<HTMLInputElement | null>;
+  description: string;
+  required?: boolean;
+}) {
+  return (
+    <>
+      <label className={style.label} htmlFor={name}>
+        <code>{name}</code>
+        <span>{required ? " (required)" : ""}</span>
+      </label>
+      <input
+        className={style.input}
+        id={name}
+        type={"text"}
+        name={name}
+        placeholder="..."
+        ref={inputRef}
+        required={required}
+      />
+      <Markdown>{description}</Markdown>
+    </>
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

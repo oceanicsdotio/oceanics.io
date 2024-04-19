@@ -672,6 +672,7 @@ components:
         - name: Damariscotta River Estuary shellfish production
           description: Dynamics of a traditional growing area for oysters in Maine.
       type: object
+      title: FeaturesOfInterest
       description: |
         `FeaturesOfInterest` are similar to `Locations`, in that they are spatial phenomena. However, 
         they may be poorly defined in space and time, and therefore are represented through linked 
@@ -859,6 +860,7 @@ components:
             coordinates: [ 44.92017, -66.995833 ]
 
       type: object
+      title: Locations
       description: |
         Last known location of a thing. May be a feature of interest, unless remote sensing.
       additionalProperties: false
@@ -938,6 +940,7 @@ components:
           - name: [ Wood Island Harbor ]
 
       type: object
+      title: HistoricalLocations
       additionalProperties: false
       description: |
         `HistoricalLocations` create a timestamped relationship between `Locations`,
@@ -997,6 +1000,7 @@ components:
         - name: Chlorophyll fluorometer
           description: For measuring plankton stuff
       type: object
+      title: Sensors
       description: |
         `Sensors` contain technical and codec data about `DataStreams`. You might think
         they are connected to `Things`, and they are, but only through multi-segment links.
@@ -1228,6 +1232,7 @@ components:
           resultTime: "2018-04-01T09:45:00Z"
           result: 11.7
       type: object
+      title: Observations
       description: |
         `Observations` are connecting nodes in a multi-segment path between `DataStreams` 
         and `FeaturesOfInterest`. You might want to directly access this resource for

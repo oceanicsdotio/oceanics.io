@@ -1,42 +1,28 @@
 "use client";
-import React, { useRef } from "react";
-import style from "@catalog/things/create/page.module.css";
+import React, { type MutableRefObject, useRef } from "react";
 import specification from "@app/../specification.json";
+import style from "@catalog/things/create/page.module.css";
 import Markdown from "react-markdown";
-import useCreate, { TextInput } from "@catalog/useCreate";
-/**
- * Get Things properties from OpenAPI schema
- */
-const { Things } = specification.components.schemas;
+import useCreate, {TextInput} from "@catalog/useCreate";
+
+const { Sensors } = specification.components.schemas;
+const { properties } = Sensors;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function Create({}) {
   /**
-   * User must input uuid, it will not be generated within
-   * the system. Currently duplicate UUID silently fails.
+   * Form data is synced with user input
    */
   const uuid = useRef<HTMLInputElement | null>(null);
-  /**
-   * Non-unique display name for humans. Can be unique
-   * and contain information if you so choose, but it
-   * doesn't matter to the database.
-   */
   const name = useRef<HTMLInputElement | null>(null);
-  /**
-   * Freeform text description input reference.
-   */
   const description = useRef<HTMLInputElement | null>(null);
   /**
-   * JSON format input.
+   * Web Worker.
    */
-  const properties = useRef<HTMLInputElement | null>(null);
-  /**
-   * Web Worker initialization.
-   */
-  const { message, create, disabled, onSubmit } = useCreate({
-    left: Things.title,
+  const { onSubmit, disabled, create, message } = useCreate({
+    left: Sensors.title,
   });
   /**
    * On submission, we delegate the request to our background
@@ -47,7 +33,6 @@ export default function Create({}) {
       uuid: uuid.current?.value,
       name: name.current?.value,
       description: description.current?.value,
-      properties: properties.current?.value,
     };
   };
   /**
@@ -55,7 +40,7 @@ export default function Create({}) {
    */
   return (
     <>
-      <Markdown>{Things.description}</Markdown>
+      <Markdown>{Sensors.description}</Markdown>
       <p>{message}</p>
       <hr />
       <form
@@ -65,26 +50,21 @@ export default function Create({}) {
       >
         <TextInput
           name={"uuid"}
-          required
           inputRef={uuid}
-          description={Things.properties.uuid.description}
+          required
+          description={properties.uuid.description}
         ></TextInput>
         <TextInput
           name={"name"}
-          required
           inputRef={name}
-          description={Things.properties.name.description}
+          required
+          description={properties.name.description}
         ></TextInput>
         <TextInput
           name={"description"}
-          required
           inputRef={description}
-          description={Things.properties.description.description}
-        ></TextInput>
-        <TextInput
-          name={"properties"}
-          inputRef={properties}
-          description={Things.properties.properties.description}
+          required
+          description={properties.description.description}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
           Create

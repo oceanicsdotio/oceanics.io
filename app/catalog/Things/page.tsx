@@ -6,17 +6,13 @@ import Markdown from "react-markdown";
 import { getLinkedCollections } from "@catalog/page";
 import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
+import type { Things } from "@oceanics/app";
 import styles from "@app/layout.module.css"
+interface IThings extends Omit<Things, "free"> {};
 const {
-  Things: { properties, description, title: left },
-} = specification.components.schemas;
+ properties, description, title: left,
+} = specification.components.schemas.Things;
 const links = getLinkedCollections(properties);
-type Thing = {
-  uuid: string;
-  name: string;
-  description: string;
-  properties: string;
-};
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -30,7 +26,7 @@ function Thing({
   },
   onDelete,
 }: {
-  thing: Thing;
+  thing: IThings;
   onDelete: (uuid: string) => void;
 }) {
   const url = `/.netlify/functions/entity/?left=${left}&left_uuid=${uuid}`;
@@ -82,7 +78,7 @@ export default function Page({}) {
         <code>Things</code>, and link them to {links}.
       </p>
       <p>{message}</p>
-      {collection.map((thing: Thing) => {
+      {collection.map((thing: IThings) => {
         return (
           <Thing key={thing.uuid} onDelete={onDelete} thing={thing}></Thing>
         );

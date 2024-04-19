@@ -9,11 +9,16 @@ import type {
   InteractiveDataStream,
   DataStreamStyle,
   DataStreams,
+  UnitOfMeasurement
 } from "@oceanics/app";
 import styles from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 
-const { properties, description, title: left } =
-  specification.components.schemas.DataStreams;
+const {
+  properties,
+  description,
+  title: left,
+} = specification.components.schemas.DataStreams;
 const links = getLinkedCollections(properties);
 
 type WasmInteraction = {
@@ -61,7 +66,6 @@ function DataStream({
   wasm: WasmInteraction;
   onDelete: (uuid: string) => void;
 }) {
-  const unitOfMeasurement: any = JSON.parse(dataStream.unitOfMeasurement ?? "{}")
   /**
    * Render target
    */
@@ -151,14 +155,17 @@ function DataStream({
   /**
    * Increment detail level
    */
-  function onDetails() {
-    setDetailLevel(prev => (prev + 1) % detailLevels);
+  function onMore() {
+    setDetailLevel((prev) => Math.min(prev + 1, detailLevels));
+  }
+  function onLess() {
+    setDetailLevel((prev) => Math.max(prev - 1, 0));
   }
   /**
    * Switch between histogram and time series view
    */
   function onSummary() {
-    setSummary(prev => !prev);
+    setSummary((prev) => !prev);
   }
   /**
    * Draw as time series. Or, Draw as histogram.
@@ -201,6 +208,27 @@ function DataStream({
         </Link>
       </p>
       <div>
+        <button onClick={onMore} disabled={detailLevel === detailLevels - 1}>
+          More Detail
+        </button>
+        <button onClick={onLess} disabled={detailLevel === 0}>
+          Less Detail
+        </button>
+        <button onClick={onSummary}>Toggle Summary</button>
+        <button onClick={onPlay} disabled={play}>
+          Play
+        </button>
+        <button onClick={onPause} disabled={!play}>
+          Pause
+        </button>
+        <button onClick={onRestart} disabled={!clock.start}>
+          Restart
+        </button>
+        <button onClick={onDelete.bind(undefined, dataStream.uuid ?? "")}>
+          Delete
+        </button>
+      </div>
+      <div>
         <canvas className={styles.canvas} ref={canvas} />
       </div>
       {detailLevel > 0 && (
@@ -213,22 +241,14 @@ function DataStream({
       {detailLevel > 1 && (
         <div>
           <p>unit of measurement:</p>
-          <p>    name: {unitOfMeasurement.name??"n/a"}</p>
-          <p>    symbol: {unitOfMeasurement.symbol??"n/a"}</p>
-          <p>    definition: {unitOfMeasurement.definition??"n/a"}</p>
-          <p>observation type: {dataStream.observationType??"n/a"}</p>
+          <p>{`    name: ${dataStream.unitOfMeasurement?.name ?? "n/a"}`}</p>
+          <p>{`    symbol: ${dataStream.unitOfMeasurement?.symbol ?? "n/a"}`}</p>
+          <p>{`    definition: ${dataStream.unitOfMeasurement?.definition ?? "n/a"}`}</p>
+          <p>observation type: {dataStream.observationType ?? "n/a"}</p>
           <p>phenomenon time: n/a</p>
           <p>result time: n/a</p>
         </div>
       )}
-      <button onClick={onDetails}>Details</button>
-      <button onClick={onSummary}>Summary</button>
-      <button onClick={onPlay} disabled={play}>Play</button>
-      <button onClick={onPause} disabled={!play}>Pause</button>
-      <button onClick={onRestart} disabled={!clock.start}>Restart</button>
-      <button onClick={onDelete.bind(undefined, dataStream.uuid ?? "")}>
-        Delete
-      </button>
     </div>
   );
 }
@@ -244,7 +264,7 @@ export default function Page({}) {
   /**
    * Keep reference to the WASM constructor
    */
-  const [wasm, setWasm] = useState<WasmInteraction>(null);
+  const [ wasm, setWasm ] = useState<WasmInteraction>(null);
   /**
    * Load Web Worker on component mount
    */
@@ -264,7 +284,11 @@ export default function Page({}) {
     <div>
       <Markdown>{description}</Markdown>
       <p>
-        You can <Link href={"create/"}>create</Link> new <code>DataStreams</code> and link them with {links}.
+        You can{" "}
+        <Link className={layout.link} href={"create/"}>
+          create
+        </Link>{" "}
+        new <code>DataStreams</code> and link them with {links}.
       </p>
       <p>{message}</p>
       {collection.map((dataStream) => {

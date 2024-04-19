@@ -2,30 +2,46 @@
 import Link from "next/link";
 import React from "react";
 import useCollection from "@catalog/useCollection";
+import { components } from "@app/../specification.json";
+import type {HistoricalLocations} from "@oceanics/app";
+const { title } = components.schemas.HistoricalLocations;
 /**
- * Pascal case disambiguation for API matching and queries.
+ * Item level component
  */
-const left = "HistoricalLocations";
+function HistoricalLocation({ uuid }: HistoricalLocations) {
+  return (
+    <>
+      <p>
+        <Link href={uuid}>{uuid}</Link>
+      </p>
+      <p>uuid: {uuid}</p>
+    </>
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function Page({}) {
-    /**
+  /**
    * Retrieve node data use Web Worker.
    */
-    const {collection, message} = useCollection({left});
+  const { collection, message } = useCollection({
+    left: title,
+  });
   /**
    * Client Component
    */
   return (
     <div>
+      <p>
+        You can <Link href="create/">create</Link>{" "}
+        <code>{title}</code>
+      </p>
       <p>{message}</p>
-      {collection.map((each: { uuid: string; name: string }) => {
+      {collection.map((each: HistoricalLocations) => {
         return (
-          <p key={each.uuid}>
-            <Link href={each.uuid}>{each.name ?? each.uuid}</Link>
-          </p>
+          <HistoricalLocation key={each.uuid} {...each}></HistoricalLocation>
         );
       })}
     </div>

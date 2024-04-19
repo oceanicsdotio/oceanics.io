@@ -112,7 +112,7 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
     <div key={href}>
       <hr />
       <p>
-        <Link className={layout.link} href={href}>
+        <Link className={layout.link} href={href} prefetch={false}>
           {content}
         </Link>
         <span>{message}</span>
@@ -191,7 +191,7 @@ export default function Page({}) {
       <Markdown>{specification.info.description}</Markdown>
       <p>
         If code is more your style, try our{" "}
-        <Link href="/openapi">
+        <Link href="/openapi/" prefetch={false}>
           {" "}
           OpenAPI documentation for integration developers.
         </Link>

@@ -84,6 +84,10 @@ export default function useCollection({ left }: { left: string }) {
    * Delete a resource
    */
   const onDelete = (left_uuid: string) => {
+    if (!left_uuid) {
+      console.warn("UUID is undefined during delete operation")
+      return;
+    }
     if (
       !window.confirm(
         "Are you sure you want to delete this node and its relationships?"

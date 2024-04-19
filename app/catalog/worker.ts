@@ -16,7 +16,7 @@ function transformIndex ({ name: left }: {name: string}) {
     .split(/\.?(?=[A-Z])/)
     .join("_")
     .toLowerCase();
-  const href = `/catalog/${key}`;
+  const href = `/catalog/${key}/`;
   const content = left.split(/\.?(?=[A-Z])/).join(" ");
   return {
     left,

@@ -3,42 +3,12 @@ import React, { type MutableRefObject, useRef } from "react";
 import specification from "@app/../specification.json";
 import style from "@catalog/things/create/page.module.css";
 import Markdown from "react-markdown";
-import useCreate from "@catalog/useCreate";
+import useCreate, {TextInput} from "@catalog/useCreate";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
 const { DataStreams } = specification.components.schemas;
 const { properties } = DataStreams;
-function TextInput({
-  name,
-  ref,
-  description,
-  required = false,
-}: {
-  name: string;
-  ref: MutableRefObject<HTMLInputElement | null>;
-  description: string;
-  required?: boolean;
-}) {
-  return (
-    <>
-      <label className={style.label} htmlFor={name}>
-        <code>{name}</code>
-        <span>{required ? "(required)" : ""}</span>
-      </label>
-      <input
-        className={style.input}
-        id={name}
-        type={"text"}
-        name={name}
-        placeholder="..."
-        ref={ref}
-        required={required}
-      />
-      <Markdown>{description}</Markdown>
-    </>
-  );
-}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -95,36 +65,37 @@ export default function Create({}) {
       >
         <TextInput
           name={"uuid"}
-          ref={uuid}
+          inputRef={uuid}
           required
           description={properties.uuid.description}
         ></TextInput>
         <TextInput
           name={"name"}
-          ref={name}
+          inputRef={name}
           required
           description={properties.name.description}
         ></TextInput>
         <TextInput
           name={"description"}
-          ref={description}
+          inputRef={description}
+          required
           description={properties.description.description}
         ></TextInput>
         <TextInput
           name={"unitOfMeasurementName"}
-          ref={unitOfMeasurementName}
+          inputRef={unitOfMeasurementName}
           description={properties.unitOfMeasurement.properties.name.description}
         ></TextInput>
         <TextInput
           name={"unitOfMeasurementSymbol"}
-          ref={unitOfMeasurementSymbol}
+          inputRef={unitOfMeasurementSymbol}
           description={
             properties.unitOfMeasurement.properties.symbol.description
           }
         ></TextInput>
         <TextInput
           name={"unitOfMeasurementDefinition"}
-          ref={unitOfMeasurementDefinition}
+          inputRef={unitOfMeasurementDefinition}
           description={
             properties.unitOfMeasurement.properties.definition.description
           }
