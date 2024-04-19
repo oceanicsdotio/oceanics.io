@@ -8,6 +8,6 @@ use wasm_bindgen::prelude::*;
 #[serde(rename_all = "camelCase")]
 pub struct HistoricalLocations {
     pub uuid: String,
-    pub time: Option<f64>,
+    pub time: f64,
 }
 

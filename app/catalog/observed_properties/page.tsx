@@ -5,18 +5,26 @@ import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import layout from "@app/layout.module.css";
 import type { ObservedProperties } from "@oceanics/app";
+import Markdown from "react-markdown";
 /**
  * Get schema metadata from the OpenAPI specification.
  */
-const { title: left } = specification.components.schemas.ObservedProperties;
+const { title: left, description } = specification.components.schemas.ObservedProperties;
 /**
  * Derive the the type we expect from the WebAssembly bindings.
  */
-interface IObservedProperties extends Omit<ObservedProperties, "free"> {}
+interface IObservedProperties extends Omit<ObservedProperties, "free"> {
+  onDelete: (uuid: string) => void;
+}
 /**
  * Item level component
  */
-function ObservedProperty({ uuid, name, description }: IObservedProperties) {
+function ObservedProperty({
+  uuid,
+  name,
+  description,
+  onDelete,
+}: IObservedProperties) {
   const href = `/.netlify/functions/entity/?left=${left}&left_uuid=${uuid}`;
   return (
     <>
@@ -26,6 +34,7 @@ function ObservedProperty({ uuid, name, description }: IObservedProperties) {
           {name}
         </Link>
       </p>
+      <button onClick={onDelete.bind(undefined, uuid)}>Delete</button>
       <p>uuid: {uuid}</p>
       <p>name: {name}</p>
       <p>description: {description}</p>
@@ -40,7 +49,7 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, onDelete } = useCollection({
     left,
   });
   /**
@@ -48,12 +57,23 @@ export default function Page({}) {
    */
   return (
     <div>
+      <Markdown>{description}</Markdown>
       <p>
-        You can <Link href="create/">create</Link> <code>{left}</code>.
+        You can{" "}
+        <Link className={layout.link} href="create/">
+          create
+        </Link>{" "}
+        <code>{left}</code>.
       </p>
       <p>{message}</p>
-      {collection.map((each: IObservedProperties) => {
-        return <ObservedProperty key={each.uuid} {...each}></ObservedProperty>;
+      {collection.map((each: Omit<ObservedProperties, "free">) => {
+        return (
+          <ObservedProperty
+            key={each.uuid}
+            {...each}
+            onDelete={onDelete}
+          ></ObservedProperty>
+        );
       })}
     </div>
   );

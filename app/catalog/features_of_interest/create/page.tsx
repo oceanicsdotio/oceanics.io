@@ -7,8 +7,7 @@ import useCreate, {TextInput} from "@catalog/useCreate";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
-const { FeaturesOfInterest } = specification.components.schemas;
-const { properties } = FeaturesOfInterest;
+const { title: left, properties, description } = specification.components.schemas.FeaturesOfInterest;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -19,12 +18,14 @@ export default function Create({}) {
    */
   const uuid = useRef<HTMLInputElement | null>(null);
   const name = useRef<HTMLInputElement | null>(null);
-  const description = useRef<HTMLInputElement | null>(null);
+  const _description = useRef<HTMLInputElement | null>(null);
+  const encodingType = useRef<HTMLInputElement | null>(null);
+  const feature = useRef<HTMLInputElement | null>(null);
   /**
    * Web Worker.
    */
   const { onSubmit, disabled, create, message } = useCreate({
-    left: FeaturesOfInterest.title,
+    left,
   });
   /**
    * On submission, we delegate the request to our background
@@ -34,7 +35,7 @@ export default function Create({}) {
     return {
       uuid: uuid.current?.value,
       name: name.current?.value,
-      description: description.current?.value,
+      description: _description.current?.value,
     };
   };
   /**
@@ -42,7 +43,7 @@ export default function Create({}) {
    */
   return (
     <>
-      <Markdown>{FeaturesOfInterest.description}</Markdown>
+      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form
@@ -55,6 +56,7 @@ export default function Create({}) {
           inputRef={uuid}
           required
           description={properties.uuid.description}
+          defaultValue={crypto.randomUUID()}
         ></TextInput>
         <TextInput
           name={"name"}
@@ -64,9 +66,19 @@ export default function Create({}) {
         ></TextInput>
         <TextInput
           name={"description"}
-          inputRef={description}
+          inputRef={_description}
           required
           description={properties.description.description}
+        ></TextInput>
+        <TextInput
+          name={"encodingType"}
+          inputRef={encodingType}
+          description={properties.encodingType.description}
+        ></TextInput>
+        <TextInput
+          name={"feature"}
+          inputRef={feature}
+          description={properties.feature.description}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
           Create

@@ -199,6 +199,7 @@ function DataStream({
    */
   return (
     <div>
+      <hr />
       <p>
         <Link
           href={`/.netlify/functions/entity/?left=${left}&left_uuid=${dataStream.uuid}`}

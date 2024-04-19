@@ -71,7 +71,6 @@ async fn post(
     let user = Node::user_from_string(user.unwrap());
     let link = Links::new(Some("Create".to_string()), None);
     let left = Node::new(event.body, "n".to_string(), event.query.left);
-    log(format!("Left: {}", left.pattern()));
     let cypher = link.insert(&user, &left);
     let raw = cypher.run(&url, &access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();

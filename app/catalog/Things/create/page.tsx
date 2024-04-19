@@ -68,6 +68,7 @@ export default function Create({}) {
           required
           inputRef={uuid}
           description={Things.properties.uuid.description}
+          defaultValue={crypto.randomUUID()}
         ></TextInput>
         <TextInput
           name={"name"}

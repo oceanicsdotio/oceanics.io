@@ -49,6 +49,7 @@ export default function Create({}) {
           inputRef={uuid}
           required
           description={properties.uuid.description}
+          defaultValue={crypto.randomUUID()}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
           Create

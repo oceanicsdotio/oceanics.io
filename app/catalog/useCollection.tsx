@@ -34,12 +34,14 @@ export default function useCollection({ left }: { left: string }) {
         case ACTIONS.getCollection:
           setCollection(data.value);
           setMessage(`✓ Found ${data.value.length}`);
+          window.scrollTo({top: 0, behavior: "smooth"});
           return;
         case ACTIONS.deleteEntity:
           setCollection((previous: any[]) => {
             return previous.filter((each) => each.uuid !== data.uuid);
           });
           setMessage(`✓ Deleted 1`);
+          return;
         case ACTIONS.error:
           console.error("@worker", type, data);
           return;

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 /**
  * A thing is an object of the physical or information world that is capable of of being identified
@@ -9,8 +8,8 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Things {
-    pub uuid: Option<String>,
-    pub name: Option<String>,
+    pub uuid: String,
+    pub name: String,
     pub description: Option<String>,
-    properties: Option<HashMap<String, String>>,
+    pub properties: Option<String>,
 }

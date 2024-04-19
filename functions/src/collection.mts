@@ -6,7 +6,6 @@ const url = process.env.NEO4J_HOSTNAME ?? "";
 const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
 const specification = paths["/{entity}"];
 export const handler: Handler = (event, context) => {
-    console.log("Body", event);
     return collection.bind(
         undefined,
         url,

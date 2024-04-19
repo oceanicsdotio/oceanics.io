@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 /**
@@ -14,5 +13,5 @@ pub struct FeaturesOfInterest {
     pub description: Option<String>,
     #[wasm_bindgen(js_name=encodingType)]
     pub encoding_type: Option<String>,
-    feature: Option<HashMap<String, String>>,
+    pub feature: Option<String>,
 }

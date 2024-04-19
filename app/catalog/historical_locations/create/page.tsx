@@ -3,7 +3,7 @@ import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import style from "@catalog/things/create/page.module.css";
 import Markdown from "react-markdown";
-import useCreate, {TextInput} from "@catalog/useCreate";
+import useCreate, { TextInput } from "@catalog/useCreate";
 
 const { HistoricalLocations } = specification.components.schemas;
 const { properties } = HistoricalLocations;
@@ -16,6 +16,7 @@ export default function Create({}) {
    * Form data is synced with user input
    */
   const uuid = useRef<HTMLInputElement | null>(null);
+  const time = useRef<HTMLInputElement | null>(null);
   /**
    * Web Worker.
    */
@@ -49,7 +50,20 @@ export default function Create({}) {
           inputRef={uuid}
           required
           description={properties.uuid.description}
+          defaultValue={crypto.randomUUID()}
         ></TextInput>
+        <label className={style.label} htmlFor={"time"}>
+          <code>time</code>
+          <span>{" (required)"}</span>
+        </label>
+        <input
+          className={style.input}
+          id={"time"}
+          type={"number"}
+          name={"time"}
+          ref={time}
+        />
+        <Markdown>{properties.time.description}</Markdown>
         <button className={style.submit} disabled={disabled}>
           Create
         </button>

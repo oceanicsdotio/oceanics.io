@@ -16,11 +16,13 @@ export function TextInput({
   inputRef,
   description,
   required = false,
+  defaultValue
 }: {
   name: string;
   inputRef: MutableRefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
+  defaultValue?: string
 }) {
   return (
     <>
@@ -36,6 +38,7 @@ export function TextInput({
         placeholder="..."
         ref={inputRef}
         required={required}
+        defaultValue={defaultValue}
       />
       <Markdown>{description}</Markdown>
     </>

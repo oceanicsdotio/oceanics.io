@@ -7,23 +7,23 @@ import layout from "@app/layout.module.css";
 import type { Observations } from "@oceanics/app";
 const { title } = specification.components.schemas.Observations;
 interface IObservations extends Omit<Observations, "free"> {
-
+  onDelete: (uuid: string) => void
 }
 /**
  * Item level component
  */
-function Observation({ uuid, name }: IObservations) {
+function Observation({ uuid, onDelete }: IObservations) {
   const href = `/.netlify/functions/entity/?left=${title}&left_uuid=${uuid}`;
   return (
     <>
       <hr />
       <p key={uuid}>
         <Link className={layout.link} href={href} prefetch={false}>
-          {name}
+          {uuid}
         </Link>
       </p>
+      <button onClick={onDelete.bind(undefined, uuid??"")}>Delete</button>
       <p>uuid: {uuid}</p>
-      <p>name: {name}</p>
     </>
   );
 }
@@ -35,7 +35,7 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, onDelete } = useCollection({
     left: title,
   });
   /**
@@ -44,12 +44,12 @@ export default function Page({}) {
   return (
     <div>
       <p>
-        You can <Link href="create/">create</Link>{" "}
+        You can <Link className={layout.link} href="create/">create</Link>{" "}
         <code>{title}</code>.
       </p>
       <p>{message}</p>
-      {collection.map((each: IObservations) => {
-        return <Observation key={each.uuid} {...each}></Observation>;
+      {collection.map((each: Omit<Observations, "free">) => {
+        return <Observation key={each.uuid} {...each} onDelete={onDelete}></Observation>;
       })}
     </div>
   );

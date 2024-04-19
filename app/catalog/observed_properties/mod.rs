@@ -7,8 +7,8 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ObservedProperties {
-    pub name: Option<String>,
-    pub uuid: Option<String>,
+    pub name: String,
+    pub uuid: String,
     pub description: Option<String>,
     pub definition: Option<String>
 }
