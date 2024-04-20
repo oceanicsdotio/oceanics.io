@@ -16,7 +16,7 @@ function transformIndex ({ name: left }: {name: string}) {
     .split(/\.?(?=[A-Z])/)
     .join("_")
     .toLowerCase();
-  const href = `/catalog/${key}`;
+  const href = `/catalog/${key}/`;
   const content = left.split(/\.?(?=[A-Z])/).join(" ");
   return {
     left,
@@ -37,6 +37,7 @@ async function startup(message: MessageEvent){
     throw Error(`worker missing access token`)
   }
   const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity } = await import("@oceanics/app");
+  // Provide better error messaging on web assembly panic
   panic_hook();
   return {
     handlers: {
@@ -58,7 +59,13 @@ async function startup(message: MessageEvent){
       },
       getEntity: getEntity.bind(undefined, access_token),
       createEntity: createEntity.bind(undefined, access_token),
-      deleteEntity: deleteEntity.bind(undefined, access_token)
+      deleteEntity: async (query: any) => {
+        const result = await deleteEntity(access_token, query)
+        return {
+          success: result,
+          uuid: query.left_uuid
+        }
+      }
     }
   }
 }
@@ -67,7 +74,6 @@ async function startup(message: MessageEvent){
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
-  
   if (!CACHE) {
     try {
       CACHE = await startup(message);
@@ -88,7 +94,7 @@ async function listen(message: MessageEvent) {
     return
   }
   try {
-    const data = await handler(message.data.data);
+    const data = await handler(message.data.data.query, message.data.data.body);
     self.postMessage({
       type: message.data.type,
       data

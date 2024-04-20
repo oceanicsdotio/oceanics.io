@@ -1,34 +1,57 @@
 "use client";
 import layout from "@app/layout.module.css";
 import Link from "next/link";
-import React from "react";
+import React, {useState} from "react";
 import Markdown from "react-markdown";
 import { getLinkedCollections } from "@catalog/page";
 import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
-const { Things } = specification.components.schemas;
-const links = getLinkedCollections(Things.properties);
-/**
- * Pascal case disambiguation for API matching and queries.
- */
-const left = "Things";
+import type { Things } from "@oceanics/app";
+import styles from "@app/layout.module.css"
+interface IThings extends Omit<Things, "free"> {};
+const {
+ properties, description, title: left,
+} = specification.components.schemas.Things;
+const links = getLinkedCollections(properties);
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 function Thing({
-  thing,
+  thing:{
+    uuid,
+    name,
+    description,
+    properties
+  },
   onDelete,
 }: {
-  thing: any;
+  thing: IThings;
   onDelete: (uuid: string) => void;
 }) {
-  const url = `/.netlify/functions/entity/?left=Things&left_uuid=${thing.uuid}`;
+  const url = `/.netlify/functions/entity/?left=${left}&left_uuid=${uuid}`;
+  const [showDetails, setShowDetails] = useState(false);
+  function onDetails() {
+    setShowDetails(prev => !prev);
+  }
   return (
     <div>
-      <p>{thing.name}</p>
-      <Link href={`/.netlify/functions/entity/?left=Things&left_uuid=${thing.uuid}`}>{url}</Link>
-      <button onClick={onDelete.bind(undefined, thing.uuid)}>Delete</button>
+      <hr />
+      <h3>
+        <Link className={styles.link} href={url} prefetch={false}>{name}</Link>
+      </h3>
+      {showDetails && 
+        <div>
+          <p>uuid: {uuid}</p>
+          <p>name: {name}</p>
+          <p>description: {description??"n/a"}</p>
+          <p>properties: {properties??"n/a"}</p>
+        </div>
+      }
+      <div>
+        <button onClick={onDetails}>Details</button>
+        <button onClick={onDelete.bind(undefined, uuid)}>Delete</button>
+      </div>
     </div>
   );
 }
@@ -46,22 +69,18 @@ export default function Page({}) {
    */
   return (
     <>
-      <Markdown>{Things.description}</Markdown>
+      <Markdown>{description}</Markdown>
       <p>
         You can{" "}
-        <Link className={layout.link} href={"create"}>
+        <Link className={layout.link} href={"create/"}>
           create
         </Link>{" "}
         <code>Things</code>, and link them to {links}.
       </p>
       <p>{message}</p>
-      {collection.map((each: { uuid: string; name: string }, index) => {
+      {collection.map((thing: IThings) => {
         return (
-          <Thing
-            key={`${Things.title}-${index}`}
-            onDelete={onDelete}
-            thing={each}
-          ></Thing>
+          <Thing key={thing.uuid} onDelete={onDelete} thing={thing}></Thing>
         );
       })}
     </>

@@ -65,6 +65,9 @@ async fn post(
     user: Option<String>,
     event: HandlerEvent,
 ) -> JsValue {
+    if event.body.is_none() {
+        return ErrorResponse::new("Bad Request", 400, "Missing Request Body")
+    }
     let user = Node::user_from_string(user.unwrap());
     let link = Links::new(Some("Create".to_string()), None);
     let left = Node::new(event.body, "n".to_string(), event.query.left);

@@ -16,7 +16,7 @@ export default function Page() {
     <>
       <Script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></Script>
       <h1>
-        <Link className={layout.link} href="/">
+        <Link className={layout.link} href="/" prefetch={false}>
           Oceanics.io
         </Link>
       </h1>
@@ -45,7 +45,7 @@ export default function Page() {
       </p>
       <div className={layout.nested} data-netlify-identity-button></div>
       <p className={layout.nested}>
-        <Link className={layout.link} href="about">
+        <Link className={layout.link} href="about/">
           Get in touch
         </Link>
       </p>

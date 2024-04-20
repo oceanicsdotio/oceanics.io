@@ -98,7 +98,9 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
     worker.current.postMessage({
       type: MESSAGES.getCount,
       data: {
-        left,
+        query: {
+          left,
+        },
       },
     });
     let handle = worker.current;
@@ -110,7 +112,7 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
     <div key={href}>
       <hr />
       <p>
-        <Link className={layout.link} href={href}>
+        <Link className={layout.link} href={href} prefetch={false}>
           {content}
         </Link>
         <span>{message}</span>
@@ -139,7 +141,7 @@ export default function Page({}) {
   /**
    * Process messages from Web Worker. Warn on unprocessed.
    */
-  const workerMessageHandler = useCallback(({ data: {type, data} }: any) => {
+  const workerMessageHandler = useCallback(({ data: { type, data } }: any) => {
     switch (type) {
       case MESSAGES.getIndex:
         setIndex(data.index);
@@ -170,7 +172,7 @@ export default function Page({}) {
     if (typeof user_data !== "undefined") {
       worker.current.postMessage({
         type: MESSAGES.getIndex,
-        data: {user: user_data},
+        data: { user: user_data },
       });
     } else {
       console.error("User is not logged in.");
@@ -189,7 +191,7 @@ export default function Page({}) {
       <Markdown>{specification.info.description}</Markdown>
       <p>
         If code is more your style, try our{" "}
-        <Link href="/openapi">
+        <Link href="/openapi/" prefetch={false}>
           {" "}
           OpenAPI documentation for integration developers.
         </Link>

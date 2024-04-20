@@ -672,6 +672,7 @@ components:
         - name: Damariscotta River Estuary shellfish production
           description: Dynamics of a traditional growing area for oysters in Maine.
       type: object
+      title: FeaturesOfInterest
       description: |
         `FeaturesOfInterest` are similar to `Locations`, in that they are spatial phenomena. However, 
         they may be poorly defined in space and time, and therefore are represented through linked 
@@ -797,13 +798,6 @@ components:
               items:
                 type: object
 
-    LocationEncodingType:
-      type: string
-      enum:
-        - "application/vnd.geo+json"
-      default: "application/vnd.geo+json"
-      description: The encoding rendered in the location response
-
     Locations:
       examples:
         - name: Lower Damariscotta
@@ -859,6 +853,7 @@ components:
             coordinates: [ 44.92017, -66.995833 ]
 
       type: object
+      title: Locations
       description: |
         Last known location of a thing. May be a feature of interest, unless remote sensing.
       additionalProperties: false
@@ -884,7 +879,11 @@ components:
           description: Short but useful explanation of what the entity is.
 
         encodingType:
-          $ref: '#/components/schemas/LocationEncodingType'
+          type: string
+          enum:
+            - "application/vnd.geo+json"
+          default: "application/vnd.geo+json"
+          description: The encoding rendered in the location response
 
         location:
           type: object
@@ -892,9 +891,14 @@ components:
           properties:
             type:
               type: string
+              description: |
+                The type of geometry, limited to values we know how to process. 
+                This includes `Point` and `Polygon` geometries.
               enum: ["Point", "Polygon"]
             coordinates:
               type: array
+              description: |
+                Spatial coordinates. Need the type and encoding to be sure how to interpret.
               minLength: 2
               maxLength: 3
               items:
@@ -938,6 +942,7 @@ components:
           - name: [ Wood Island Harbor ]
 
       type: object
+      title: HistoricalLocations
       additionalProperties: false
       description: |
         `HistoricalLocations` create a timestamped relationship between `Locations`,
@@ -997,6 +1002,7 @@ components:
         - name: Chlorophyll fluorometer
           description: For measuring plankton stuff
       type: object
+      title: Sensors
       description: |
         `Sensors` contain technical and codec data about `DataStreams`. You might think
         they are connected to `Things`, and they are, but only through multi-segment links.
@@ -1024,11 +1030,16 @@ components:
 
         encodingType:
           type: string
+          description: |
+            Explains the format of `metadata`.
           enum: [application/pdf, "http://www.opengis.net/doc/IS/SensorML/2.0"]
           default: "http://www.opengis.net/doc/IS/SensorML/2.0"
 
         metadata:
           type: object
+          description: |
+            Metadata about the sensor. Contents are described by the `encodingType`
+            property.
 
         DataStreams@iot.navigation:
           readOnly: true
@@ -1061,6 +1072,7 @@ components:
           name: chlorophyll
           description: Just another chlorophyll series
       type: object
+      title: DataStreams
       description: |
         `DataStreams` are collections of `Observations` from the same `Sensors`. These time series
         are one of the central models, and connect many of the other nodes. 
@@ -1073,13 +1085,16 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique integer identifier across `DataStreams` and all other
+            types of entity.
 
         name:
           type:
             - "string"
             - "null"
-          description: Human readable entity name for displaying data.
+          description: |
+            Human readable `DataStreams` name for displaying data. 
+            This need not be unique, but it is helpful if it is.
 
         description:
           type:
@@ -1114,7 +1129,7 @@ components:
             - "string"
             - "null"
           description: |
-            Data model of child `Observations`. Usually a `Measurement`.
+            Data model of child `Observations`. Usually an `OM_Measurement`.
           enum:
             - "OM_CategoryObservation"
             - "OM_CountObservation"
@@ -1224,6 +1239,7 @@ components:
           resultTime: "2018-04-01T09:45:00Z"
           result: 11.7
       type: object
+      title: Observations
       description: |
         `Observations` are connecting nodes in a multi-segment path between `DataStreams` 
         and `FeaturesOfInterest`. You might want to directly access this resource for
@@ -1379,6 +1395,7 @@ components:
         - name: water velocity
 
       type: object
+      title: ObservedProperties
       description: |
         `ObservedProperties` describe `DataStreams`.
       additionalProperties: false
