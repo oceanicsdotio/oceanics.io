@@ -4678,15 +4678,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=7f98ea&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/a0e83cd6f6bc4de6d89aeb98c722b81acc583a17d1a06cb1f5e92f715be3c4c6330f479939963a46ad4dd454375f91ed6ed9d3cc14537cc3544c5eb12b1e42aa
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=ab9d1a&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/da47111ee1f08cb2c9ca96f4c746fdb47bcc98c50801629ed7bc27e75c6eae89fea8fc55ab1909e5ce5869dc2471eef174ec468a3771e4901952cc5e97aeb320
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -6402,12 +6402,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.2.22":
-  version: 18.2.22
-  resolution: "@types/react-dom@npm:18.2.22"
+"@types/react-dom@npm:^18.2.25":
+  version: 18.2.25
+  resolution: "@types/react-dom@npm:18.2.25"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/310da22244c1bb65a7f213f8727bda821dd211cfb2dd62d1f9b28dd50ef1c196d59e908494bd5f25c13a3844343f3a6135f39fb830aca6f79646fa56c1b56c08
+  checksum: 10/0e45856a2fdbf09e74632b132b3af773c6b18fc2ab0bd04595c9f2bcc0bb04d5e732ac8156d145b712dedab7484a8fe9dce5cf720a5437b5d26099c7060c7ba4
   languageName: node
   linkType: hard
 
@@ -23616,7 +23616,7 @@ __metadata:
     "@types/node-fetch": "npm:^2.6.11"
     "@types/prop-types": "npm:^15.7.11"
     "@types/react": "npm:^18.2.66"
-    "@types/react-dom": "npm:^18.2.22"
+    "@types/react-dom": "npm:^18.2.25"
     "@types/react-google-recaptcha": "npm:^2.1.9"
     "@types/react-pdf": "npm:^7.0.0"
     "@types/styled-components": "npm:^5.1.32"
