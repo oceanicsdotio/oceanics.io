@@ -4549,9 +4549,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/mdx@npm:^14.1.3":
-  version: 14.1.3
-  resolution: "@next/mdx@npm:14.1.3"
+"@next/mdx@npm:^14.2.5":
+  version: 14.2.5
+  resolution: "@next/mdx@npm:14.2.5"
   dependencies:
     source-map: "npm:^0.7.0"
   peerDependencies:
@@ -4562,7 +4562,7 @@ __metadata:
       optional: true
     "@mdx-js/react":
       optional: true
-  checksum: 10/b57181cc57fff58f70d164350686ef1204ae45f38b1606dc3c7bd043dd144c63d327c1d2854c6f9af11777f86d0ce69017a7a0705ea013bd20146641f74a08f7
+  checksum: 10/f9c3a44fda3a50726c2706c210b65eccc4011afffcc7b846092ddd7131778348643979a6478559c54a79c3f16e8eda763f2176ae28729a889097ab16a70cb2d9
   languageName: node
   linkType: hard
 
@@ -4678,15 +4678,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=7f98ea&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/a0e83cd6f6bc4de6d89aeb98c722b81acc583a17d1a06cb1f5e92f715be3c4c6330f479939963a46ad4dd454375f91ed6ed9d3cc14537cc3544c5eb12b1e42aa
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=ab9d1a&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/da47111ee1f08cb2c9ca96f4c746fdb47bcc98c50801629ed7bc27e75c6eae89fea8fc55ab1909e5ce5869dc2471eef174ec468a3771e4901952cc5e97aeb320
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -6344,12 +6344,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.11.16":
-  version: 20.11.27
-  resolution: "@types/node@npm:20.11.27"
+"@types/node@npm:^20.14.10":
+  version: 20.14.10
+  resolution: "@types/node@npm:20.14.10"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10/4be53485d499dd7c7896190e76a0ce1f6c6917d1f4d0b4b240b3670160fcbc548daed32beaac0fc92429b37dbeaa2496fc56f460acaab969bddb77394318a89b
+  checksum: 10/672892cf94d0d95cf052f11271990686a0fd204cd1e5fe7a4ef240e5315e06711765dc47b9ec98627d3adac18b8c92bb7e2d8db21d18faa20bc3e3203a143e79
   languageName: node
   linkType: hard
 
@@ -6402,12 +6402,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.2.22":
-  version: 18.2.22
-  resolution: "@types/react-dom@npm:18.2.22"
+"@types/react-dom@npm:^18.2.25":
+  version: 18.2.25
+  resolution: "@types/react-dom@npm:18.2.25"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/310da22244c1bb65a7f213f8727bda821dd211cfb2dd62d1f9b28dd50ef1c196d59e908494bd5f25c13a3844343f3a6135f39fb830aca6f79646fa56c1b56c08
+  checksum: 10/0e45856a2fdbf09e74632b132b3af773c6b18fc2ab0bd04595c9f2bcc0bb04d5e732ac8156d145b712dedab7484a8fe9dce5cf720a5437b5d26099c7060c7ba4
   languageName: node
   linkType: hard
 
@@ -15686,7 +15686,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.0.0, loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -19585,7 +19585,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-pdf@npm:*, react-pdf@npm:^7.5.1":
+"react-pdf@npm:*":
   version: 7.5.1
   resolution: "react-pdf@npm:7.5.1"
   dependencies:
@@ -19605,6 +19605,30 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10/a3c3425c568b17f7e36d9d8d07c72c00573e71c3a1a9d11dbe5d4d07e3e4e81c3bd9f9f8ae6adad921e5a71a84e9dae4b06c019d2cf0e7fa2fea92ee1d49f645
+  languageName: node
+  linkType: hard
+
+"react-pdf@npm:^7.7.3":
+  version: 7.7.3
+  resolution: "react-pdf@npm:7.7.3"
+  dependencies:
+    clsx: "npm:^2.0.0"
+    dequal: "npm:^2.0.3"
+    make-cancellable-promise: "npm:^1.3.1"
+    make-event-props: "npm:^1.6.0"
+    merge-refs: "npm:^1.2.1"
+    pdfjs-dist: "npm:3.11.174"
+    prop-types: "npm:^15.6.2"
+    tiny-invariant: "npm:^1.0.0"
+    warning: "npm:^4.0.0"
+  peerDependencies:
+    "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/8156918224ca48f7cb0fc5f275b1a0e062b2536d7cbc332c4173d7a43d7bc04531c951d058bcea604b068503128b0cfc2012f56b6c974eebede291e4cc2597f8
   languageName: node
   linkType: hard
 
@@ -23247,6 +23271,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"warning@npm:^4.0.0":
+  version: 4.0.3
+  resolution: "warning@npm:4.0.3"
+  dependencies:
+    loose-envify: "npm:^1.0.0"
+  checksum: 10/e7842aff036e2e07ce7a6cc3225e707775b969fe3d0577ad64bd24660e3a9ce3017f0b8c22a136566dcd3a151f37b8ed1ccee103b3bd82bd8a571bf80b247bc4
+  languageName: node
+  linkType: hard
+
 "watchpack@npm:^2.4.1":
   version: 2.4.1
   resolution: "watchpack@npm:2.4.1"
@@ -23601,7 +23634,7 @@ __metadata:
     "@mdx-js/react": "npm:^3.0.1"
     "@netlify/functions": "npm:^2.5.1"
     "@netlify/plugin-csp-nonce": "npm:^1.2.6"
-    "@next/mdx": "npm:^14.1.3"
+    "@next/mdx": "npm:^14.2.5"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
     "@redocly/cli": "npm:^1.10.6"
@@ -23612,11 +23645,11 @@ __metadata:
     "@types/katex": "npm:^0.16.7"
     "@types/mapbox-gl": "npm:^3.1.0"
     "@types/mdx": "npm:^2.0.11"
-    "@types/node": "npm:^20.11.16"
+    "@types/node": "npm:^20.14.10"
     "@types/node-fetch": "npm:^2.6.11"
     "@types/prop-types": "npm:^15.7.11"
     "@types/react": "npm:^18.2.66"
-    "@types/react-dom": "npm:^18.2.22"
+    "@types/react-dom": "npm:^18.2.25"
     "@types/react-google-recaptcha": "npm:^2.1.9"
     "@types/react-pdf": "npm:^7.0.0"
     "@types/styled-components": "npm:^5.1.32"
@@ -23650,7 +23683,7 @@ __metadata:
     react-google-recaptcha: "npm:^3.1.0"
     react-is: "npm:^18.2.0"
     react-markdown: "npm:^9.0.1"
-    react-pdf: "npm:^7.5.1"
+    react-pdf: "npm:^7.7.3"
     rehype: "npm:^13.0.1"
     rehype-highlight: "npm:^7.0.0"
     rehype-stringify: "npm:^10.0.0"
