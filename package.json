@@ -20,7 +20,7 @@
         "@mdx-js/loader": "^3.0.1",
         "@mdx-js/react": "^3.0.1",
         "@netlify/functions": "^2.5.1",
-        "@next/mdx": "^14.1.3",
+        "@next/mdx": "^14.2.5",
         "@oceanics/app": "file:app/lib",
         "@oceanics/functions": "file:functions/lib",
         "@types/mdx": "^2.0.11",
