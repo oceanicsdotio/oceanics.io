@@ -6286,10 +6286,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mdx@npm:^2.0.11":
-  version: 2.0.11
-  resolution: "@types/mdx@npm:2.0.11"
-  checksum: 10/54d1ac0dc6c1c8d68f7537ecfab415767f34b4eee9d74f1d302b217307fb72bc976bf2616fdca654bdb01c1e4d152fb094b52f6502d8f6d6a063d3b9a8f9b81a
+"@types/mdx@npm:^2.0.13":
+  version: 2.0.13
+  resolution: "@types/mdx@npm:2.0.13"
+  checksum: 10/b73ed5f08114879b9590dc6a9ee8b648643c57c708583cd24b2bc3cc8961361fc63139ac7e9291e7b3b6e6b45707749d01d6f9727ddec5533df75dc3b90871a4
   languageName: node
   linkType: hard
 
@@ -23880,7 +23880,7 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/katex": "npm:^0.16.7"
     "@types/mapbox-gl": "npm:^3.4.0"
-    "@types/mdx": "npm:^2.0.11"
+    "@types/mdx": "npm:^2.0.13"
     "@types/node": "npm:^20.14.10"
     "@types/node-fetch": "npm:^2.6.11"
     "@types/prop-types": "npm:^15.7.13"
