@@ -15,17 +15,17 @@ path = "lib.rs"
 opt-level = "s"
 
 [dependencies]
-serde = { version = "1.0.193", features = ["derive"] }
-serde_derive = "1.0.193"
-js-sys = "0.3.69"
-wasm-bindgen-futures = "0.4.42"
-serde_json = {version="1.0.108", default-features = false, features = ["alloc"]}
+serde = { version = "1.0.210", features = ["derive"] }
+serde_derive = "1.0.210"
+js-sys = "0.3.70"
+wasm-bindgen-futures = "0.4.43"
+serde_json = {version="1.0.128", default-features = false, features = ["alloc"]}
 serde-wasm-bindgen = "0.6.5"
 console_error_panic_hook = "0.1.7"
-web-sys = { version = "0.3.69", features = [
+web-sys = { version = "0.3.70", features = [
     "Request",
     "ReadableStream",
     "Headers",
     "Response",
 ] }
-wasm-bindgen = { version = "0.2.92", features = ["serde-serialize"] }
+wasm-bindgen = { version = "0.2.93", features = ["serde-serialize"] }
