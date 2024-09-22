@@ -17,9 +17,9 @@ Software is provided by Oceanicsdotio LLC under the [MIT license](https://github
 
 ## Getting started
 
-The top-level directory also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying. The complete build and test processes are defined in `makefile`. 
+The top-level directory contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying.
 
-The site is hosted on Netlify. The build process is setup in `netlify.toml` and `makefile`. When updates are pushed to Github, the site is rebuilt and deployed automatically. Local testing requires the Netlify CLI, which is installed from the parent module.
+The site is hosted on Netlify. The build process is setup in `netlify.toml` and `makefile`. Local testing requires the Netlify CLI, which is installed from the parent module.
 
 We use `yarn` to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. Shared dependencies are defined in `package.json`.
 

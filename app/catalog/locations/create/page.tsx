@@ -19,7 +19,8 @@ export default function Create({}) {
   const _description = useRef<HTMLInputElement | null>(null);
   const encodingType = useRef<HTMLSelectElement | null>(null);
   const locationType = useRef<HTMLInputElement | null>(null);
-  const locationCoordinates = useRef<HTMLInputElement | null>(null);
+  const locationLatitude = useRef<HTMLInputElement | null>(null);
+  const locationLongitude = useRef<HTMLInputElement | null>(null);
   /**
    * Web Worker.
    */
@@ -38,7 +39,10 @@ export default function Create({}) {
       encodingType: encodingType.current?.value,
       location: {
         type: locationType.current?.value,
-        coordinates: locationCoordinates.current?.value
+        coordinates: [
+          locationLatitude.current?.value,
+          locationLongitude.current?.value
+        ]
       }
     };
   };
@@ -94,14 +98,20 @@ export default function Create({}) {
         </select>
         <Markdown>{properties.encodingType.description}</Markdown>
         <TextInput
-          name={"locationType"}
+          name={"type"}
           inputRef={locationType}
           description={properties.location.properties.type.description}
+          defaultValue="Point"
         ></TextInput>
         <TextInput
-          name={"locationCoordinates"}
-          inputRef={locationCoordinates}
-          description={properties.location.properties.coordinates.description}
+          name={"latitude"}
+          inputRef={locationLatitude}
+          description={"Latitude is decimal degrees"}
+        ></TextInput>
+        <TextInput
+          name={"longitude"}
+          inputRef={locationLongitude}
+          description={"Longitude in decimal degrees"}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
           Create

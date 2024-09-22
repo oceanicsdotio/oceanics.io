@@ -5,6 +5,16 @@
     padding: 0;
 }
 
+.locations {
+    width: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.mapbox {
+    min-height: 500px;
+}
+
 .input {
     background-color: #222222;
     padding: 0.5rem;
