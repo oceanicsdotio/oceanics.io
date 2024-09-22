@@ -27,7 +27,9 @@ The `app` directory contains our NextJS web page. Client interaction is through 
 
 Netlify serverless `functions` provide our backend. These are single purpose endpoints that support secure data access and processing.
 
-You can run the Neo4j database manager in a [Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports [cypher](https://neo4j.com/docs/cypher-refcard/current/). 
+You can run the Neo4j database manager in a [Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports [cypher](https://neo4j.com/docs/cypher-refcard/current/).
+
+Running `make out` will build packages, and `make dev` will build and run a local API and web server.
 
 Running `make test` populates the connected database with the examples described in `specification.yaml`.
 

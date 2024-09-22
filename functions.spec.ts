@@ -198,6 +198,7 @@ describe("idempotent", function () {
       expect(typeof actual).toBe("number");
       expect(actual).toBeGreaterThanOrEqual(0);
       expect(data["value"].length).toEqual(actual);
+      expect(count).toEqual(actual);
     });
   })
 

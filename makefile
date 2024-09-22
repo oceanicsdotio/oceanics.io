@@ -78,5 +78,9 @@ clean:
 	@ rm -rf coverage
 .PHONY: clean
 
+update-node:
+	yarn upgrade-interactive
+.PHONY: update-node
+
 # Cleanup targets on error
 .DELETE_ON_ERROR:
