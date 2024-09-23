@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use crate::{
     cypher::{Links, Node, QueryResult},
     openapi::{
@@ -52,14 +51,17 @@ pub async fn get(
         handler_event.query.left.unwrap(),
         handler_event.query.left_uuid.unwrap(),
     );
-    let cypher = Links::wildcard().query(&user, &left, left.symbol.clone());
+    let cypher = Links::wildcard().query(
+        &user,
+        &left,
+        left.symbol.clone()
+    );
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
     let flattened: Vec<HashMap<String, Value>> = result.records.iter().map(
         |rec| serde_wasm_bindgen::from_value(rec.fields[0].properties.clone()).unwrap()
     ).collect();
     let count = flattened.len();
-    
     DataResponse::new(json!({
         "@iot.count": count,
         "value": flattened

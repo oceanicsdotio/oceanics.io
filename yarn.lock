@@ -3977,6 +3977,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@logtail/browser@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "@logtail/browser@npm:0.5.1"
+  dependencies:
+    "@logtail/core": "npm:^0.5.0"
+    "@logtail/tools": "npm:^0.5.0"
+    cross-fetch: "npm:^4.0.0"
+  checksum: 10/eabb0f6a25956a4ee24d85f3430fa99038194342a18c56f0b61c0f77ba6dad9cfa6142698f864f5ee423ee452e7f746b9e5397baaec5115e8baae48cd882ead3
+  languageName: node
+  linkType: hard
+
 "@logtail/core@npm:^0.5.0":
   version: 0.5.0
   resolution: "@logtail/core@npm:0.5.0"
@@ -3988,7 +3999,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@logtail/node@npm:0.5.0":
+"@logtail/js@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "@logtail/js@npm:0.5.1"
+  dependencies:
+    "@logtail/browser": "npm:^0.5.1"
+    "@logtail/node": "npm:^0.5.0"
+  checksum: 10/c66c64fcb0c604c80faec02e0cd50ab5a927df1aa961cb38333cc58552613f8846dde8ee9cf3c2c5da92dbe4fefb11c07d5cfee01bee796c1aa17a248d28af2b
+  languageName: node
+  linkType: hard
+
+"@logtail/node@npm:^0.5.0":
   version: 0.5.0
   resolution: "@logtail/node@npm:0.5.0"
   dependencies:
@@ -4847,8 +4868,8 @@ __metadata:
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=16d022&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/fb397bbf681f29a908f99b198d185291a860256cb57935264d4bc5459df1df7ecdff38b4a6fe2439fea0ac92b55a8b8944f5cbea7e114b987975543f15bb0aa7
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f40b54&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/44131f84d817d9647ca36cc4e7484018a07f857120d562eb1970b77f27538a140aa3a589a9874f8dd239f45f8ae08dd3860b23cdf5199129f112b6b4750ac119
   languageName: node
   linkType: hard
 
@@ -23135,7 +23156,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@babel/preset-env": "npm:^7.25.4"
     "@babel/preset-typescript": "npm:^7.24.7"
-    "@logtail/node": "npm:0.5.0"
+    "@logtail/js": "npm:^0.5.1"
     "@mdx-js/loader": "npm:^3.0.1"
     "@mdx-js/react": "npm:^3.0.1"
     "@netlify/functions": "npm:^2.8.1"

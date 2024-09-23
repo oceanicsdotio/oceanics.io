@@ -55,22 +55,12 @@ These environment variables must be present for things to work:
 Logging is [through Logtail for JavaScript](https://docs.logtail.com/integrations/javascript). If you want to get performance metrics from the log database, you can use a query like:
 ```sql
 SELECT
-  substring(context.runtime.file, 35) as file,
-  httpmethod AS method,
-  avg(cast(elapsedtime AS INT)) AS time,
-  avg(cast(arraybuffers AS INT))/1000 AS arraybuffers_kb,
-  avg(cast(heaptotal AS INT))/1000 AS heaptotal_kb,
-  avg(cast(heapused AS INT))/1000 AS heapused_kb,
-  avg(cast(external AS INT))/1000 AS external_kb,
-  count(*) as requests
-FROM $table
+  count(*) as requests,
+  JSONExtract(json, 'event', 'httpMethod','Nullable(String)') AS method,
+  JSONExtract(json, 'event', 'path','Nullable(String)') AS function,
+  avg(JSONExtract(json, 'duration','INT')) AS duration
+FROM {{source}}
 WHERE
-  elapsedtime IS NOT NULL AND
-  heaptotal IS NOT NULL AND
-  heapused IS NOT NULL AND
-  external IS NOT NULL AND
-  arraybuffers IS NOT NULL
-GROUP BY 
-  file,
-  method
+  method IS NOT NULL
+GROUP BY method, function
 ```

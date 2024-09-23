@@ -1,5 +1,7 @@
 use crate::{
-    cypher::{Links, Node, QueryResult}, log, openapi::{
+    cypher::{Links, Node, QueryResult},
+    log,
+    openapi::{
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
     }
 };
@@ -32,7 +34,7 @@ pub async fn collection(
         "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE"]),
         "GET" => get(&url, &access_key, user, event).await,
         "POST" => post(&url, &access_key, user, event).await,
-        _ => ErrorResponse::not_implemented(),
+        _ => ErrorResponse::not_implemented()
     }
 }
 
@@ -77,7 +79,6 @@ async fn post(
     if result.summary.counters.stats.nodes_created == 1 {
         NoContentResponse::new()
     } else {
-        log(result.summary.query.text);
         ErrorResponse::server_error()
     }
 }
