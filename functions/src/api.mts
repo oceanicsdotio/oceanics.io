@@ -3,7 +3,6 @@
 // Plus paypal integration generator
 
 import express, { Router } from "express";
-import fetch from "node-fetch";
 import serverless from "serverless-http";
 import cors from "cors";
 

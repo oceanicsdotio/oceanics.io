@@ -5,8 +5,8 @@
   functions = "functions/src"
 
 [build.environment]
-  NODE_VERSION = "20"
-  AWS_LAMBDA_JS_RUNTIME = "nodejs20.x"
+  NODE_VERSION = "21"
+  AWS_LAMBDA_JS_RUNTIME = "nodejs21.x"
   UV_THREADPOOL_SIZE = 16
   NETLIFY_NEXT_PLUGIN_SKIP = true
 

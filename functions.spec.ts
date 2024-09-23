@@ -1,5 +1,4 @@
 // import { describe, expect, test, beforeAll } from '@jest/globals';
-import fetch from "node-fetch";
 import examples from "./examples.json";
 
 const IDENTITY = "https://www.oceanics.io/.netlify/identity";

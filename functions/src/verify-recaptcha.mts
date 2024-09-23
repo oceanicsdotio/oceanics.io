@@ -1,5 +1,4 @@
 import type { Context } from "@netlify/functions";
-import fetch from "node-fetch";
 
 export default async (req: Request, _: Context) => {
     if (req.method !== "POST") {
