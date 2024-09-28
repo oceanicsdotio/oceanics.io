@@ -4861,15 +4861,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=f2215d&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/c7fcbe083ab5184f09fb15c78ec4458df99637e3f53dbc54740da583a822e0bbf5605b8346f6acd3b59731042d56acfe7fc283c50d1de5f29780dcdebd2e3288
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=c0dd57&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/a299391064c072fc27febcef235bd481e0c6a31b223db1a51c5cd5506e49ca7cbbc57e84c640bb08cd2190097e8b2c994b467e443ad1866fb158a827ef9c81a6
   languageName: node
   linkType: hard
 
@@ -8722,24 +8722,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.30001370":
-  version: 1.0.30001561
-  resolution: "caniuse-lite@npm:1.0.30001561"
-  checksum: 10/94cfc8454c19d28828baf254771e0f3cf1828f95b0a85904d70a77b530873a041a735761091e3baf17ec90609250f887baa044b8ed2776368a46dd2e70f050d6
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001579, caniuse-lite@npm:^1.0.30001587":
-  version: 1.0.30001597
-  resolution: "caniuse-lite@npm:1.0.30001597"
-  checksum: 10/44a268113faeee51e249cbcb3924dc3765f26cd527a134e3bb720ed20d50abd8b9291500a88beee061cc03ae9f15ddc9045d57e30d25a98efeaff4f7bb8965c1
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001646":
-  version: 1.0.30001662
-  resolution: "caniuse-lite@npm:1.0.30001662"
-  checksum: 10/275dee3c2365d58c65609e707dfd7454e72195fdae7d3a8fea05f1ddb49581f64dfc65965964ee2cff99cc0af44d08c572437b1effd43e9ddc174d7a1d7f95a3
+"caniuse-lite@npm:^1.0.30001370, caniuse-lite@npm:^1.0.30001579, caniuse-lite@npm:^1.0.30001587, caniuse-lite@npm:^1.0.30001646":
+  version: 1.0.30001664
+  resolution: "caniuse-lite@npm:1.0.30001664"
+  checksum: 10/ff237f6bbb59564d2a7219fe9a799a59692403115500f7548a77f1f6b82e33fd136375003f80c8df88a64048f699f9f917292ca4cac0dd8a789d2d35fba6269b
   languageName: node
   linkType: hard
 

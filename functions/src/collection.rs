@@ -1,6 +1,5 @@
 use crate::{
     cypher::{Links, Node, QueryResult},
-    log,
     openapi::{
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
     }
