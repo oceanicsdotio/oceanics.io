@@ -15,12 +15,27 @@ const curried = index.bind(
 const log = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 export const handler: Handler = async function (event, context) {
     const start = performance.now();
-    const result = await curried(event, context);
-    const duration = performance.now() - start;
-    log.info(`${event.httpMethod} index`, {
+    const name = `${event.httpMethod} index`;
+    const metadata = {
         event, 
-        context,
-        duration
-    })
-    return result
+        context
+    }
+    try {
+        const result = await curried(event, context);
+        const duration = performance.now() - start;
+        log.info(name, {duration, ...metadata})
+        return result
+    } catch(error) {
+        const duration = performance.now() - start;
+        log.error(name, {duration,...metadata})
+        return {
+            statusCode: 500,
+            headers: {
+                "content_type": "application/json"
+            },
+            body: JSON.stringify({
+                message: error.message,
+            })
+        }
+    }
 };

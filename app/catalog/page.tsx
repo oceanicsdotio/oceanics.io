@@ -149,6 +149,7 @@ export default function Page({}) {
         return;
       case MESSAGES.error:
         console.error("worker", type, data);
+        setMessage(`! Something went wrong`);
         return;
       default:
         console.warn("client", type, data);
@@ -156,7 +157,8 @@ export default function Page({}) {
     }
   }, []);
   /**
-   * Load Web Worker on component mount
+   * Load Web Worker on component mount. I think the path needs to be 
+   * hard-coded here for webpack/bundlers to be able to include it.
    */
   useEffect(() => {
     worker.current = new Worker(
@@ -169,13 +171,13 @@ export default function Page({}) {
       passive: true,
     });
     const user_data = localStorage.getItem("gotrue.user");
-    if (typeof user_data !== "undefined") {
+    if (typeof user_data !== "undefined" && user_data) {
       worker.current.postMessage({
         type: MESSAGES.getIndex,
         data: { user: user_data },
       });
     } else {
-      console.error("User is not logged in.");
+      setMessage("! You aren't logged in");
     }
     const handle = worker.current;
     return () => {
