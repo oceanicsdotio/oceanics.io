@@ -30,7 +30,7 @@
         "js-yaml": "^4.1.0",
         "katex": "^0.16.11",
         "mapbox-gl": "^3.6.0",
-        "neo4j-driver": "^5.24.1",
+        "neo4j-driver": "^5.25.0",
         "next": "^14.2.13",
         "next-mdx-remote": "5.0.0",
         "openapi-types": "^12.1.3",
