@@ -52,7 +52,7 @@
         "@babel/preset-env": "^7.25.4",
         "@babel/preset-typescript": "^7.24.7",
         "@netlify/plugin-csp-nonce": "^1.2.10",
-        "@redocly/cli": "^1.25.3",
+        "@redocly/cli": "^1.25.5",
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.0",
         "@types/geojson": "^7946.0.14",
