@@ -286,7 +286,7 @@ components:
       required: true
       name: rootId
       description: |
-        Unique integer identifier of the parent entity.
+        Unique identifier of the parent entity.
       schema:
         type: string
 
@@ -524,7 +524,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
@@ -864,7 +864,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
@@ -954,7 +954,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         time:
           type: string
@@ -1014,7 +1014,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
@@ -1085,7 +1085,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier across `DataStreams` and all other
+            Unique identifier across `DataStreams` and all other
             types of entity.
 
         name:
@@ -1251,7 +1251,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         resultTime:
           type: string
@@ -1339,7 +1339,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
@@ -1405,7 +1405,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
@@ -1462,7 +1462,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
@@ -1520,7 +1520,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique integer identifier for entity.
+            Unique identifier for entity.
 
         name:
           type:
