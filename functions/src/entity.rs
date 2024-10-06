@@ -1,13 +1,10 @@
-use std::collections::HashMap;
 use crate::{
-    cypher::{Links, Node, QueryResult},
+    cypher::{Links, Node, QueryResult, SerializedQueryResult},
     openapi::{
-        ErrorResponse, DataResponse, HandlerContext, HandlerEvent, NoContentResponse,
-        OptionsResponse, Path,
+        DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
     }
 };
 use wasm_bindgen::prelude::*;
-use serde_json::{json, Value};
 
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
@@ -57,15 +54,11 @@ pub async fn get(
         left.symbol.clone()
     );
     let raw = cypher.run(url, access_key).await;
-    let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    let flattened: Vec<HashMap<String, Value>> = result.records.iter().map(
-        |rec| serde_wasm_bindgen::from_value(rec.fields[0].properties.clone()).unwrap()
-    ).collect();
-    let count = flattened.len();
-    DataResponse::new(json!({
-        "@iot.count": count,
-        "value": flattened
-    }).to_string())
+    let result: SerializedQueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
+    let serialized = result.records.first().unwrap();
+    let flattened = serialized.fields.first().unwrap();
+    let body = flattened.replace("count", "@iot.count");
+    DataResponse::new(body)
 }
 
 /// Delete a node pattern owned by the authenticated

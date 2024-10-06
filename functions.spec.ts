@@ -1,8 +1,9 @@
 // import { describe, expect, test, beforeAll } from '@jest/globals';
 import examples from "./examples.json";
 
+const BASE_URL = "http://localhost:8888";
 const IDENTITY = "https://www.oceanics.io/.netlify/identity";
-const FUNCTIONS = "http://localhost:8888/.netlify/functions";
+const FUNCTIONS = `${BASE_URL}/.netlify/functions`;
 const INDEX = `${FUNCTIONS}/index`;
 const COLLECTION = `${FUNCTIONS}/collection`;
 const TOPOLOGY = `${FUNCTIONS}/topology`;
@@ -198,6 +199,10 @@ describe("idempotent", function () {
       expect(actual).toBeGreaterThanOrEqual(0);
       expect(data["value"].length).toEqual(actual);
       expect(count).toEqual(actual);
+
+      if (nodeType === "Locations") {
+        console.log('Locations', data)
+      }
     });
   })
 

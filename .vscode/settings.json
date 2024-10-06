@@ -20,5 +20,6 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "cSpell.ignoreWords": [
     "bindgen"
-  ]
+  ],
+  "makefile.configureOnOpen": false
 }

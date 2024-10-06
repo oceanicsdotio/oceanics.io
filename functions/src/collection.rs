@@ -1,11 +1,9 @@
 use crate::{
-    cypher::{Links, Node, QueryResult},
+    cypher::{Links, Node, QueryResult, SerializedQueryResult},
     openapi::{
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
     }
 };
-use std::collections::HashMap;
-use serde_json::{json, Value};
 use wasm_bindgen::prelude::*;
 
 /// Called from JS inside the generated handler function. Any errors
@@ -37,7 +35,10 @@ pub async fn collection(
     }
 }
 
-/// Get all entities with the supplied label
+/// Get all entities with the supplied label. The data have already been
+/// serialized to a json string that includes the count and objects.
+/// The at symbol is an illegal name in cypher so we replace the key
+/// here before passing in response.
 async fn get(
     url: &String,
     access_key: &String,
@@ -48,15 +49,11 @@ async fn get(
     let left = Node::new(None, "n".to_string(), event.query.left);
     let cypher = Links::wildcard().query(&user, &left, left.symbol.clone());
     let raw = cypher.run(&url, &access_key).await;
-    let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    let flattened: Vec<HashMap<String, Value>> = result.records.iter().map(
-        |rec| serde_wasm_bindgen::from_value(rec.fields[0].properties.clone()).unwrap()
-    ).collect();
-    let count = flattened.len();
-    DataResponse::new(json!({
-        "@iot.count": count,
-        "value": flattened
-    }).to_string())
+    let result: SerializedQueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
+    let serialized = result.records.first().unwrap();
+    let flattened = serialized.fields.first().unwrap();
+    let body = flattened.replace("count", "@iot.count");
+    DataResponse::new(body)
 }
 
 /// Create a new entity within the collection.

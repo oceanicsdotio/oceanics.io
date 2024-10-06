@@ -44,16 +44,28 @@ pub struct Summary {
 }
 
 #[derive(Deserialize, Clone)]
-pub struct Records {
+pub struct Record {
     #[serde(rename = "_fields")]
     pub fields: Vec<NodeData>
+}
+
+#[derive(Deserialize, Clone)]
+pub struct SerializedRecord {
+    #[serde(rename = "_fields")]
+    pub fields: Vec<String>
 }
 
 /// Container type that holds the neo4j records,
 /// plus a summary object.
 #[derive(Deserialize, Clone)]
 pub struct QueryResult {
-    pub records: Vec<Records>,
+    pub records: Vec<Record>,
+    pub summary: Summary
+}
+
+#[derive(Deserialize, Clone)]
+pub struct SerializedQueryResult {
+    pub records: Vec<SerializedRecord>,
     pub summary: Summary
 }
 
@@ -177,7 +189,7 @@ impl Links {
     /// but actually very flexible.
     pub fn query(&self, left: &Node, right: &Node, result: String) -> Cypher {
         let query = format!(
-            "MATCH {}{}{} WHERE NOT {}:User RETURN {}",
+            "MATCH {}{}{} WHERE NOT {}:User RETURN apoc.convert.toJson({{count: count(n), value: collect(properties({}))}})",
             left,
             self,
             right,
@@ -244,38 +256,6 @@ pub struct Node {
 
 /// Methods used internally, but without JavaScript bindings.
 impl Node {
-    /// Convenience method for return correct type.
-    fn format(key: &String, value: &Value) -> Option<String> {
-        let str_val = value.to_string().replace("\"", "");
-        Some(format!("{}: '{}'", key, str_val))
-    }
-
-    /// Use when the property is an Array or Object.
-    fn format_nested(key: &String, value: &Value) -> Option<String> {
-        let decode = serde_json::to_string(value);
-        match decode {
-            Err(_) => {
-                panic!("Problem serializing property value");
-            }
-            Ok(serialized) => Node::format(key, &Value::String(serialized)),
-        }
-    }
-
-    /// Format a key and value as a Cypher compatible property
-    /// string.
-    fn format_pair(key: &String, value: &Value) -> Option<String> {
-        match value {
-            Value::Object(_) | Value::Array(_) => Node::format_nested(key, value),
-            Value::String(val) => {
-                if val.len() > 0 {
-                    return Node::format(key, &Value::String(val.clone()));
-                }
-                None
-            }
-            Value::Null => None,
-            _ => Node::format(key, value),
-        }
-    }
 
     fn _string_to_value(key_value: &str) -> (&str, &str) {
         let parts: Vec<&str> = key_value.split(": ").collect();
@@ -359,16 +339,44 @@ impl Node {
         }
     }
 
-    /// Always return a plain string
+    /// Always return a plain string. The cypher representation of a node
+    /// can contain list variables, but cannot contain structure data like
+    /// JSON. This instead needs to be a serialized and properly escaped
+    /// string. Numbers are not quoted, but almost all other properties are.
     pub fn pattern(&self) -> String {
-        match &self.properties {
-            None => String::from(""),
-            Some(lookup) => lookup
-                .iter()
-                .map(|(key, value)| Node::format_pair(key, value).unwrap())
-                .collect::<Vec<String>>()
-                .join(", "),
+        let mut buffer = String::from("");
+        if self.properties.is_some() {
+            let props = self.properties.as_ref().unwrap();
+            let pairs = props.iter().enumerate();
+            let count = pairs.len();
+            for (index, (key, value)) in pairs {
+                match value {
+                    Value::Object(val) => {
+                        let serialized = serde_json::to_string(&val).unwrap();
+                        let partial = format!("{}: '{}'", key, serialized);
+                        buffer.push_str(&partial);
+                    },
+                    Value::Array(val) => {
+                        let serialized = serde_json::to_string(&val).unwrap();
+                        let partial = format!("{}: '{}'", key, serialized);
+                        buffer.push_str(&partial);
+                    },
+                    Value::Number(val) => {
+                        let partial = format!("{}: {}", key, val);
+                        buffer.push_str(&partial);
+                    },
+                    Value::String(val) if !val.is_empty() => {
+                        let partial = format!("{}: '{}'", key, val);
+                        buffer.push_str(&partial);
+                    },
+                    _ => {},
+                }
+                if index < count - 1 {
+                    buffer += ", "
+                }
+            }
         }
+        buffer
     }
 
     /// Often accessed by UUID
@@ -520,9 +528,10 @@ mod tests {
     #[test]
     fn node_load_produces_query() {
         let node = Node::new(None, "n".to_string(), Some("Things".to_string()));
-        let query = node.load(None);
-        assert_eq!(query.default_access_mode, "READ".to_string());
-        assert!(query.query.len() > 0)
+        let cypher = node.load(None);
+        println!("{}", cypher.query);
+        assert_eq!(cypher.default_access_mode, "READ".to_string());
+        assert!(cypher.query.len() > 0)
     }
 
     #[test]
@@ -531,9 +540,27 @@ mod tests {
             "uuid": "just-a-test"
         }).to_string();
         let node = Node::new(Some(properties), "n".to_string(), Some("Things".to_string()));
-        let query = node.create();
-        assert_eq!(query.default_access_mode, "WRITE".to_string());
-        assert!(query.query.len() > 0)
+        let cypher = node.create();
+        println!("{}", cypher.query);
+        assert_eq!(cypher.default_access_mode, "WRITE".to_string());
+    }
+
+    #[test]
+    fn node_create_location_has_correct_format() {
+        let properties = json!({
+            "name": "Western Passage",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type":"Point",
+                "coordinates": [44.92017,-66.995833]
+            },
+            "uuid":"test"
+        }).to_string();
+        println!("{}", properties);
+        let node = Node::new(Some(properties), "n".to_string(), Some("Locations".to_string()));
+        let cypher = node.create();
+        assert_eq!(cypher.default_access_mode, "WRITE".to_string());
+        assert!(cypher.query.len() > 0)
     }
 
     #[test]
@@ -630,6 +657,16 @@ mod tests {
     #[test]
     fn link_new_wildcard() {
         let _link = Links::wildcard();
+    }
+
+    #[test]
+    fn link_query_formatted_correctly() {
+        let user = Node::new(None, "u".to_string(), Some("User".to_string()));
+        let node = Node::new(None, "n".to_string(), Some("Things".to_string()));
+        let cypher = Links::wildcard().query(&user, &node, node.symbol.clone());
+        println!("{}", cypher.query);
+        assert_eq!(cypher.default_access_mode, "READ".to_string());
+        assert!(cypher.query.len() > 0)
     }
 
     #[test]
