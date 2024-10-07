@@ -4861,15 +4861,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=f2215d&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/c7fcbe083ab5184f09fb15c78ec4458df99637e3f53dbc54740da583a822e0bbf5605b8346f6acd3b59731042d56acfe7fc283c50d1de5f29780dcdebd2e3288
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=dcb9b5&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/a73406c15eca9c4e100893111b067e602f25d18e339c3b5028429152869b416658916623c1d15aebe137b4ec23c817c7bc3010ed0db884dfc233a8cafdb287d1
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -19418,15 +19418,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rehype@npm:^13.0.1":
-  version: 13.0.1
-  resolution: "rehype@npm:13.0.1"
+"rehype@npm:^13.0.2":
+  version: 13.0.2
+  resolution: "rehype@npm:13.0.2"
   dependencies:
     "@types/hast": "npm:^3.0.0"
     rehype-parse: "npm:^9.0.0"
     rehype-stringify: "npm:^10.0.0"
     unified: "npm:^11.0.0"
-  checksum: 10/0638c2719db2b6bab93c8182e5e6275c20d320068859b0d8d356ea9d84e4a02c8717660414f96ad711a01cce3071447a46855a0cd1f0b5b0679c9eed537da48c
+  checksum: 10/40614d9e6ddd814b4551737362904ce1cb7d6c00e98345fd676e3ec3c723b7b0fcca0a192b0be58bec0ef5e5fe1a60fd7af31a3f49c58133b38b463f4e9d1471
   languageName: node
   linkType: hard
 
@@ -22964,7 +22964,7 @@ __metadata:
     react-is: "npm:^18.3.1"
     react-markdown: "npm:^9.0.1"
     react-pdf: "npm:9.1.1"
-    rehype: "npm:^13.0.1"
+    rehype: "npm:^13.0.2"
     rehype-highlight: "npm:^7.0.0"
     rehype-stringify: "npm:^10.0.0"
     styled-components: "npm:^6.1.13"
