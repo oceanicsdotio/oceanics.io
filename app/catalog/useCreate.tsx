@@ -18,18 +18,16 @@ const ACTIONS = {
   error: "error",
 };
 
-export function NumberInput({
+function InputMetadata({
   name,
-  inputRef,
   description,
   required = false,
-  defaultValue,
+  children
 }: {
   name: string;
-  inputRef: MutableRefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
-  defaultValue?: number;
+  children?: React.ReactNode;
 }) {
   return (
     <>
@@ -37,38 +35,69 @@ export function NumberInput({
         <code>{name}</code>
         <span>{required ? " (required)" : ""}</span>
       </label>
+      {children}
+      <Markdown>{description}</Markdown>
+    </>
+  );
+}
+
+export function NumberInput({
+  name,
+  description,
+  required = false,
+  inputRef,
+  ...rest
+}: {
+  name: string;
+  // Passthrough, naming matters
+  inputRef: MutableRefObject<HTMLInputElement | null>;
+  description: string;
+  required?: boolean;
+  defaultValue?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  return (
+    <InputMetadata
+      name={name}
+      description={description}
+      required={required}
+    >
       <input
         className={style.input}
         id={name}
         type={"number"}
         name={name}
-        ref={inputRef}
-        defaultValue={defaultValue}
         required={required}
+        ref={inputRef}
+        {...rest}
       />
-      <Markdown>{description}</Markdown>
-    </>
+    </InputMetadata>
   );
 }
+
 export function TextInput({
   name,
   inputRef,
   description,
   required = false,
   defaultValue,
+  readOnly=false
 }: {
   name: string;
   inputRef: MutableRefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
   defaultValue?: string;
+  readOnly?: boolean;
 }) {
   return (
-    <>
-      <label className={style.label} htmlFor={name}>
-        <code>{name}</code>
-        <span>{required ? " (required)" : ""}</span>
-      </label>
+    <InputMetadata
+      name={name}
+      description={description}
+      required={required}
+    >
       <input
         className={style.input}
         id={name}
@@ -78,11 +107,50 @@ export function TextInput({
         ref={inputRef}
         required={required}
         defaultValue={defaultValue}
+        readOnly={readOnly}
       />
-      <Markdown>{description}</Markdown>
-    </>
+    </InputMetadata>
   );
 }
+
+export function TextSelectInput({
+  name,
+  inputRef,
+  description,
+  defaultValue,
+  options
+}: {
+  name: string;
+  inputRef: MutableRefObject<HTMLSelectElement | null>;
+  description: string;
+  defaultValue?: string;
+  options: string[];
+}) {
+  return (
+    <InputMetadata
+      name={name}
+      description={description}
+    >
+      <select
+        className={style.input}
+        id={name}
+        name={name}
+        ref={inputRef}
+        defaultValue={defaultValue}
+      >
+        {options.map((value: string) => {
+          return (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          );
+        })}
+      </select>
+    </InputMetadata>
+  );
+}
+
+
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

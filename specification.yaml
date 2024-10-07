@@ -851,40 +851,56 @@ components:
           location:
             type: Point
             coordinates: [ 44.92017, -66.995833 ]
-
       type: object
       title: Locations
       description: |
-        Last known location of a thing. May be a feature of interest, unless remote sensing.
+        `Locations` usually store information about the last known position of `Things`. 
+        Though these may no longer be current, they are distinct from `HistoricalLocations`, 
+        which are known to no longer be an accurate estimate. We also use `Locations` to 
+        represent prospective, planned and predicted positions, which departs from the
+        SensorThings standard.
+        
+        These are commonly linked with `Things` and `HistoricalLocations`. `Things` 
+        do not have a location property, so when they need to be visualized in a spatial context
+        it is necessary to use a topological query to retrieve connected `Locations`.
       additionalProperties: false
       required: [uuid, location, encodingType]
       properties:
-
         uuid:
           type: string
           format: uuid
           description: |
-            Unique identifier for entity.
-
+            Unique identifier for the entity. The API expects an external identifier, and does
+            not pass back any information other than the success or failure status of the
+            operation. The web interface implements UUID generation with the v7 algorithm, so
+            that they can be used as sortable database keys.
         name:
           type:
             - "string"
             - "null"
-          description: Human readable entity name for displaying data.
-
+          description: |
+            Human readable entity name for search and display of Location data. While you
+            may opt to encode information in the name, we recommend encoding these instead
+            in location properties and topology.
         description:
           type:
             - "string"
             - "null"
-          description: Short but useful explanation of what the entity is.
-
+          description: |
+            Short and useful explanation of what the `Location`` is. This could
+            include the source for manually input locations, annotations
+            about hazards or operational constraints, or any other information
+            you or other may find helpful.
         encodingType:
           type: string
           enum:
             - "application/vnd.geo+json"
           default: "application/vnd.geo+json"
-          description: The encoding rendered in the location response
-
+          description: |
+            The encoding rendered in the location response. We support
+            GeoJSON in the user facing web interface and API. The underlying
+            implementation for storage, transmission, and processing varies
+            across services.
         location:
           type: object
           additionalProperties: false
@@ -893,7 +909,9 @@ components:
               type: string
               description: |
                 The type of geometry, limited to values we know how to process. 
-                This includes `Point` and `Polygon` geometries.
+                This includes `Point` and `Polygon` geometries. The web interface
+                only allows `Point` coordinates in form inputs, but more complex
+                geometries can be created through the API.
               enum: ["Point", "Polygon"]
             coordinates:
               type: array
@@ -904,30 +922,24 @@ components:
               items:
                 type: number
                 format: float
-
         HistoricalLocations@iot.navigation:
           readOnly: true
           oneOf:
-
             - type: array
               title: references
               items:
                 type: string
-
             - type: array
               title: objects
               items:
                 type: object
-
         Things@iot.navigation:
           readOnly: true
           oneOf:
-
             - type: array
               title: references
               items:
                 type: string
-
             - type: array
               title: objects
               items:
