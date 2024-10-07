@@ -4732,9 +4732,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/mdx@npm:^14.2.13":
-  version: 14.2.13
-  resolution: "@next/mdx@npm:14.2.13"
+"@next/mdx@npm:^14.2.14":
+  version: 14.2.14
+  resolution: "@next/mdx@npm:14.2.14"
   dependencies:
     source-map: "npm:^0.7.0"
   peerDependencies:
@@ -4745,7 +4745,7 @@ __metadata:
       optional: true
     "@mdx-js/react":
       optional: true
-  checksum: 10/ce8f2b9421e10070c772a206e85c34d53f1559fe98976ba9c86e59d1d51c01e0a9b5daa85fa010f4985d026bd68957b863edcec1899cd534c0f5517aff864b41
+  checksum: 10/cb7466666f7b87e08c6633239ee16e3dea6e800a3e23a2d5600d9e92c2eb7fdc1786f57c44185349de6e10d424229b162392b7c0523292ccf3a2d7bf4446f7d6
   languageName: node
   linkType: hard
 
@@ -4861,15 +4861,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=f2215d&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/c7fcbe083ab5184f09fb15c78ec4458df99637e3f53dbc54740da583a822e0bbf5605b8346f6acd3b59731042d56acfe7fc283c50d1de5f29780dcdebd2e3288
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=dcb9b5&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/a73406c15eca9c4e100893111b067e602f25d18e339c3b5028429152869b416658916623c1d15aebe137b4ec23c817c7bc3010ed0db884dfc233a8cafdb287d1
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -22920,7 +22920,7 @@ __metadata:
     "@mdx-js/react": "npm:^3.0.1"
     "@netlify/functions": "npm:^2.8.1"
     "@netlify/plugin-csp-nonce": "npm:^1.2.10"
-    "@next/mdx": "npm:^14.2.13"
+    "@next/mdx": "npm:^14.2.14"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
     "@redocly/cli": "npm:^1.25.5"
