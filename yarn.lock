@@ -4732,9 +4732,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/mdx@npm:^14.2.13":
-  version: 14.2.13
-  resolution: "@next/mdx@npm:14.2.13"
+"@next/mdx@npm:^14.2.14":
+  version: 14.2.14
+  resolution: "@next/mdx@npm:14.2.14"
   dependencies:
     source-map: "npm:^0.7.0"
   peerDependencies:
@@ -4745,7 +4745,7 @@ __metadata:
       optional: true
     "@mdx-js/react":
       optional: true
-  checksum: 10/ce8f2b9421e10070c772a206e85c34d53f1559fe98976ba9c86e59d1d51c01e0a9b5daa85fa010f4985d026bd68957b863edcec1899cd534c0f5517aff864b41
+  checksum: 10/cb7466666f7b87e08c6633239ee16e3dea6e800a3e23a2d5600d9e92c2eb7fdc1786f57c44185349de6e10d424229b162392b7c0523292ccf3a2d7bf4446f7d6
   languageName: node
   linkType: hard
 
@@ -22920,7 +22920,7 @@ __metadata:
     "@mdx-js/react": "npm:^3.0.1"
     "@netlify/functions": "npm:^2.8.1"
     "@netlify/plugin-csp-nonce": "npm:^1.2.10"
-    "@next/mdx": "npm:^14.2.13"
+    "@next/mdx": "npm:^14.2.14"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
     "@redocly/cli": "npm:^1.25.5"
