@@ -8,6 +8,7 @@ const INDEX = `${FUNCTIONS}/index`;
 const COLLECTION = `${FUNCTIONS}/collection`;
 const TOPOLOGY = `${FUNCTIONS}/topology`;
 const ENTITY = `${FUNCTIONS}/entity`;
+const LINKED = `${FUNCTIONS}/linked`;
 
 /**
  * Get iterable of node types, suitable for concurrent testing
@@ -199,10 +200,6 @@ describe("idempotent", function () {
       expect(actual).toBeGreaterThanOrEqual(0);
       expect(data["value"].length).toEqual(actual);
       expect(count).toEqual(actual);
-
-      if (nodeType === "Locations") {
-        console.log('Locations', data)
-      }
     });
   })
 
@@ -286,6 +283,18 @@ describe("idempotent", function () {
         }
       )
       expect(response.status).toEqual(204);
+
+      // Test generic back linking - need to move this to another describe block
+      const linkedResponse = await fetch(`${LINKED}?left=Locations&left_uuid=${right.value[0].uuid}&right=Things`, {
+        method: "GET",
+        headers: _headers
+      })
+      expect(linkedResponse.status).toBe(200);
+      const data: any = await linkedResponse.json();
+      console.log(JSON.stringify(data, undefined, 2))
+      expect(data["@iot.count"]).toBe(1)
+      expect(data["value"].length).toBe(1)
+      expect(data["value"][0].uuid).toBe(left.value[0].uuid)
     })
   })
 })
