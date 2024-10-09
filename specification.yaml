@@ -2,20 +2,20 @@ openapi: "3.1.0"
 
 info:
 
-  title: "Bathysphere"
+  title: "Oceanics.io"
   version: "3.0.0"
   description: |
 
-    Bathysphere is a graph-native store and registry for public and proprietary Ocean data. We ingest heterogenous sensor and simulation data and parse them into discoverable databases, accessible to both humans and machines. 
+    Oceanics.io is a graph-native store and registry for public and proprietary Ocean data. We ingest heterogenous sensor and simulation data and parse them into discoverable databases, accessible to both humans and machines. 
     
-    You probably have to share data anyway. Our software can enhance your data science and management experience by providing granular access control and provenance tracking based on open standards. 
+    You probably have to share data anyway. This software can enhance your data science and management experience by providing granular access control and provenance tracking based on open standards. 
     
     By assessing data and service availability over shared domain, projects can allocate resources to fill coverage gaps, share assets, and eliminate redundant operational and capital expenses.
 
   contact:
     name: Oceanicsdotio LLC
     url: http://www.oceanics.io
-    email: wave@oceanics.io
+    email: data@oceanics.io
 
   license:
     name: MIT
