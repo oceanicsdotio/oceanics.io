@@ -146,9 +146,9 @@ export default function Create({}) {
         <TextSelectInput
           name={"type"}
           inputRef={locationType}
-          defaultValue={"Point"}
+          defaultValue={properties.location.properties.type.default}
           description={properties.location.properties.type.description}
-          options={["Point"]}
+          options={["Point"]}  // properties.location.properties.type.enum
         />
         <NumberInput
           name={"latitude"}

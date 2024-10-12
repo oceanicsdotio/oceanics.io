@@ -804,53 +804,53 @@ components:
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [43.93354, -69.58344]
+            coordinates: [ -69.58344, 43.93354 ]
         - name: Upper Damariscotta Estuary
           encodingType: application/vnd.geo+json
           description: Buoy deployment
           location:
             type: Point
-            coordinates: [ 43.998178, -69.54253, 0.0 ]
+            coordinates: [ -69.5425, 43.9981 ]
         - name: Wood Island Harbor
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 43.456550, -70.344432 ]
+            coordinates: [ -70.3444, 43.4565 ]
         - name: Ram Island Saco Bay
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 43.465934, -70.359646 ]
-        - name: Upper New Meadows
+            coordinates: [ -70.3596, 43.4659 ]
+        - name: Bombazine Island
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 43.863669, -69.8984055 ]  # Bombazine
-        - name: Lower New Meadows
+            coordinates: [ -69.8984, 43.8636 ]
+        - name: Sand Cove
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 43.77643055, -69.89196944 ]  # Sand Cove
+            coordinates: [ -69.8919, 43.7764 ]
         - name: Bagaduce River
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 44.40156667, -68.7738333 ]
+            coordinates: [ -68.7738, 44.4015 ]
         - name: Machias Bay
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 44.618517, -67.318033 ]
+            coordinates: [ -67.3180, 44.6185 ]
         - name: Cobscook Bay
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 44.8968, -67.0651 ]
+            coordinates: [ -67.0651, 44.8968 ]
         - name: Western Passage
           encodingType: application/vnd.geo+json
           location:
             type: Point
-            coordinates: [ 44.92017, -66.995833 ]
+            coordinates: [ -66.9958, 44.9201 ]
       type: object
       title: Locations
       description: |
@@ -870,7 +870,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique identifier for the entity. The API expects an external identifier, and does
+            Unique identifier in UUID format. The API expects an external identifier, and does
             not pass back any information other than the success or failure status of the
             operation. The web interface implements UUID generation with the v7 algorithm, so
             that they can be used as sortable database keys.
@@ -879,7 +879,7 @@ components:
             - "string"
             - "null"
           description: |
-            Human readable entity name for search and display of Location data. While you
+            Human readable name for search and display of `Locations` data. While you
             may opt to encode information in the name, we recommend encoding these instead
             in location properties and topology.
         description:
@@ -887,7 +887,7 @@ components:
             - "string"
             - "null"
           description: |
-            Short and useful explanation of what the `Location`` is. This could
+            Brief explanation of what the `Locations` is. This could
             include the source for manually input locations, annotations
             about hazards or operational constraints, or any other information
             you or other may find helpful.
@@ -913,6 +913,7 @@ components:
                 only allows `Point` coordinates in form inputs, but more complex
                 geometries can be created through the API.
               enum: ["Point", "Polygon"]
+              default: "Point"
             coordinates:
               type: array
               description: |

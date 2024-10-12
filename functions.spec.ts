@@ -1,5 +1,7 @@
 // import { describe, expect, test, beforeAll } from '@jest/globals';
 import examples from "./examples.json";
+import yaml from "yaml";
+import fs from "fs";
 
 const BASE_URL = "http://localhost:8888";
 const IDENTITY = "https://www.oceanics.io/.netlify/identity";
@@ -295,6 +297,44 @@ describe("idempotent", function () {
       expect(data["@iot.count"]).toBe(1)
       expect(data["value"].length).toBe(1)
       expect(data["value"][0].uuid).toBe(left.value[0].uuid)
+    })
+  })
+})
+
+describe("canonical data sources", function () {
+  describe("aquaculture", function() {
+    let sources: any;
+    beforeAll(function () {
+      const contents = fs.readFileSync("locations.yml", "utf-8");
+      const {geojson} = yaml.parse(contents);
+      sources = geojson
+    })
+    test("aquaculture leases", async function () {
+      const [leases] = sources.filter((each: any) => each.id === "aquaculture-leases-direct")
+      const response = await fetch(leases.url);
+      const parsed = await response.json()
+      expect(parsed.type === "FeatureCollection")
+      expect(parsed.features.length > 0)
+    })
+
+    test("limited purpose aquaculture licenses", async function () {
+      const [licenses] = sources.filter((each: any) => each.id === "limited-purpose-licenses")
+      const response = await fetch(licenses.url);
+      const parsed = await response.json()
+      expect(parsed.type === "FeatureCollection")
+      expect(parsed.features.length > 0)
+      // console.log(JSON.stringify(parsed, null, 2))
+    })
+
+    test("NOAA wrecks", async function () {
+      const [wrecks] = sources.filter((each: any) => each.id === "wrecks")
+      const response = await fetch(wrecks.url);
+      const parsed = await response.json()
+      expect(parsed.geometryType === "esriGeometryPoint")
+      expect(parsed.features.length > 0)
+      console.log(parsed.features.length)
+      console.log(parsed.features.slice(0,10))
+      // console.log(JSON.stringify(parsed, null, 2))
     })
   })
 })

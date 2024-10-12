@@ -1,107 +1,10 @@
 
 geojson:
 
-  - id: nssp-closures
-    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/nssp-closures.json
-    type: fill
-    maxzoom: 10
-    paint: 
-      fill-antialias: false
-      fill-color: "rgba(255,0,255,0.3)"
-    behind: limited-purpose-licenses
-    attribution: Maine DMR
-
-  - id: ports
-    attribution: US DOT
-    standard: esri
-    url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-    
-    type: symbol
-    minzoom: 10
-    layout:
-      icon-allow-overlap: true
-      text-field: [
-        "match",
-        ["get", "facility_t"],
-        " ",
-        ["get","nav_unit_n"],
-        ["concat",
-          ["get","nav_unit_n"],
-          "\n(",
-          ["downcase", ["get", "facility_t"]],
-          ")"
-        ],
-      ]
-      text-variable-anchor: ['top', 'bottom', 'left', 'right']
-      text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
-      text-size: [
-          interpolate,
-          [linear],
-          [zoom],
-          4, 4,
-          6, 8
-      ]
-    paint: 
-      text-color: "#ccc"
-      text-halo-width: 3
-      text-halo-color: "#000"
-
-    behind: major-ports
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
-
-  - id: major-ports
-    attribution: US DOT
-    standard: esri
-    url: https://geo.dot.gov/server/rest/services/Hosted/Ports_Major_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-    
-    type: symbol
-    layout:
-      text-field: 'Port of {port_name}'
-      text-variable-anchor: ['top', 'bottom', 'left', 'right']
-      text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
-      text-size: [
-          interpolate,
-          [linear],
-          [zoom],
-          4, 9,
-          6, 12
-      ]
-    paint: 
-      text-color: "#ccc"
-      text-halo-width: 3
-      text-halo-color: "#000"
-     
-    behind: suitability
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/major-us-port-facilities
-
-
-  - id: navigation
-    attribution: NOAA
-    type: circle
-    standard: esri
-    url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-    paint: 
-      circle-radius: 
-          stops: [[8, 1], [12, 2], [16, 4]]
-      circle-stroke-color: "rgba(0,0,0,0)"
-      circle-stroke-width: 1
-      circle-color: [
-          "case",
-          ["in", "green", ["downcase", ["get", "structure"]]], "#2c2",
-          ["in", "red", ["downcase", ["get", "structure"]]], "#d34",
-          "#f80"
-      ]
-    minzoom: 10
-    maxzoom: 22
-    behind: ports
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/nautical-navigation-aids-navaid-locations/geoservice?geometry=43.528%2C-71.756%2C-59.128%2C80.293
-    
-    
   - id: wrecks
     attribution: NOAA
     type: circle
-    standard: esri
-    url: https://coast.noaa.gov/arcgis/rest/services/OceanReportingTool/WrecksAndObstructions/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+    url: https://coast.noaa.gov/arcgis/rest/services/OceanReports/WrecksAndObstructions/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
     paint: 
       circle-radius: 
           stops: [[8, 1], [12, 2], [16, 4]]
@@ -110,12 +13,13 @@ geojson:
       circle-color: "#f80"
     minzoom: 10
     maxzoom: 22
-    behind: ports
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
-
+ 
   - id: limited-purpose-licenses
+    description: |
+      Cached version of Maine limited purposed aquaculture licenses. Conforms to GeoJSON standards, and is preprocessed
+      to have culture species as a property, but to omit ownership data.
     attribution: Maine DMR
-    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/limited-purpose-licenses.json
+    url: https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/limited-purpose-licenses.json
     type: circle
     minzoom: 8
     paint: 
@@ -125,19 +29,6 @@ geojson:
       circle-stroke-width: 1
       circle-stroke-color: "rgba(0,255,255,0.75)"
     behind: cities
- 
-  - id: suitability
-    attribution: Oceanics.io
-    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/suitability.json
-    type: circle
-    minzoom: 6
-    paint: 
-      circle-radius: 
-        stops: [[8, 2], [12, 8], [16, 20]]
-      circle-color: "rgba(0,0,0,0)"
-      circle-stroke-width: 1
-      circle-stroke-color: "#ccc"
-    behind: limited-purpose-licenses
 
   - id: aquaculture-leases-direct
     url: https://opendata.arcgis.com/datasets/a0b3c775cfc243a2b92df328ad85c642_2.geojson
@@ -147,8 +38,7 @@ geojson:
     maxzoom: 22
     paint: 
       line-color: "rgba(0,255,255,0.7)"
-    behind: suitability
-
+ 
   - id: maine-towns
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/maine-towns.json
     attribution: Maine OIT
