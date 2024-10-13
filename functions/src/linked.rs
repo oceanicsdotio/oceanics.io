@@ -37,11 +37,10 @@ async fn get(url: &String, access_key: &String, event: HandlerEvent) -> JsValue 
     let left = Node::from_uuid(event.query.left.unwrap(), event.query.left_uuid.unwrap());
     let mut right = Node::new(None, "b".to_string(), Some(event.query.right.unwrap()));
     right.symbol = "b".to_string();
-    let cypher = Links::wildcard().query(&left, &right, right.symbol.clone());
+    let offset = event.query.offset.unwrap_or(0);
+    let limit = event.query.limit.unwrap_or(100);
+    let cypher = Links::wildcard().query(&left, &right, offset, limit);
     let raw = cypher.run(url, access_key).await;
-    let result: SerializedQueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    let serialized = result.records.first().unwrap();
-    let flattened = serialized.fields.first().unwrap();
-    let body = flattened.replace("count", "@iot.count");
+    let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
 }

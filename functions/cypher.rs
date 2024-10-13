@@ -68,6 +68,14 @@ pub struct SerializedQueryResult {
     pub records: Vec<SerializedRecord>,
     pub summary: Summary
 }
+impl SerializedQueryResult {
+    pub fn from_value(raw: JsValue) -> String {
+        let result: Self = serde_wasm_bindgen::from_value(raw).unwrap();
+        let serialized = result.records.first().unwrap();
+        let flattened = serialized.fields.first().unwrap();
+        flattened.replace("count", "@iot.count")
+    }
+}
 
 
 #[wasm_bindgen]
@@ -185,16 +193,25 @@ impl Links {
         Cypher::new(query, "WRITE".to_string())
     }
 
-    /// Use link-based queries, usually to get all children/siblings,
-    /// but actually very flexible.
-    pub fn query(&self, left: &Node, right: &Node, result: String) -> Cypher {
+    /// Use link-based queries to get all children/siblings.
+    /// This cypher query transforms all
+    /// the results into a JSON array and sends as single record,
+    /// which means that all subsets and preprocessing needs to 
+    /// happen at the database. This is the most expensive option for
+    /// us but results in better performance at the function and
+    /// application layer.
+    pub fn query(&self, left: &Node, right: &Node, offset: u32, limit: u32) -> Cypher {
         let query = format!(
-            "MATCH {}{}{} WHERE NOT {}:User RETURN apoc.convert.toJson({{count: count(n), value: collect(properties({}))}})",
+            "MATCH {}{}{} WHERE NOT {}:User ORDER BY {}.uuid OFFSET {} LIMIT {} RETURN apoc.convert.toJson({{count: count({}), value: collect(properties({}))}})",
             left,
             self,
             right,
             right.symbol,
-            result
+            right.symbol,
+            offset,
+            limit,
+            right.symbol,
+            right.symbol
         );
         Cypher::new(query, "READ".to_string())
     }
@@ -274,6 +291,16 @@ impl Node {
         }
     }
 
+    pub fn from_label(
+        label: String,
+    ) -> Self {
+        Node {
+            properties: None,
+            symbol: "n".to_string(),
+            label: Some(label),
+        }
+    }
+
     /// Indexes add a unique constraint as well as 
     /// speeding up queries on the graph database.
     fn _create_index(&self, key: String) -> Cypher {
@@ -338,7 +365,17 @@ impl Node {
             properties: _properties,
         }
     }
-
+    /// Often accessed by UUID
+    pub fn uuid(&self) -> String {
+        let null = String::from("");
+        let key = String::from("uuid");
+        let _null = Value::String(null);
+        let raw = match &self.properties {
+            Some(lookup) => lookup.get(&key).unwrap_or(&_null).as_str(),
+            None => Some(""),
+        };
+        String::from(raw.unwrap())
+    }
     /// Always return a plain string. The cypher representation of a node
     /// can contain list variables, but cannot contain structure data like
     /// JSON. This instead needs to be a serialized and properly escaped
@@ -377,18 +414,6 @@ impl Node {
             }
         }
         buffer
-    }
-
-    /// Often accessed by UUID
-    pub fn uuid(&self) -> String {
-        let null = String::from("");
-        let key = String::from("uuid");
-        let _null = Value::String(null);
-        let raw = match &self.properties {
-            Some(lookup) => lookup.get(&key).unwrap_or(&_null).as_str(),
-            None => Some(""),
-        };
-        String::from(raw.unwrap())
     }
 }
 
@@ -663,7 +688,7 @@ mod tests {
     fn link_query_formatted_correctly() {
         let user = Node::new(None, "u".to_string(), Some("User".to_string()));
         let node = Node::new(None, "n".to_string(), Some("Things".to_string()));
-        let cypher = Links::wildcard().query(&user, &node, node.symbol.clone());
+        let cypher = Links::wildcard().query(&user, &node, 0, 10);
         println!("{}", cypher.query);
         assert_eq!(cypher.default_access_mode, "READ".to_string());
         assert!(cypher.query.len() > 0)

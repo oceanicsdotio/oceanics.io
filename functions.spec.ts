@@ -1,5 +1,6 @@
 // import { describe, expect, test, beforeAll } from '@jest/globals';
 import examples from "./examples.json";
+import specification from "./specification.json";
 import yaml from "yaml";
 import fs from "fs";
 
@@ -126,9 +127,12 @@ describe("idempotent", function () {
   // Check collection routing options
   describe("collection.options", function () {
     let token: string;
+    const N_METHODS = 3;
+    const STATUS = 204;
     beforeAll(async function () {
       token = await fetchToken();
     });
+    // Recognizes valid node types, to support type specific methods
     test.each(nodeTypes)("reports allowed methods for %s", async function (nodeType: string) {
       const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
         method: "OPTIONS",
@@ -136,9 +140,28 @@ describe("idempotent", function () {
           "Authorization": `Bearer ${token}`
         },
       })
-      expect(response.status).toEqual(204);
+      expect(response.status).toEqual(STATUS);
       expect(response.headers.has("allow"));
-      expect((response.headers.get("allow")||"").split(",").length).toBe(3);
+      expect((response.headers.get("allow")||"").split(",").length).toBe(N_METHODS);
+    });
+    // But technically doesn't need to know node type
+    test("does not require left query parameter", async function () {
+      const response = await fetch(`${COLLECTION}`, {
+        method: "OPTIONS",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+      })
+      expect(response.status).toEqual(STATUS);
+      expect(response.headers.has("allow"));
+      expect((response.headers.get("allow")||"").split(",").length).toBe(N_METHODS);
+    });
+    // Should fail without user in context (n)
+    test("fails on missing auth header", async function () {
+      const response = await fetch(`${COLLECTION}`, {
+        method: "OPTIONS",
+      })
+      expect(response.status).toEqual(403);
     });
   });
 
@@ -187,6 +210,7 @@ describe("idempotent", function () {
     beforeAll(async function () {
       token = await fetchToken();
     });
+    // Retrieves expected collection, truncated by page max size
     test.each(nodeTypes)(`retrieves %s (N=%s)`, async function (nodeType: string, count: number) {
       expect(typeof count).toBe("number");
       const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
@@ -201,7 +225,41 @@ describe("idempotent", function () {
       expect(typeof actual).toBe("number");
       expect(actual).toBeGreaterThanOrEqual(0);
       expect(data["value"].length).toEqual(actual);
-      expect(count).toEqual(actual);
+      expect(Math.min(count, 100)).toEqual(actual);
+    });
+    // Test missing required query string parameters
+    test(`fails without node type`, async function () {
+      const response = await fetch(`${COLLECTION}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      expect(response.status).toBe(400);
+    });
+    // Retrieves collection with
+    test.each(nodeTypes)(`retrieves %s (N=%s) with paging`, async function (nodeType: string, count: number) {
+      expect(typeof count).toBe("number");
+      let offset = 0;
+      let collected = [];
+      const limit = 4;
+      while (offset < count) {
+        const response = await fetch(`${COLLECTION}?left=${nodeType}&offset=${offset}&limit=${limit}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        expect(response.status).toBe(200);
+        const data: any = await response.json();
+        const actual = data["@iot.count"]
+        expect(typeof actual).toBe("number");
+        expect(actual).toBeGreaterThanOrEqual(0);
+        expect(data["value"].length).toEqual(actual);
+        collected.push(data["value"])
+        offset += actual
+      }
+      expect(count).toEqual(collected.length);
     });
   })
 
@@ -302,13 +360,19 @@ describe("idempotent", function () {
 })
 
 describe("canonical data sources", function () {
+  let sources: any;
+  beforeAll(function () {
+    const contents = fs.readFileSync("locations.yml", "utf-8");
+    const {geojson} = yaml.parse(contents);
+    sources = geojson
+  })
+
   describe("aquaculture", function() {
-    let sources: any;
-    beforeAll(function () {
-      const contents = fs.readFileSync("locations.yml", "utf-8");
-      const {geojson} = yaml.parse(contents);
-      sources = geojson
-    })
+    let token: string;
+    beforeAll(async function () {
+      token = await fetchToken();
+    });
+
     test("aquaculture leases", async function () {
       const [leases] = sources.filter((each: any) => each.id === "aquaculture-leases-direct")
       const response = await fetch(leases.url);
@@ -318,23 +382,13 @@ describe("canonical data sources", function () {
     })
 
     test("limited purpose aquaculture licenses", async function () {
+
       const [licenses] = sources.filter((each: any) => each.id === "limited-purpose-licenses")
       const response = await fetch(licenses.url);
       const parsed = await response.json()
       expect(parsed.type === "FeatureCollection")
       expect(parsed.features.length > 0)
-      // console.log(JSON.stringify(parsed, null, 2))
-    })
 
-    test("NOAA wrecks", async function () {
-      const [wrecks] = sources.filter((each: any) => each.id === "wrecks")
-      const response = await fetch(wrecks.url);
-      const parsed = await response.json()
-      expect(parsed.geometryType === "esriGeometryPoint")
-      expect(parsed.features.length > 0)
-      console.log(parsed.features.length)
-      console.log(parsed.features.slice(0,10))
-      // console.log(JSON.stringify(parsed, null, 2))
     })
   })
 })

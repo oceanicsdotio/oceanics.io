@@ -140,7 +140,9 @@ pub struct QueryStringParameters {
     pub left: Option<String>,
     pub left_uuid: Option<String>,
     pub right: Option<String>,
-    pub right_uuid: Option<String>
+    pub right_uuid: Option<String>,
+    pub offset: Option<u32>,
+    pub limit: Option<u32>
 }
 
 
@@ -274,7 +276,6 @@ impl Path {
     fn has(&self, method: &str) -> bool {
         self.get(method).is_some()
     }
-
     /// Parse the default authentication method of the operation
     /// from the specification. Panics if method is None, 
     /// so should check for existence first.
@@ -284,12 +285,25 @@ impl Path {
             None => {panic!("No authentication method specified")}
         }
     }
-
+    /// Public wrapper for instance method.
     pub fn validate(specified: JsValue, event: &HandlerEvent, user: &Option<String>) -> Option<JsValue> {
-        let path: Path = serde_wasm_bindgen::from_value(specified).unwrap();
-        path._validate(event, user)
+        match serde_wasm_bindgen::from_value::<Path>(specified) {
+            Ok(path) => path._validate(event, user),
+            Err(_) => Some(ErrorResponse::new("Server error", 500, "Problem with OpenAPI route specification."))
+        }
     }
-
+    /// Do basic request validation, in a kind of manual way. This should be replced with something more
+    /// robust, like calls to AJV or similar.
+    /// 
+    /// This will check for:
+    /// - Valid node type for root and leaf query params
+    /// - The HTTP method is defined in the spec
+    /// - OPTIONS requests are authenticated
+    /// - Authentication for other requests matches the spec
+    /// 
+    /// It does not check whether:
+    /// - Other query parameters are valid
+    /// - Body or other data are valid
     fn _validate(&self, event: &HandlerEvent, user: &Option<String>) -> Option<JsValue> {
         let valid: HashSet<&str> = HashSet::from_iter([
             "Things",
@@ -317,6 +331,9 @@ impl Path {
         let auth = self.authentication(&event.http_method);
         if auth.is_some() && user.is_none() {
             return Some(ErrorResponse::unauthorized())
+        }
+        if event.http_method == "POST" && event.body.is_none() {
+            return Some(ErrorResponse::new("Bad Request", 400, "Missing Request Body"))
         }
         None
     }

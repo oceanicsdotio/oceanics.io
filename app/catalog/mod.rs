@@ -88,8 +88,8 @@ pub async fn get_index(access_token: String) -> Result<Promise, JsValue> {
 
 #[wasm_bindgen(js_name="getApi")]
 pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsValue> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
+    let opts = RequestInit::new();
+    opts.set_method("GET");
     let request = Request::new_with_str_and_init(&url, &opts)?;
     request.headers().set("Accept", "application/json")?;
     let authorization = format!("Bearer {}", access_token);
@@ -123,9 +123,9 @@ pub async fn create_entity(access_token: String, query: JsValue, body: JsValue) 
     let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
     let left = query.left.unwrap();
     let url = format!("/.netlify/functions/collection?left={}", left);
-    let mut opts = RequestInit::new();
-    opts.method("POST");
-    opts.body(Some(&body));
+    let opts = RequestInit::new();
+    opts.set_method("POST");
+    opts.set_body(&body);
     let request = Request::new_with_str_and_init(&url, &opts)?;
     request.headers().set("Accept", "application/json")?;
     let authorization = format!("Bearer {}", access_token);
@@ -142,8 +142,8 @@ pub async fn delete_entity(access_token: String, query: JsValue) -> Result<bool,
     let left = query.left.unwrap();
     let left_uuid = query.left_uuid.unwrap();
     let url = format!("/.netlify/functions/entity?left={}&left_uuid={}", left, left_uuid);
-    let mut opts = RequestInit::new();
-    opts.method("DELETE");
+    let opts = RequestInit::new();
+    opts.set_method("DELETE");
     let request = Request::new_with_str_and_init(&url, &opts)?;
     let authorization = format!("Bearer {}", access_token);
     request.headers().set("Authorization", &authorization)?;

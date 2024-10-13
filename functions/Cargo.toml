@@ -12,7 +12,12 @@ crate-type = ["cdylib", "rlib"]
 path = "lib.rs"
 
 [profile.release]
-opt-level = "s"
+opt-level = "z"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = [
+    "-Oz"
+]
 
 [dependencies]
 serde = { version = "1.0.210", features = ["derive"] }

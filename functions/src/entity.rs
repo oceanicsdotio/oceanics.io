@@ -35,7 +35,7 @@ pub async fn entity(
     }
 }
 
-/// Retrieve Nodes conforming to a pattern and linked
+/// Retrieve a single node conforming to a pattern and linked
 /// to the authenticated user.
 pub async fn get(
     url: &String,
@@ -51,13 +51,11 @@ pub async fn get(
     let cypher = Links::wildcard().query(
         &user,
         &left,
-        left.symbol.clone()
+        0,
+        1
     );
     let raw = cypher.run(url, access_key).await;
-    let result: SerializedQueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    let serialized = result.records.first().unwrap();
-    let flattened = serialized.fields.first().unwrap();
-    let body = flattened.replace("count", "@iot.count");
+    let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
 }
 
