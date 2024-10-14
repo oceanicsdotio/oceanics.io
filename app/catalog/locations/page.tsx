@@ -70,7 +70,12 @@ const DEFAULTS = {
   },
 };
 
-const { title: left, description } = components.schemas.Locations;
+const { title: left, description, properties } = components.schemas.Locations;
+const linkedTypes = Object.keys(properties).filter((each: string) => {
+  return each.includes("@iot.navigation")
+}).map((key) => {
+  return key.split("@")[0]
+})
 interface ILocations extends Omit<LocationsType, "free"> {
   onDelete: (uuid: string) => void;
 }
@@ -122,6 +127,7 @@ function Location({
         Show Details
       </button>
       <button onClick={onDelete.bind(undefined, uuid)}>Delete</button>
+      <a href={`update/?uuid=${uuid}`}>Update</a>
     </>
   );
 }

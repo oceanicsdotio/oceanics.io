@@ -9,10 +9,6 @@ const nextConfig = {
   reactStrictMode: false,
   pageExtensions: ['mdx', 'tsx'],
   trailingSlash: true,
-  compiler: {
-    // https://nextjs.org/docs/advanced-features/compiler#styled-components
-    styledComponents: true,
-  },
   eslint: {
     ignoreDuringBuilds: false,
   },
