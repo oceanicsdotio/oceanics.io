@@ -25,6 +25,12 @@ pub async fn linked(
         Some(error) => return error,
         None => {}
     }
+    if event.query.left.is_none() {
+        return ErrorResponse::new("Bad request", 400, "Missing node label")
+    }
+    if event.query.left_uuid.is_none() {
+        return ErrorResponse::new("Bad request", 400, "Missing node uuid")
+    }
     match &event.http_method[..] {
         "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET"]),
         "GET" => get(&url, &access_key, event).await,
@@ -32,14 +38,20 @@ pub async fn linked(
     }
 }
 
-
+/// Get all nodes of a single type which are linked to a non-user root node.
+/// This allows basic graph traversal, one linkage at a time. It does not allow
+/// use to get all linked nodes of all types, which would be a special application
+/// and doesn't fit into the API pattern.
 async fn get(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
-    let left = Node::from_uuid(event.query.left.unwrap(), event.query.left_uuid.unwrap());
-    let mut right = Node::new(None, "b".to_string(), Some(event.query.right.unwrap()));
+    let offset = event.query.offset(0);
+    let limit = event.query.limit(100);
+    let left = Node::from_uuid(
+        &event.query.left.unwrap(), 
+        &event.query.left_uuid.unwrap()
+    );
+    let mut right = Node::from_label(&event.query.right.as_ref().unwrap());
     right.symbol = "b".to_string();
-    let offset = event.query.offset.unwrap_or(0);
-    let limit = event.query.limit.unwrap_or(100);
-    let cypher = Links::wildcard().query(&left, &right, offset, limit);
+    let cypher = Links::wildcard().query(&left, &right, &offset, &limit);
     let raw = cypher.run(url, access_key).await;
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)

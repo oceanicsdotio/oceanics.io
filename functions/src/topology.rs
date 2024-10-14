@@ -34,8 +34,8 @@ pub async fn topology(
 }
 
 async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
-    let left = Node::from_uuid(event.query.left.unwrap(), event.query.left_uuid.unwrap());
-    let right = Node::from_uuid(event.query.right.unwrap(), event.query.right_uuid.unwrap());
+    let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
+    let right = Node::from_uuid(&event.query.right.unwrap(), &event.query.right_uuid.unwrap());
     let cypher = Links::wildcard().drop(&left, &right);
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
@@ -47,8 +47,8 @@ async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsVal
 }
 
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
-    let left = Node::from_uuid(event.query.left.unwrap(), event.query.left_uuid.unwrap());
-    let mut right = Node::from_uuid(event.query.right.unwrap(), event.query.right_uuid.unwrap());
+    let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
+    let mut right = Node::from_uuid(&event.query.right.unwrap(), &event.query.right_uuid.unwrap());
     right.symbol = "b".to_string();
     let cypher = Links::new(Some("Join".to_string()), None).join(&left, &right);
     let raw = cypher.run(url, access_key).await;

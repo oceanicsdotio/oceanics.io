@@ -27,32 +27,40 @@ pub async fn entity(
         Some(error) => return error,
         None => {}
     }
+    if event.query.left.is_none() {
+        return ErrorResponse::bad_request("Missing node label in query string")
+    }
+    if event.query.left_uuid.is_none() {
+        return ErrorResponse::bad_request("Missing node uuid in query string")
+    }
     match &event.http_method[..] {
         "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE"]),
-        "GET" => get(&url, &access_key, user, event).await,
-        "DELETE" => delete(&url, &access_key, user, event).await,
+        "GET" => get(&url, &access_key, user.unwrap(), event).await,
+        "DELETE" => delete(&url, &access_key, user.unwrap(), event).await,
         _ => ErrorResponse::not_implemented(),
     }
 }
 
 /// Retrieve a single node conforming to a pattern and linked
-/// to the authenticated user.
+/// to the authenticated user. User, and entity query parameters
+/// should have already been checked before the parent function
+/// does routing to the method handlers.
 pub async fn get(
     url: &String,
     access_key: &String,
-    user: Option<String>,
+    user: String,
     handler_event: HandlerEvent,
 ) -> JsValue {
-    let user = Node::user_from_string(user.unwrap());
+    let user = Node::user_from_string(user);
     let left = Node::from_uuid(
-        handler_event.query.left.unwrap(),
-        handler_event.query.left_uuid.unwrap(),
+        &handler_event.query.left.unwrap(),
+        &handler_event.query.left_uuid.unwrap(),
     );
     let cypher = Links::wildcard().query(
         &user,
         &left,
-        0,
-        1
+        &0,
+        &1
     );
     let raw = cypher.run(url, access_key).await;
     let body = SerializedQueryResult::from_value(raw);
@@ -64,13 +72,13 @@ pub async fn get(
 pub async fn delete(
     url: &String,
     access_key: &String,
-    user: Option<String>,
+    user: String,
     handler_event: HandlerEvent,
 ) -> JsValue {
-    let user = Node::user_from_string(user.unwrap());
+    let user = Node::user_from_string(user);
     let left = Node::from_uuid(
-        handler_event.query.left.unwrap(),
-        handler_event.query.left_uuid.unwrap(),
+        &handler_event.query.left.unwrap(),
+        &handler_event.query.left_uuid.unwrap(),
     );
     let cypher = Links::wildcard().delete_child(&user, &left);
     let raw = cypher.run(&url, &access_key).await;

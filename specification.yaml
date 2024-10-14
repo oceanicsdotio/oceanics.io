@@ -88,6 +88,20 @@ paths:
         '200':
           description: Catalog
 
+    post:
+      tags: [Catalog]
+      summary: Create Unique Constraint
+      security:
+        - BearerAuth: []
+      description: |
+        Add a unique constraint and node type. Even if no instances exist in the database,
+        this will force the get index query to return labels.
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
     delete:
       tags: [Catalog]
       summary: Delete Catalog

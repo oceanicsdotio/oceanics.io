@@ -37,6 +37,11 @@ impl IndexCollection {
     }
 }
 
+#[derive(Deserialize)]
+struct UniqueConstraintBody {
+    label: String
+}
+
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
@@ -65,7 +70,8 @@ pub async fn index(
             "DELETE"
         ]),
         "GET" => get(&url, &access_key).await,
-        "DELETE" => delete(&url, &access_key, user).await,
+        "POST" => post(&url, &access_key, event).await,
+        "DELETE" => delete(&url, &access_key, user.unwrap()).await,
         _ => ErrorResponse::not_implemented()
     }
 }
@@ -82,14 +88,22 @@ async fn get(url: &String, access_key: &String) -> JsValue {
     DataResponse::new(serde_json::to_string(&routes).unwrap())
 }
 
+async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
+    let constraint = serde_json::from_str::<UniqueConstraintBody>(&event.body.unwrap()).unwrap();
+    let node = Node::from_label(&constraint.label);
+    let cypher = node.unique_constraint("uuid".to_string());
+    let data = cypher.run(url, access_key).await;
+    let _: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();
+    NoContentResponse::new()
+}
 
 async fn delete(    
     url: &String,
     access_key: &String,
-    user: Option<String>
+    user: String
 ) -> JsValue {
     let right = Node::new(None, "n".to_string(), None);
-    let left = Node::user_from_string(user.unwrap());
+    let left = Node::user_from_string(user);
     let cypher = Links::new(Some("Create".to_string()), None).delete_child(&left, &right);
     let data = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();

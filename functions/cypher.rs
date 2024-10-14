@@ -167,6 +167,10 @@ impl Links {
         }
     }
 
+    pub fn create() -> Self {
+        Links::new(Some("Create".to_string()), None)
+    }
+
     pub fn wildcard() -> Self {
         Links {
             label: None,
@@ -200,7 +204,7 @@ impl Links {
     /// happen at the database. This is the most expensive option for
     /// us but results in better performance at the function and
     /// application layer.
-    pub fn query(&self, left: &Node, right: &Node, offset: u32, limit: u32) -> Cypher {
+    pub fn query(&self, left: &Node, right: &Node, offset: &u32, limit: &u32) -> Cypher {
         let query = format!(
             "MATCH {}{}{} WHERE NOT {}:User ORDER BY {}.uuid OFFSET {} LIMIT {} RETURN apoc.convert.toJson({{count: count({}), value: collect(properties({}))}})",
             left,
@@ -282,22 +286,22 @@ impl Node {
     pub fn from_hash_map_and_symbol(
         properties: HashMap<String, Value>,
         symbol: String,
-        label: String,
+        label: &String,
     ) -> Self {
         Node {
             properties: Some(properties),
             symbol,
-            label: Some(label),
+            label: Some(label.clone()),
         }
     }
 
     pub fn from_label(
-        label: String,
+        label: &String,
     ) -> Self {
         Node {
             properties: None,
             symbol: "n".to_string(),
-            label: Some(label),
+            label: Some(label.clone()),
         }
     }
 
@@ -426,11 +430,11 @@ impl Node {
         Self::from_hash_map_and_symbol(
             user_props, 
             "u".to_string(), 
-            "User".to_string()
+            &"User".to_string()
         )
     }
 
-    pub fn from_uuid(label: String, uuid: String) -> Self {
+    pub fn from_uuid(label: &String, uuid: &String) -> Self {
         let mut user_props = HashMap::<String, Value>::with_capacity(1);
         user_props.insert("uuid".to_string(), json!(uuid));
         Self::from_hash_map_and_symbol(
@@ -688,7 +692,7 @@ mod tests {
     fn link_query_formatted_correctly() {
         let user = Node::new(None, "u".to_string(), Some("User".to_string()));
         let node = Node::new(None, "n".to_string(), Some("Things".to_string()));
-        let cypher = Links::wildcard().query(&user, &node, 0, 10);
+        let cypher = Links::wildcard().query(&user, &node, &0, &10);
         println!("{}", cypher.query);
         assert_eq!(cypher.default_access_mode, "READ".to_string());
         assert!(cypher.query.len() > 0)

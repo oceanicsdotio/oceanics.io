@@ -113,6 +113,10 @@ impl ErrorResponse {
         serde_wasm_bindgen::to_value(&response).unwrap()
     }
 
+    pub fn bad_request(details: &str) -> JsValue {
+        ErrorResponse::new("Bad request", 400, details)
+    }
+
     pub fn not_implemented() -> JsValue {
         ErrorResponse::new("Not implemented", 501, "No handler found")
     }
@@ -141,8 +145,23 @@ pub struct QueryStringParameters {
     pub left_uuid: Option<String>,
     pub right: Option<String>,
     pub right_uuid: Option<String>,
-    pub offset: Option<u32>,
-    pub limit: Option<u32>
+    pub offset: Option<String>,
+    pub limit: Option<String>
+}
+
+impl QueryStringParameters {
+    fn parse(value: &Option<String>, default: u32) -> u32 {
+        match value {
+            Some(value) => value.parse().unwrap(),
+            None => default
+        }
+    }
+    pub fn limit(&self, default: u32) -> u32 {
+        Self::parse(&self.limit, default)
+    }
+    pub fn offset(&self, default: u32) -> u32 {
+        Self::parse(&self.offset, default)
+    }
 }
 
 

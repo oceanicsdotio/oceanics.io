@@ -89,162 +89,142 @@ describe("idempotent", function () {
     })
   })
 
-  // Show HTTP methods for this route
-  describe("index.options", function () {
+  describe("index", function () {
     let token: string;
     beforeAll(async function () {
       token = await fetchToken();
     });
-    
-    test("options reports allowed methods", async function () {
-      const response = await fetch(INDEX, {
-        method: "OPTIONS",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
+    // Show HTTP methods for this route
+    describe("index.options", function () {
+      test("options reports allowed methods", async function () {
+        const response = await fetch(INDEX, {
+          method: "OPTIONS",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        });
+        expect(response.status).toEqual(204);
+        expect(response.headers.has("allow"));
+        expect((response.headers.get("allow")||"").split(",")).toHaveLength(3)
       });
-      expect(response.status).toEqual(204);
-      expect(response.headers.has("allow"));
-      expect((response.headers.get("allow")||"").split(",")).toHaveLength(3)
-    });
-  })
-
-  // Get all labels in the graph as collection routes
-  describe("index.get", function () {
-    test("retrieves collection index", async function () {
-      const response = await fetch(INDEX, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
-        },
-      })
-      expect(response.status).toEqual(200);
-      const data: any = await response.json();
-      expect(data.length).toBeGreaterThanOrEqual(0);
-    });
-  })
-
-  // Check collection routing options
-  describe("collection.options", function () {
-    let token: string;
-    const N_METHODS = 3;
-    const STATUS = 204;
-    beforeAll(async function () {
-      token = await fetchToken();
-    });
-    // Recognizes valid node types, to support type specific methods
-    test.each(nodeTypes)("reports allowed methods for %s", async function (nodeType: string) {
-      const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
-        method: "OPTIONS",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
-      })
-      expect(response.status).toEqual(STATUS);
-      expect(response.headers.has("allow"));
-      expect((response.headers.get("allow")||"").split(",").length).toBe(N_METHODS);
-    });
-    // But technically doesn't need to know node type
-    test("does not require left query parameter", async function () {
-      const response = await fetch(`${COLLECTION}`, {
-        method: "OPTIONS",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
-      })
-      expect(response.status).toEqual(STATUS);
-      expect(response.headers.has("allow"));
-      expect((response.headers.get("allow")||"").split(",").length).toBe(N_METHODS);
-    });
-    // Should fail without user in context (n)
-    test("fails on missing auth header", async function () {
-      const response = await fetch(`${COLLECTION}`, {
-        method: "OPTIONS",
-      })
-      expect(response.status).toEqual(403);
-    });
-  });
-
-  // Create unlinked single entities
-  describe(`collection.post`, function () {
-    let token: string;
-    // Delete all nodes owned by User
-    beforeAll(async function () {
-      token = await fetchToken();
-      return fetch(INDEX, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
-      })
-    });
-
-    test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
-      const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
-        body: JSON.stringify(properties),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      })
-      expect(response.status).toEqual(204);
-    });
-
-    test("redirects unknown entity to 404", async function () {
-      const response = await fetch(`${COLLECTION}?left=Nothings`, {
-        body: JSON.stringify({name: "Nothing"}),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      })
-      expect(response.status).toEqual(404);
     })
-  });
+    // Create unique constraint if it does not exist
+    describe("index.post", function () {
+      // Do this for each type in the spec
+      test.each(nodeTypes)("creates unique constraint for %s", async function (nodeType: string) {
+        const response = await fetch(`${INDEX}`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({label: nodeType})
+        })
+        expect(response.status).toEqual(204);
+      });
+    })
+    // Get all labels in the graph as collection routes
+    describe("index.get", function () {
+      test("retrieves collection index", async function () {
+        const response = await fetch(INDEX, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        })
+        expect(response.status).toEqual(200);
+        const data: any = await response.json();
+        expect(data.length).toBeGreaterThanOrEqual(0);
+      });
+    })
+  })
+  
 
-  // Confirm that we can retrieve the pre-computed Nodes
-  describe("collection.get", function () {
+  // Check collection handler
+  describe("collection", function() {
+    const N_METHODS = 3;
     let token: string;
     beforeAll(async function () {
       token = await fetchToken();
     });
-    // Retrieves expected collection, truncated by page max size
-    test.each(nodeTypes)(`retrieves %s (N=%s)`, async function (nodeType: string, count: number) {
-      expect(typeof count).toBe("number");
-      const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      })
-      expect(response.status).toBe(200);
-      const data: any = await response.json();
-      const actual = data["@iot.count"]
-      expect(typeof actual).toBe("number");
-      expect(actual).toBeGreaterThanOrEqual(0);
-      expect(data["value"].length).toEqual(actual);
-      expect(Math.min(count, 100)).toEqual(actual);
+    describe("collection.options", function () {
+      const STATUS = 204;
+      // Recognizes valid node types, to support type specific methods
+      test.each(nodeTypes)("reports allowed methods for %s", async function (nodeType: string) {
+        const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
+          method: "OPTIONS",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        })
+        expect(response.status).toEqual(STATUS);
+        expect(response.headers.has("allow"));
+        expect((response.headers.get("allow")||"").split(",").length).toBe(N_METHODS);
+      });
+      // But technically doesn't need to know node type
+      test("fails with bad request on missing left query parameter", async function () {
+        const response = await fetch(`${COLLECTION}`, {
+          method: "OPTIONS",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        })
+        expect(response.status).toEqual(400);
+      });
+      // Should fail without user in context (n)
+      test("fails with unauthorized on missing auth header", async function () {
+        const response = await fetch(`${COLLECTION}`, {
+          method: "OPTIONS",
+        })
+        expect(response.status).toEqual(403);
+      });
     });
-    // Test missing required query string parameters
-    test(`fails without node type`, async function () {
-      const response = await fetch(`${COLLECTION}`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+    // Create unlinked single entities
+    describe(`collection.post`, function () {
+      // Delete all nodes owned by User
+      beforeAll(async function () {
+        return fetch(INDEX, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        })
+      });
+      // Create entities linked to the authenticated service account holder
+      test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
+        const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
+          body: JSON.stringify(properties),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        })
+        expect(response.status).toEqual(204);
+      });
+      // Error handling case
+      test("redirects unknown entity to 404", async function () {
+        const response = await fetch(`${COLLECTION}?left=Nothings`, {
+          body: JSON.stringify({name: "Nothing"}),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        })
+        expect(response.status).toEqual(404);
       })
-      expect(response.status).toBe(400);
     });
-    // Retrieves collection with
-    test.each(nodeTypes)(`retrieves %s (N=%s) with paging`, async function (nodeType: string, count: number) {
-      expect(typeof count).toBe("number");
-      let offset = 0;
-      let collected = [];
-      const limit = 4;
-      while (offset < count) {
-        const response = await fetch(`${COLLECTION}?left=${nodeType}&offset=${offset}&limit=${limit}`, {
+    // Confirm that we can retrieve the pre-computed Nodes
+    describe("collection.get", function () {
+      let PAGE_SIZE = 10;
+      let token: string;
+      beforeAll(async function () {
+        token = await fetchToken();
+      });
+      // Retrieves expected collection, truncated by page max size
+      test.each(nodeTypes)(`retrieves %s (N=%s)`, async function (nodeType: string, count: number) {
+        expect(typeof count).toBe("number");
+        const response = await fetch(`${COLLECTION}?left=${nodeType}&limit=${PAGE_SIZE}`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`
@@ -255,12 +235,45 @@ describe("idempotent", function () {
         const actual = data["@iot.count"]
         expect(typeof actual).toBe("number");
         expect(actual).toBeGreaterThanOrEqual(0);
-        expect(data["value"].length).toEqual(actual);
-        collected.push(data["value"])
-        offset += actual
-      }
-      expect(count).toEqual(collected.length);
-    });
+        expect(actual).toEqual(data["value"].length);
+        expect(actual).toEqual(Math.min(count, PAGE_SIZE));
+      });
+      // Test missing required query string parameters
+      test(`fails without node type`, async function () {
+        const response = await fetch(`${COLLECTION}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        expect(response.status).toBe(400);
+      });
+      // Retrieves collection with paging
+      test.each(nodeTypes)(`retrieves %s with paging (N=%s) `, async function (nodeType: string, count: number) {
+        expect(typeof count).toBe("number");
+        let offset = 0;
+        let collected = [];
+        let lookAhead = true
+        while (lookAhead) {
+          const response = await fetch(`${COLLECTION}?left=${nodeType}&offset=${offset}&limit=${PAGE_SIZE+1}`, {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          })
+          expect(response.status).toBe(200);
+          const data: any = await response.json();
+          const actual = data["@iot.count"]
+          expect(typeof actual).toBe("number");
+          expect(actual).toBeGreaterThanOrEqual(0);
+          expect(data["value"].length).toEqual(actual);
+          collected.push(...data["value"].slice(0, PAGE_SIZE))
+          offset += PAGE_SIZE
+          lookAhead = actual === PAGE_SIZE + 1;
+        }
+        expect(collected.length).toEqual(count);
+      });
+    })
   })
 
   // Confirm entity endpoint routing options
