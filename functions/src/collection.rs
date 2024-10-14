@@ -1,11 +1,13 @@
 use crate::{
-    cypher::{Links, Node, QueryResult, SerializedQueryResult}, log, openapi::{
-        DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
-    }
+    cypher::{Links, Node, QueryResult, SerializedQueryResult},
+    openapi::{
+        DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse,
+        OptionsResponse, Path,
+    },
 };
 use wasm_bindgen::prelude::*;
 /// Called from JS inside the generated handler function. Any errors
-/// will be caught, and should return an error response.
+/// should be caught, and return an error response.
 #[wasm_bindgen]
 pub async fn collection(
     url: String,
@@ -26,7 +28,7 @@ pub async fn collection(
         None => {}
     }
     if event.query.left.is_none() {
-        return ErrorResponse::bad_request("Missing node label")
+        return ErrorResponse::bad_request("Missing node label");
     }
     // Known to be exist here
     let user = user.unwrap();
@@ -34,29 +36,23 @@ pub async fn collection(
         "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE"]),
         "GET" => get(&url, &access_key, user, event).await,
         "POST" => post(&url, &access_key, user, event).await,
-        _ => ErrorResponse::not_implemented()
+        _ => ErrorResponse::not_implemented(),
     }
 }
 /// Get all entities with the supplied label. The data have already been
 /// serialized to a json string that includes the count and objects.
 /// The at symbol is an illegal name in cypher so we replace the key
 /// here before passing in response.
-/// 
+///
 /// Query parameters include:
 /// - root node type
-/// - paging parameters that translate to skip & limit cypher values
-async fn get(
-    url: &String,
-    access_key: &String,
-    user: String,
-    event: HandlerEvent,
-) -> JsValue {
+/// - paging parameters that translate to offset & limit cypher values
+async fn get(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
     let user = Node::user_from_string(user);
     let offset = event.query.offset(0);
     let limit = event.query.limit(100);
     let node = Node::from_label(&event.query.left.unwrap());
     let cypher = Links::wildcard().query(&user, &node, &offset, &limit);
-    log(cypher.query.clone());
     let raw = cypher.run(&url, &access_key).await;
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
@@ -66,12 +62,10 @@ async fn get(
 /// The insert query doesn't return any data, so instead of using the database
 /// level parsing, we let the Neo4j query summary come back so that we can verify
 /// that the query had an effect.
-async fn post(
-    url: &String,
-    access_key: &String,
-    user: String,
-    event: HandlerEvent,
-) -> JsValue {
+/// 
+/// Query parameters include:
+/// - root node type
+async fn post(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
     let user = Node::user_from_string(user);
     let node = Node::new(event.body, "n".to_string(), event.query.left);
     let cypher = Links::create().insert(&user, &node);

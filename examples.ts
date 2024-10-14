@@ -1,4 +1,3 @@
-
 import {readFile, writeFile} from "fs/promises";
 import {v7 as uuid7} from "uuid";
 import yaml from "yaml";
@@ -32,13 +31,10 @@ const extensions = {
 };
 const cacheItem = (label: string, props: object) => {
   const uuid = uuid7();
-  // Strip navigation props from instance
-  const _filter = ([key]: [string, unknown]) => !key.includes("@"); 
-  const filtered = Object.entries(props).filter(_filter);
   return [
     label,
     uuid,
-    Object.fromEntries([...filtered, ["uuid", uuid]])
+    {...props, uuid}
   ]
 }
 /**
@@ -89,7 +85,8 @@ const fromSpec = (all as [string, string, {uuid?: string}][]).filter(
   ([label]) => extensions.sensing.has(label)
 )
 
-const examples = [...wrecks, ...fromSpec]
+const examples = [...wrecks, ...fromSpec];
+
 console.warn(`Writing new unique examples: ${target}`);
 await writeFile(target, JSON.stringify(examples));
 export {}

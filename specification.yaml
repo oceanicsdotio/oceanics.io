@@ -141,11 +141,13 @@ paths:
       security:
         - BearerAuth: []
       description: |
-        Get all entities of one type
-
+        Get all entities of one type. This can also take query string parameters for
+        `offset` and `limit`, which enables paging with look-ahead, or infinite scroll
+        if desired.
       parameters:
         - $ref: "#/components/parameters/entityClass"
-
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
       responses:
         '200':
           $ref: '#/components/responses/EntityCollection'
@@ -213,14 +215,18 @@ paths:
       security:
         - BearerAuth: []
       description: |
-        Get related entities
-
+        Get related entities. The underlying implementation is almost identical to
+        that for getting base collections, except that this uses any data node as
+        the root, instead of the authenticated user. Like other query handlers,
+        this route supports `offset` and `limit` query parameters for client side
+        paging or continuous scroll.
       parameters:
         - $ref: "#/components/parameters/root"
         - $ref: "#/components/parameters/rootId"
         - $ref: "#/components/parameters/entityClass"
         - $ref: "#/components/parameters/label"
-
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
       responses:
         '200':
           $ref: '#/components/responses/EntityCollection'
@@ -335,6 +341,34 @@ components:
         Unique identifier of the resource to be retrieved.
       schema:
         type: string
+
+    limit:
+      in: query
+      name: limit
+      description: |
+        The maximum number of nodes in the graph query response. This requires that the
+        result be sorted in some way for consistent results. We sort by uuid v7, which
+        means that records are return in approximately the order they were created. This
+        is used with `offset` to enable continuous scroll and paging.
+      schema: 
+        type: number
+        format: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+
+    offset:
+      in: query
+      name: offset
+      description: |
+        The number of node that will skipped when return the graph query result. This means
+        that the first record returned will be the next index. This is used in combination with
+        `limit` to enable paging or continuous scroll.
+      schema:
+        type: number
+        format: integer
+        default: 0
+        minimum: 0
 
     label:
       in: query
@@ -1033,6 +1067,9 @@ components:
       description: |
         `Sensors` contain technical and codec data about `DataStreams`. You might think
         they are connected to `Things`, and they are, but only through multi-segment links.
+        These are also not individual devices, but standardized product lines. Therefore
+        `Sensors` refer to all like devices, across multiple organizations, are not suitable
+        for storing information about the status of single devices.
       additionalProperties: false
       required: [ uuid, name ]
       properties:
@@ -1041,13 +1078,15 @@ components:
           type: string
           format: uuid
           description: |
-            Unique identifier for entity.
+            Unique identifier for `Sensors`. When these are generated within our system they use the
+            version 7 algorithm, which means they are sorted by creation time.
 
         name:
           type:
             - "string"
             - "null"
-          description: Human readable entity name for displaying data.
+          description: |
+            Human readable name for `Sensors`.
 
         description:
           type:

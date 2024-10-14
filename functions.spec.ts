@@ -1,6 +1,5 @@
 // import { describe, expect, test, beforeAll } from '@jest/globals';
 import examples from "./examples.json";
-import specification from "./specification.json";
 import yaml from "yaml";
 import fs from "fs";
 
@@ -24,7 +23,6 @@ const types = (examples as unknown as [string]).reduce((acc: { [key: string]: nu
   }
 }, {})
 nodeTypes = Object.entries(types);
-
 
 /**
  * Use canonical test user information to get a Javascript Web Token.
@@ -191,8 +189,11 @@ describe("idempotent", function () {
       });
       // Create entities linked to the authenticated service account holder
       test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
+        const _filter = ([key]: [string, unknown]) => !key.includes("@"); 
+        const filtered = Object.entries(properties).filter(_filter);
+        const body = JSON.stringify(Object.fromEntries(filtered));
         const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
-          body: JSON.stringify(properties),
+          body,
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -312,65 +313,84 @@ describe("idempotent", function () {
     })
   })
 
-  // Confirm topology endpoint routing options
-  describe("topology.options", function () {
-    test("options reports allowed methods", async function () {
-      const response = await fetch(`${TOPOLOGY}?left=Things&left_uuid=example&right=Sensors&right_uuid=example`, {
-        method: "OPTIONS",
-        headers: {
-          "Authorization": `Bearer ${await fetchToken()}`
-        },
-      })
-      expect(response.status).toEqual(204);
-      expect(response.headers.has("allow"));
-      expect((response.headers.get("allow")||"").split(",").length).toBe(3)
-    });
-  });
-
-  // Create relationships between nodes
-  describe("topology.post", function() {
-    test("join two well-known nodes",  async function() {
-      const _headers = {
-        "Authorization": `Bearer ${await fetchToken()}`
-      };
-      const things = await fetch(`${COLLECTION}?left=Things`, {
-        method: "GET",
-        headers: _headers,
-      })
-      const left: any = await things.json();
-      const locations = await fetch(`${COLLECTION}?left=Locations`, {
-        method: "GET",
-        headers: _headers,
-      })
-      const right: any = await locations.json();
-      console.log({
-        left: left.value[0],
-        right: right.value[0]
-      })
-      const response = await fetch(
-        `${TOPOLOGY}?left=Things&left_uuid=${left.value[0].uuid}&right=Locations&right_uuid=${right.value[0].uuid}`,
-        {
-          method: "POST",
-          headers: _headers,
-          body: JSON.stringify({})
+  describe("topology", function() {
+    let linkedExamples: [string, string, string, string][] = [];
+    examples.forEach((each) => {
+      const [left, left_uuid, props]: any = each;
+      Object.entries(props).forEach(([key, value]) => {
+        if (key.includes("@iot.navigation")) {
+          let [right] = key.split("@");
+          (value as any[]).forEach(({name: [name]}) => {
+            examples.forEach((item) => {
+              const [_right, right_uuid, _props]: any = item;
+              const is_label_match = right === _right;
+              const is_name_match = _props.name === name;
+              if (is_label_match && is_name_match) {
+                linkedExamples.push([left, left_uuid, right, right_uuid])
+              }
+            })
+          })
         }
-      )
-      expect(response.status).toEqual(204);
-
-      // Test generic back linking - need to move this to another describe block
-      const linkedResponse = await fetch(`${LINKED}?left=Locations&left_uuid=${right.value[0].uuid}&right=Things`, {
-        method: "GET",
-        headers: _headers
       })
-      expect(linkedResponse.status).toBe(200);
-      const data: any = await linkedResponse.json();
-      console.log(JSON.stringify(data, undefined, 2))
-      expect(data["@iot.count"]).toBe(1)
-      expect(data["value"].length).toBe(1)
-      expect(data["value"][0].uuid).toBe(left.value[0].uuid)
+
+      return Object.keys(props).some(key => key.includes("@iot.navigation"))
+    })
+    let token: string;
+    beforeAll(async function () {
+      token = await fetchToken();
+    });
+    // Confirm topology endpoint routing options
+    describe("topology.options", function () {
+      test("options reports allowed methods", async function () {
+        const response = await fetch(`${TOPOLOGY}?left=Things&left_uuid=example&right=Sensors&right_uuid=example`, {
+          method: "OPTIONS",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+        })
+        expect(response.status).toEqual(204);
+        expect(response.headers.has("allow"));
+        expect((response.headers.get("allow")||"").split(",").length).toBe(3)
+      });
+    });
+    // Create relationships between nodes
+    describe("topology.post", function() {
+      // Create links from specification examples
+      test.each(linkedExamples)(`join %s %s with %s %s`, async function (left: string, leftUuid: string, right: string, rightUuid: string) {
+        const response = await fetch(
+          `${TOPOLOGY}?left=${left}&left_uuid=${leftUuid}&right=${right}&right_uuid=${rightUuid}`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({})
+          }
+        )
+        expect(response.status).toEqual(204);
+      });
+    });
+
+    describe("linked.get", function() {
+      test.each(linkedExamples)(`query %s %s to %s %s`, async function (left: string, leftUuid: string, right: string, rightUuid: string) {
+        // forward linking, back-linked doesn't necessarily work because there may be multiplicity 
+        // in one direction or the other.
+        const linkedResponse = await fetch(`${LINKED}?left=${left}&left_uuid=${leftUuid}&right=${right}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        expect(linkedResponse.status).toBe(200);
+        const data: any = await linkedResponse.json();
+        expect(data["@iot.count"]).toBe(1)
+        expect(data["value"].length).toBe(1)
+        expect(data["value"][0].uuid).toBe(rightUuid)
+      })
     })
   })
 })
+    
 
 describe("canonical data sources", function () {
   let sources: any;
