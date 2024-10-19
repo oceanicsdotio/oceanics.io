@@ -139,7 +139,11 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({ left });
+  const { collection, message, onDelete } = useCollection({
+    left, 
+    limit: components.parameters.limit.schema.default,
+    offset: components.parameters.offset.schema.default
+   });
   /**
    * MapBox container reference.
    */
@@ -288,6 +292,7 @@ export default function Page({}) {
       <div className={styles.locations}>
         <div className={styles.mapbox} ref={ref} />
       </div>
+      
       {collection.map(({ location, ...each }: ILocations) => 
           <Location
             key={each.uuid}
