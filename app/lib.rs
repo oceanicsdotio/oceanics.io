@@ -85,9 +85,9 @@ pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: &
 
 #[wasm_bindgen]
 pub async fn fetch_text(path: String) -> Result<JsValue, JsValue> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
     let request = Request::new_with_str_and_init(&path, &opts)?;
     request.headers().set("Accept", "application/txt")?;
     let window = web_sys::window().unwrap();
