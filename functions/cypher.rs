@@ -278,6 +278,25 @@ pub struct Node {
 /// Methods used internally, but without JavaScript bindings.
 impl Node {
 
+    pub fn get_label_counts() -> Cypher {
+        let query = String::from("
+            CALL apoc.meta.stats() YIELD labels 
+            WITH apoc.map.removeKey(labels, 'User') AS filtered
+            UNWIND keys(filtered) as key 
+            WITH key, filtered, apoc.text.split(key, '\\.?(?=[A-Z])') AS words
+            WITH {
+              name: key, 
+              count: filtered[key], 
+              url: '/api/' + key,
+              content: apoc.text.join(words, ' '),
+              href: '/catalog/' + lower(apoc.text.join(words, '_'))
+            } as item
+            RETURN apoc.convert.toJson(collect(item))
+        ");
+        let cypher = Cypher::new(query, "READ".to_string());
+        cypher
+    }
+
     fn _string_to_value(key_value: &str) -> (&str, &str) {
         let parts: Vec<&str> = key_value.split(": ").collect();
         (parts[0].trim(), &parts[1].trim()[1..])

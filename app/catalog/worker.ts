@@ -9,22 +9,6 @@ const MOBILE = Boolean(
   )
 );
 /**
- * Transformation of database index is much easy in JS
- */
-function transformIndex ({ name: left }: {name: string}) {
-  const key = left
-    .split(/\.?(?=[A-Z])/)
-    .join("_")
-    .toLowerCase();
-  const href = `/catalog/${key}/`;
-  const content = left.split(/\.?(?=[A-Z])/).join(" ");
-  return {
-    left,
-    href,
-    content
-  }
-}
-/**
  * Only perform startup routine once
  */
 async function startup(message: MessageEvent){
@@ -41,22 +25,8 @@ async function startup(message: MessageEvent){
   panic_hook();
   return {
     handlers: {
-      getIndex: async () => {
-        const result = await getIndex(access_token);
-        const index = result.map(transformIndex)
-        return {
-          index,
-          mobile: MOBILE
-        }
-      },
+      getIndex: getIndex.bind(undefined, access_token),
       getCollection: getCollection.bind(undefined, access_token),
-      getCount: async (message: {left:  string}) => {
-        const result = await getCollection(access_token, message);
-        return {
-          count: result["@iot.count"],
-          left: message.left
-        }
-      },
       getEntity: getEntity.bind(undefined, access_token),
       createEntity: createEntity.bind(undefined, access_token),
       deleteEntity: async (query: any) => {

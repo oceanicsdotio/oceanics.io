@@ -14,6 +14,7 @@ import type {
 import styles from "@catalog/page.module.css";
 import layout from "@app/layout.module.css";
 
+const components = specification.components;
 const {
   properties,
   description,
@@ -261,7 +262,9 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({ left });
+  const { collection, message, onDelete } = useCollection({ left, 
+    limit: components.parameters.limit.schema.default,
+    offset: components.parameters.offset.schema.default });
   /**
    * Keep reference to the WASM constructor
    */

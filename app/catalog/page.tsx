@@ -3,7 +3,6 @@ import React, {
   useRef,
   useEffect,
   useState,
-  MutableRefObject,
   useCallback,
 } from "react";
 import Markdown from "react-markdown";
@@ -43,71 +42,29 @@ export function getLinkedCollections(properties: any) {
  */
 const MESSAGES = {
   getIndex: "getIndex",
-  getCount: "getCount",
   error: "error",
 };
 /**
  * Data passed back from worker to render collection link
  */
 interface ICollection {
-  left: string;
+  name: string;
   href: string;
+  url: string;
   content: string;
-}
-/**
- * Data passed into the collection link component.
- */
-interface ICollectionComponent extends ICollection {
-  worker: MutableRefObject<Worker | null>;
+  '@iot.count': number;
 }
 /**
  * Link item for listing available collections. We don't care about order,
  * because we have no way of knowing which collections have nodes until
  * we make further queries.
  */
-function Collection({ left, href, content, worker }: ICollectionComponent) {
+function Collection({ name, href, content, '@iot.count': count }: ICollection) {
   /**
-   * Specification for one entity model.
+   * Specification for one entity model. Could instead be passed
+   * through the API, since it already knows the specification.
    */
-  const { description }: any = (specification.components.schemas as any)[left];
-  /**
-   * Get count of nodes for a single collection
-   */
-  const [message, setMessage] = useState(` ↻`);
-  /**
-   * Process worker messages, ignore unknown and allow siblings and
-   * parent to catch it.
-   */
-  const workerMessageHandler = useCallback(
-    ({ data: { type, data } }: any) => {
-      if (type === MESSAGES.getCount && data.left === left) {
-        setMessage(` ✓ N=${data.count}`);
-      }
-    },
-    [left]
-  );
-  /**
-   * On load request collection metadata from our API.
-   * The web worker will handle this to prevent blocking interaction.
-   */
-  useEffect(() => {
-    if (!worker.current) return;
-    worker.current.addEventListener("message", workerMessageHandler, {
-      passive: true,
-    });
-    worker.current.postMessage({
-      type: MESSAGES.getCount,
-      data: {
-        query: {
-          left,
-        },
-      },
-    });
-    let handle = worker.current;
-    return () => {
-      handle.removeEventListener("message", workerMessageHandler);
-    };
-  }, [left, worker, workerMessageHandler]);
+  const { description }: any = (specification.components.schemas as any)[name];
   return (
     <div key={href}>
       <hr />
@@ -115,7 +72,7 @@ function Collection({ left, href, content, worker }: ICollectionComponent) {
         <Link className={layout.link} href={href} prefetch={false}>
           {content}
         </Link>
-        <span>{message}</span>
+        <span>{` ✓ N=${count}`}</span>
       </p>
       <Markdown>{description}</Markdown>
     </div>
@@ -144,8 +101,8 @@ export default function Page({}) {
   const workerMessageHandler = useCallback(({ data: { type, data } }: any) => {
     switch (type) {
       case MESSAGES.getIndex:
-        setIndex(data.index);
-        setMessage(`✓ Found ${data.index.length}`);
+        setIndex(data);
+        setMessage(`✓ Found ${data.length}`);
         return;
       case MESSAGES.error:
         console.error("worker", type, data);
@@ -201,7 +158,7 @@ export default function Page({}) {
       <div>
         <p>{message}</p>
         {index.map((each, index) => (
-          <Collection key={`collection-${index}`} worker={worker} {...each} />
+          <Collection key={`collection-${index}`} {...each} />
         ))}
       </div>
     </div>
