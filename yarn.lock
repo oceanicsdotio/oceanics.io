@@ -22783,7 +22783,7 @@ __metadata:
     typescript: "npm:^5.6.2"
     uuid: "npm:^10.0.0"
     webpack: "npm:^5.95.0"
-    yaml: "npm:^2.5.1"
+    yaml: "npm:^2.6.0"
   languageName: unknown
   linkType: soft
 
@@ -22848,7 +22848,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.0.0, yaml@npm:^2.5.1":
+"yaml@npm:^2.0.0":
   version: 2.5.1
   resolution: "yaml@npm:2.5.1"
   bin:
@@ -22861,6 +22861,15 @@ __metadata:
   version: 2.3.4
   resolution: "yaml@npm:2.3.4"
   checksum: 10/f8207ce43065a22268a2806ea6a0fa3974c6fde92b4b2fa0082357e487bc333e85dc518910007e7ac001b532c7c84bd3eccb6c7757e94182b564028b0008f44b
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "yaml@npm:2.6.0"
+  bin:
+    yaml: bin.mjs
+  checksum: 10/f4369f667c7626c216ea81b5840fe9b530cdae4cff2d84d166ec1239e54bf332dbfac4a71bf60d121f8e85e175364a4e280a520292269b6cf9d074368309adf9
   languageName: node
   linkType: hard
 
