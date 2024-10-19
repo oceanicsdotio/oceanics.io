@@ -3,9 +3,13 @@ import React, { useEffect, useState, useRef } from "react";
 import type { MiniMap } from "@oceanics/app";
 import style from "@app/oceanics.module.css";
 import icons from "@app/oceanics.json";
-
 /**
- * Main page animation.
+ * Main page animation. This is extracted as a component
+ * not for reuse purposes, but to provide a Suspense 
+ * boundary so that the main page can be statically 
+ * rendered.
+ * 
+ * The animation parameters are dimensionless.
  */
 export default function Oceanics({
   gridSize,
@@ -16,23 +20,36 @@ export default function Oceanics({
   phase
 }: {
   /**
-   * Integer height and width of grid.
+   * Integer height and width of grid. Because of
+   * the diamond orientation of the cells, in the 
+   * isometric view, this results in a field that
+   * is about twice as wide as it is tall.
    */
   gridSize: number
   /**
-   * Animation loop blending
+   * Animation loop blending color. This must
+   * be a valid rgba or hex color, and may
+   * have an alpha channel defined.
    */
-  backgroundColor: string
+  backgroundColor: `#${string}`
   /**
-   * Speed of tidal/wave animation
+   * Speed of tidal/wave animation. This is not
+   * meant to be realistic.
    */
   timeConstant: number
   /**
-   * Speed of the sprite keyframe animation
+   * Speed of the sprite keyframe animation. This
+   * is applied to all sprites uniformly. Each sprite
+   * can have different number of frames, based on the
+   * width of the sprite sheet used for the animation.
+   * Therefore the animation loop depends on the sprite
+   * source and this constant.
    */
   frameConstant: number
   /**
-   * Amplitude of vertical displacement in animation
+   * Amplitude of vertical displacement in animation.
+   * Increasing this too much causes discontinuities
+   * in the surface.
    */
   amplitude: number
   /**
