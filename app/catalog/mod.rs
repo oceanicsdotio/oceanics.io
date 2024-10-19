@@ -76,8 +76,20 @@ struct Storage {
 
 #[derive(Deserialize)]
 struct Query {
-    left: Option<String>,
-    left_uuid: Option<String>
+    left: String
+}
+
+#[derive(Deserialize)]
+struct EntityQuery {
+    left: String,
+    left_uuid: String
+}
+
+#[derive(Deserialize)]
+struct CollectionQuery {
+    left: String,
+    limit: u32,
+    offset: u32
 }
 
 #[wasm_bindgen(js_name="getIndex")]
@@ -103,26 +115,22 @@ pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsVal
 
 #[wasm_bindgen(js_name="getCollection")]
 pub async fn get_collection(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
-    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
-    let left = query.left.unwrap();
-    let url = format!("/.netlify/functions/collection?left={}", left);
+    let query: CollectionQuery = serde_wasm_bindgen::from_value(query).unwrap();
+    let url = format!("/.netlify/functions/collection?left={}&limit={}&offset={}", query.left, query.limit, query.offset);
     get_api(url, access_token).await
 }
 
 #[wasm_bindgen(js_name="getEntity")]
 pub async fn get_entity(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
-    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
-    let left = query.left.unwrap();
-    let left_uuid = query.left_uuid.unwrap();
-    let url = format!("/.netlify/functions/entity?left={}&left_uiud={}", left, left_uuid);
+    let query: EntityQuery = serde_wasm_bindgen::from_value(query).unwrap();
+    let url = format!("/.netlify/functions/entity?left={}&left_uiud={}", query.left, query.left_uuid);
     get_api(url, access_token).await
 }
 
 #[wasm_bindgen(js_name="createEntity")]
 pub async fn create_entity(access_token: String, query: JsValue, body: JsValue) -> Result<bool, JsValue> {
     let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
-    let left = query.left.unwrap();
-    let url = format!("/.netlify/functions/collection?left={}", left);
+    let url = format!("/.netlify/functions/collection?left={}", query.left);
     let opts = RequestInit::new();
     opts.set_method("POST");
     opts.set_body(&body);
@@ -138,10 +146,8 @@ pub async fn create_entity(access_token: String, query: JsValue, body: JsValue) 
 
 #[wasm_bindgen(js_name="deleteEntity")]
 pub async fn delete_entity(access_token: String, query: JsValue) -> Result<bool, JsValue> {
-    let query: Query = serde_wasm_bindgen::from_value(query).unwrap();
-    let left = query.left.unwrap();
-    let left_uuid = query.left_uuid.unwrap();
-    let url = format!("/.netlify/functions/entity?left={}&left_uuid={}", left, left_uuid);
+    let query: EntityQuery = serde_wasm_bindgen::from_value(query).unwrap();
+    let url = format!("/.netlify/functions/entity?left={}&left_uuid={}", query.left, query.left_uuid);
     let opts = RequestInit::new();
     opts.set_method("DELETE");
     let request = Request::new_with_str_and_init(&url, &opts)?;
