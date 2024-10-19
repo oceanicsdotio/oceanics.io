@@ -1,9 +1,8 @@
 use crate::{
-    cypher::{Cypher, Links, Node, QueryResult, Summary},
+    cypher::{Links, Node, QueryResult, Summary},
     openapi::{DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
 };
 use serde::{Serialize, Deserialize};
-use std::convert::From;
 use wasm_bindgen::prelude::*;
 
 /// The Labels query returns a record format
@@ -77,8 +76,7 @@ pub async fn index(
 }
 
 async fn get(url: &String, access_key: &String) -> JsValue {
-    let query = String::from("CALL db.labels() YIELD label WHERE label <> 'User' RETURN label");
-    let cypher = Cypher::new(query, "READ".to_string());
+    let cypher = Node::get_label_counts();
     let data = cypher.run(url, access_key).await;
     let result: IndexResult = serde_wasm_bindgen::from_value(data).unwrap();
     let routes: Vec<IndexCollection> = result.records
