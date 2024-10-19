@@ -12,7 +12,11 @@ const ACTIONS = {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function useCollection({ left }: { left: string }) {
+export default function useCollection(query: {
+  left: string
+  limit: number
+  offset: number
+}) {
   /**
    * Ref to Web Worker.
    */
@@ -37,15 +41,15 @@ export default function useCollection({ left }: { left: string }) {
       const elapsed = (performance.now() - entryTime).toFixed(0);
       switch (type) {
         case ACTIONS.getCollection:
-          setCollection(data.value);
           setMessage(`✓ Found ${data.value.length} in ${elapsed} ms`);
+          setCollection(data.value);
           window.scrollTo({top: 0, behavior: "smooth"});
           return;
         case ACTIONS.deleteEntity:
+          setMessage(`✓ Deleted 1 in ${elapsed} ms`);
           setCollection((previous: any[]) => {
             return previous.filter((each) => each.uuid !== data.uuid);
           });
-          setMessage(`✓ Deleted 1 in ${elapsed} ms`);
           return;
         case ACTIONS.error:
           console.error("@worker", type, data);
@@ -76,7 +80,7 @@ export default function useCollection({ left }: { left: string }) {
       worker.current.postMessage({
         type: ACTIONS.getCollection,
         data: {
-          query: { left },
+          query,
           user,
         },
       });
@@ -87,7 +91,7 @@ export default function useCollection({ left }: { left: string }) {
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, [workerMessageHandler, left]);
+  }, [workerMessageHandler, query]);
   /**
    * Delete a resource
    */
@@ -108,7 +112,7 @@ export default function useCollection({ left }: { left: string }) {
     worker.current?.postMessage({
       type: ACTIONS.deleteEntity,
       data: {
-        query: { left, left_uuid },
+        query,
         user,
       },
     });
