@@ -14,6 +14,7 @@ import React, {
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
+import { NamedNode } from "../Node";
 
 const DEFAULTS = {
   zoom: 10,
@@ -71,11 +72,13 @@ const DEFAULTS = {
 };
 
 const { title: left, description, properties } = components.schemas.Locations;
-const linkedTypes = Object.keys(properties).filter((each: string) => {
-  return each.includes("@iot.navigation")
-}).map((key) => {
-  return key.split("@")[0]
-})
+const linkedTypes = Object.keys(properties)
+  .filter((each: string) => {
+    return each.includes("@iot.navigation");
+  })
+  .map((key) => {
+    return key.split("@")[0];
+  });
 interface ILocations extends Omit<LocationsType, "free"> {
   onDelete: (uuid: string) => void;
 }
@@ -94,8 +97,7 @@ function Location({
   onDelete,
   map,
 }: INavigate) {
-  const [detailLevel, setDetailLevel] = useState(0);
-  const _location: LocationData = JSON.parse(location as any)
+  const _location: LocationData = JSON.parse(location as any);
   let onNavigate = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (typeof location !== "undefined") {
@@ -104,30 +106,22 @@ function Location({
   };
   return (
     <>
-      <p>
-        <a className={layout.link} onClick={onNavigate}>
-          {name}
-        </a>
-      </p>
-      {(detailLevel > 0) &&
-      <div>
-        <p>description: {description ?? "n/a"}</p>
-        <p>type: {_location.type}</p>
-        <p>
-          coordinates: {_location.coordinates[0]}, {_location.coordinates[1]}
-        </p>
-        <p>encoding type: {encodingType ?? "n/a"}</p>
-        <p>uuid: {uuid}</p>
-      </div>}
-      <button
-        onClick={() => {
-          setDetailLevel((prev) => (prev + 1) % 2);
-        }}
+      <NamedNode
+        onDelete={onDelete}
+        name={name}
+        left_uuid={uuid}
+        controls={<button onClick={onNavigate}>View On Map</button>}
       >
-        Show Details
-      </button>
-      <button onClick={onDelete.bind(undefined, uuid)}>Delete</button>
-      <a href={`update/?uuid=${uuid}`}>Update</a>
+        <div>
+          <p>description: {description ?? "n/a"}</p>
+          <p>type: {_location.type}</p>
+          <p>
+            coordinates: {_location.coordinates[0]}, {_location.coordinates[1]}
+          </p>
+          <p>encoding type: {encodingType ?? "n/a"}</p>
+          <p>uuid: {uuid}</p>
+        </div>
+      </NamedNode>
     </>
   );
 }
@@ -140,10 +134,10 @@ export default function Page({}) {
    * Retrieve node data use Web Worker.
    */
   const { collection, message, onDelete } = useCollection({
-    left, 
+    left,
     limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default
-   });
+    offset: components.parameters.offset.schema.default,
+  });
   /**
    * MapBox container reference.
    */
@@ -292,16 +286,16 @@ export default function Page({}) {
       <div className={styles.locations}>
         <div className={styles.mapbox} ref={ref} />
       </div>
-      
-      {collection.map(({ location, ...each }: ILocations) => 
-          <Location
-            key={each.uuid}
-            map={map}
-            {...each}
-            location={location}
-            onDelete={onDelete}
-          ></Location>
-      )}
+
+      {collection.map(({ location, ...each }: ILocations) => (
+        <Location
+          key={each.uuid}
+          map={map}
+          {...each}
+          location={location}
+          onDelete={onDelete}
+        ></Location>
+      ))}
     </div>
   );
 }

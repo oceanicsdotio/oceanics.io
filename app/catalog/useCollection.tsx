@@ -22,10 +22,6 @@ export default function useCollection(query: {
    */
   const worker = useRef<Worker>();
   /**
-   * Performance monitoring
-   */
-  let [entryTime, setEntryTime] = useState(performance.now());
-  /**
    * Node data.
    */
   let [collection, setCollection] = useState<any[]>([]);
@@ -38,15 +34,14 @@ export default function useCollection(query: {
    */
   const workerMessageHandler = useCallback(
     ({ data: { data, type } }: MessageEvent) => {
-      const elapsed = (performance.now() - entryTime).toFixed(0);
       switch (type) {
         case ACTIONS.getCollection:
-          setMessage(`✓ Found ${data.value.length} in ${elapsed} ms`);
+          setMessage(`✓ Found ${data.value.length}`);
           setCollection(data.value);
           window.scrollTo({top: 0, behavior: "smooth"});
           return;
         case ACTIONS.deleteEntity:
-          setMessage(`✓ Deleted 1 in ${elapsed} ms`);
+          setMessage(`✓ Deleted 1`);
           setCollection((previous: any[]) => {
             return previous.filter((each) => each.uuid !== data.uuid);
           });
@@ -76,7 +71,6 @@ export default function useCollection(query: {
     });
     const user = localStorage.getItem("gotrue.user");
     if (typeof user !== "undefined") {
-      setEntryTime(performance.now());
       worker.current.postMessage({
         type: ACTIONS.getCollection,
         data: {
@@ -91,7 +85,7 @@ export default function useCollection(query: {
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, [workerMessageHandler, query]);
+  }, []);
   /**
    * Delete a resource
    */
@@ -108,7 +102,6 @@ export default function useCollection(query: {
       return;
     }
     const user = localStorage.getItem("gotrue.user");
-    setEntryTime(performance.now());
     worker.current?.postMessage({
       type: ACTIONS.deleteEntity,
       data: {

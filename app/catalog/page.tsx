@@ -15,10 +15,13 @@ import specification from "@app/../specification.json";
  * of connected entities, according to the OpenAPI spec.
  * This is used in entity specific pages.
  */
-export function getLinkedCollections(properties: any) {
-  const related = Object.keys(properties).filter((key: string) =>
+export function getLinkable(properties: any) {
+  return Object.keys(properties).filter((key: string) =>
     key.includes("@")
-  );
+  )
+}
+export function getLinkedCollections(properties: any) {
+  const related = getLinkable(properties);
   const links = related.map((key: string, index: number) => {
     let name = key.split("@")[0];
     let prepend = "";
