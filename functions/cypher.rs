@@ -279,7 +279,13 @@ pub struct Node {
 impl Node {
 
     pub fn get_label_counts() -> Cypher {
-        let query = String::from("CALL db.labels() YIELD label WHERE label <> 'User' RETURN label");
+        let query = String::from("
+            CALL apoc.meta.stats() YIELD labels 
+            WITH apoc.map.removeKey(labels, 'User') AS filtered
+            UNWIND keys(filtered) as key
+            WITH {name: key, count: filtered[key], url: '/api/'+key} as item
+            RETURN apoc.convert.toJson(collect(item))"
+        );
         let cypher = Cypher::new(query, "READ".to_string());
         cypher
     }

@@ -50,7 +50,9 @@ export default function Page({}) {
    * Retrieve node data use Web Worker.
    */
   const { collection, message, onDelete } = useCollection({
-    left,
+    left, 
+    limit: specification.components.parameters.limit.schema.default,
+    offset: specification.components.parameters.offset.schema.default
   });
   /**
    * Client Component

@@ -1,8 +1,8 @@
 use crate::{
-    cypher::{Links, Node, QueryResult, Summary},
+    cypher::{Links, Node, QueryResult, SerializedQueryResult},
     openapi::{DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
 };
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
 /// The Labels query returns a record format
@@ -12,28 +12,6 @@ use wasm_bindgen::prelude::*;
 pub struct Record {
     #[serde(rename = "_fields")]
     pub fields: Vec<String>,
-}
-
-#[derive(Deserialize, Clone)]
-pub struct IndexResult {
-    pub records: Vec<Record>,
-    pub summary: Summary
-} 
-
-/// The format of the labels, after they have
-/// been transformed for response.
-#[derive(Serialize)]
-struct IndexCollection {
-    name: String,
-    url: String,
-}
-
-impl IndexCollection {
-    pub fn parse(record: &Record) -> Self {
-        let name = record.fields[0].clone();
-        let url = format!("/api/{}", &name);
-        IndexCollection { name, url }
-    }
 }
 
 #[derive(Deserialize)]
@@ -75,17 +53,18 @@ pub async fn index(
     }
 }
 
+/// Retrieve pre-formatted JSON of the index, counts, and api route to access
+/// the collection. May include more information in the future, but this
+/// is te bare minimum to render a frontend index.
 async fn get(url: &String, access_key: &String) -> JsValue {
     let cypher = Node::get_label_counts();
-    let data = cypher.run(url, access_key).await;
-    let result: IndexResult = serde_wasm_bindgen::from_value(data).unwrap();
-    let routes: Vec<IndexCollection> = result.records
-        .iter()
-        .map(IndexCollection::parse)
-        .collect();
-    DataResponse::new(serde_json::to_string(&routes).unwrap())
+    let raw = cypher.run(&url, &access_key).await;
+    let body = SerializedQueryResult::from_value(raw);
+    DataResponse::new(body)
 }
 
+/// Kind of a hack to allow external creation of uniqueness constraints.
+/// Could be abused?
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let constraint = serde_json::from_str::<UniqueConstraintBody>(&event.body.unwrap()).unwrap();
     let node = Node::from_label(&constraint.label);
@@ -95,6 +74,7 @@ async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue
     NoContentResponse::new()
 }
 
+/// Delete all nodes connected to the authenticated user by a `Create` relationship.
 async fn delete(    
     url: &String,
     access_key: &String,
