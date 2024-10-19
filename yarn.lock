@@ -4796,15 +4796,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=7eb06a&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/ad547914ae0e2dd291b4b04608c58dadadc46b4276d731be8cdd375fa50017f1b2bd333affb80e7d8a9ced7d1f40768a6ced16f783b4d8cc3a40a5af9dd83ea3
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=fa4c9e&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/c6b5f48fa4b7167741e7989f22ecc1ce10846e14cc66661198ed66de13c8c17b9a3a74b7768fd3e454cf2c2955ad92b2527a2d0c1fda6a5c62e2c433e72a4cdd
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -13169,9 +13169,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"http-proxy-middleware@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "http-proxy-middleware@npm:3.0.2"
+"http-proxy-middleware@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "http-proxy-middleware@npm:3.0.3"
   dependencies:
     "@types/http-proxy": "npm:^1.17.15"
     debug: "npm:^4.3.6"
@@ -13179,7 +13179,7 @@ __metadata:
     is-glob: "npm:^4.0.3"
     is-plain-object: "npm:^5.0.0"
     micromatch: "npm:^4.0.8"
-  checksum: 10/59be307aca2e0a8ba016bc8356e8a87cbfd53d65db5386edc65acd867ebd0a4683ff9be2e0eea12388cac13dffe387f0d374d35b01e625c98aee30c8f3023e72
+  checksum: 10/32f58c29288ca63e109909fb998bd0f6f50eb15a98dec9487eac07dfc4f09d8507dbfa00b44442d868bafa904bd633c8bbd55686bb13b4d4af4f5c5b3bbca430
   languageName: node
   linkType: hard
 
@@ -22744,7 +22744,7 @@ __metadata:
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.11.0"
     eslint-config-next: "npm:14.2.14"
-    http-proxy-middleware: "npm:^3.0.2"
+    http-proxy-middleware: "npm:^3.0.3"
     jest: "npm:^29.7.0"
     jose: "npm:^5.9.3"
     js-yaml: "npm:^4.1.0"
