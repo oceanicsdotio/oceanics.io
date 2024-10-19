@@ -282,10 +282,17 @@ impl Node {
         let query = String::from("
             CALL apoc.meta.stats() YIELD labels 
             WITH apoc.map.removeKey(labels, 'User') AS filtered
-            UNWIND keys(filtered) as key
-            WITH {name: key, count: filtered[key], url: '/api/'+key} as item
-            RETURN apoc.convert.toJson(collect(item))"
-        );
+            UNWIND keys(filtered) as key 
+            WITH key, filtered, apoc.text.split(key, '\\.?(?=[A-Z])') AS words
+            WITH {
+              name: key, 
+              count: filtered[key], 
+              url: '/api/' + key,
+              content: apoc.text.join(words, ' '),
+              href: '/catalog/' + lower(apoc.text.join(words, '_'))
+            } as item
+            RETURN apoc.convert.toJson(collect(item))
+        ");
         let cypher = Cypher::new(query, "READ".to_string());
         cypher
     }

@@ -131,7 +131,7 @@ describe("idempotent", function () {
         })
         expect(response.status).toEqual(200);
         const data: any = await response.json();
-        expect(data.length).toEqual(nodeTypes);
+        expect(data.length).toEqual(nodeTypes.length);
       });
     })
   })

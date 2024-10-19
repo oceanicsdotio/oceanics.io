@@ -7,11 +7,12 @@ const url = process.env.NEO4J_HOSTNAME ?? "";
 const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
 const specification = paths["/"];
 const log = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN ?? "");
+
 export const handler = async function (event: Request, context: Context) {
     const start = performance.now();
     const name = `${event.method} index`;
     try {
-        const result = await index(
+        const response = await index(
             url,
             access_key,
             specification,
@@ -24,7 +25,7 @@ export const handler = async function (event: Request, context: Context) {
             event,
             context
         })
-        return result
+        return response
     } catch (error) {
         const duration = performance.now() - start;
         log.error(name, {
