@@ -1,46 +1,26 @@
 "use client";
-import React, { useRef } from "react";
+import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
-import style from "@catalog/things/create/page.module.css";
 import Markdown from "react-markdown";
-import {TextSelectInput} from "@catalog/useCreate";
+import Linked from "@catalog/Linked";
 /**
  * OpenAPI schema information used in the interface.
  */
-const { description } = specification.components.schemas.DataStreams;
-
+const schema = specification.components.schemas.DataStreams;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function Connect({}) {
-  /**
-   * Form data is synced with user input
-   */
-  const neighborType = useRef<HTMLSelectElement | null>(null);
+export default function Page({}) {
   /**
    * Client Component
    */
   return (
     <>
-      <Markdown>{description}</Markdown>
-      <p>{"! Update Not Implemented"}</p>
-      <hr />
-      <form
-        className={style.form}
-      >
-        <TextSelectInput
-          name={"neighborType"}
-          inputRef={neighborType}
-          defaultValue={"Things"}
-          description={"The type of neighboring node to connect to"}
-          options={["Things"]}
-        />
-        <button className={style.submit} disabled={true}>
-          Update Data Stream
-        </button>
-      </form>
-
-    </>
+    <Markdown>{schema.description}</Markdown>
+    <Suspense>
+      <Linked {...schema}></Linked>
+    </Suspense>
+  </>
   );
 }

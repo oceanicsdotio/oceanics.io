@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import useCollection from "@catalog/useCollection";
-import { components } from "@app/../specification.json";
+import specification from "@app/../specification.json";
 import type { LocationData, Locations as LocationsType } from "@oceanics/app";
 import layout from "@app/layout.module.css";
 import Markdown from "react-markdown";
@@ -70,7 +70,7 @@ const DEFAULTS = {
     ],
   },
 };
-
+const components = specification.components;
 const { title: left, description, properties } = components.schemas.Locations;
 const linkedTypes = Object.keys(properties)
   .filter((each: string) => {

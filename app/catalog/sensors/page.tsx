@@ -2,7 +2,7 @@
 import Link from "next/link";
 import React from "react";
 import useCollection from "@catalog/useCollection";
-import { components } from "@app/../specification.json";
+import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
 import Markdown from "react-markdown";
 import layout from "@app/layout.module.css";
@@ -10,6 +10,7 @@ import { NamedNode } from "../Node";
 interface ISensors extends Omit<Sensors, "free"> {
   onDelete: (uuid: string) => void;
 }
+const components = specification.components;
 const { title: left, description } = components.schemas.Sensors;
 /**
  * Display an index of all or some subset of the

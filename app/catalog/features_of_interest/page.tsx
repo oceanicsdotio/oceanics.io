@@ -1,14 +1,15 @@
 "use client";
 import Link from "next/link";
 import React from "react";
-import {components} from "@app/../specification.json";
+import specification from "@app/../specification.json";
 import useCollection from "@catalog/useCollection";
 import Markdown from "react-markdown";
 import layout from "@app/layout.module.css";
 import type { FeaturesOfInterest as FeatureType } from "@oceanics/app";
 import { NamedNode } from "../Node";
 const { title: left, description } =
-  components.schemas.FeaturesOfInterest;
+specification.components.schemas.FeaturesOfInterest;
+const components = specification.components
 /**
  * Display an index of all or some subset of the
  * available Features of Interest in the database.

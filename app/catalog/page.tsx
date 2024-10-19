@@ -18,12 +18,11 @@ import specification from "@app/../specification.json";
 export function getLinkable(properties: any) {
   return Object.keys(properties).filter((key: string) =>
     key.includes("@")
-  )
+  ).map(key => key.split("@")[0])
 }
 export function getLinkedCollections(properties: any) {
   const related = getLinkable(properties);
-  const links = related.map((key: string, index: number) => {
-    let name = key.split("@")[0];
+  const links = related.map((name: string, index: number) => {
     let prepend = "";
     if (index === related.length - 1) {
       prepend = " and ";
