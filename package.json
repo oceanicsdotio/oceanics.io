@@ -47,7 +47,7 @@
         "@babel/preset-env": "^7.25.4",
         "@babel/preset-typescript": "^7.24.7",
         "@netlify/plugin-csp-nonce": "^1.2.10",
-        "@redocly/cli": "^1.25.5",
+        "@redocly/cli": "^1.25.8",
         "@types/geojson": "^7946.0.14",
         "@types/jest": "^29.5.13",
         "@types/katex": "^0.16.7",
