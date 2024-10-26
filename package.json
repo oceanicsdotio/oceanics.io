@@ -26,7 +26,7 @@
         "jose": "^5.9.3",
         "js-yaml": "^4.1.0",
         "katex": "^0.16.11",
-        "mapbox-gl": "^3.6.0",
+        "mapbox-gl": "^3.7.0",
         "neo4j-driver": "^5.25.0",
         "next": "^14.2.13",
         "next-mdx-remote": "5.0.0",
