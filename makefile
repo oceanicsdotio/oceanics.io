@@ -2,16 +2,18 @@ SRC = $(shell find app -type f -not -path 'app/lib/*' -not -path 'app/target/*')
 FUNCTIONS = $(shell find functions/src -type f -name '*.mts')
 
 # Build frontend WASM package
-app/lib: $(shell find app -type f -name '*.rs') app/Cargo.lock app/Cargo.toml
+app/lib: $(shell find app -type f -name '*.rs') app/Cargo.lock app/Cargo.toml LICENSE
 	@ cargo install wasm-pack
+	@ cp LICENSE app/LICENSE
 	@ wasm-pack build app \
 		--out-dir lib \
 		--out-name index
 	@ touch -m $@
 
 # Build backend WASM package
-functions/lib: $(shell find functions -type f -name '*.rs') functions/Cargo.lock functions/Cargo.toml
+functions/lib: $(shell find functions -type f -name '*.rs') functions/Cargo.lock functions/Cargo.toml LICENSE
 	@ cargo install wasm-pack
+	@ cp LICENSE functions/LICENSE
 	@ wasm-pack build functions \
 		--out-dir lib \
 		--target nodejs \
@@ -70,8 +72,10 @@ clean:
 	@ rm -f public/openapi.html
 	@ rm -rf functions/lib
 	@ rm -rf functions/target
+	@ rm -rf functions/LICENSE
 	@ rm -rf app/lib
 	@ rm -rf app/target
+	@ rm -rf app/LICENSE
 	@ rm -rf node_modules
 	@ rm -rf .netlify
 	@ rm -rf .next
