@@ -1,10 +1,5 @@
 "use client";
-import React, {
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import Markdown from "react-markdown";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
@@ -16,9 +11,9 @@ import specification from "@app/../specification.json";
  * This is used in entity specific pages.
  */
 export function getLinkable(properties: any) {
-  return Object.keys(properties).filter((key: string) =>
-    key.includes("@")
-  ).map(key => key.split("@")[0])
+  return Object.keys(properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key) => key.split("@")[0]);
 }
 export function getLinkedCollections(properties: any) {
   const related = getLinkable(properties);
@@ -54,14 +49,14 @@ interface ICollection {
   href: string;
   url: string;
   content: string;
-  '@iot.count': number;
+  "@iot.count": number;
 }
 /**
  * Link item for listing available collections. We don't care about order,
  * because we have no way of knowing which collections have nodes until
  * we make further queries.
  */
-function Collection({ name, href, content, '@iot.count': count }: ICollection) {
+function Collection({ name, href, content, "@iot.count": count }: ICollection) {
   /**
    * Specification for one entity model. Could instead be passed
    * through the API, since it already knows the specification.
@@ -71,7 +66,7 @@ function Collection({ name, href, content, '@iot.count': count }: ICollection) {
     <div key={href}>
       <hr />
       <p>
-        <Link className={layout.link} href={href} prefetch={false}>
+        <Link href={href} prefetch={false}>
           {content}
         </Link>
         <span>{` ✓ N=${count}`}</span>
@@ -104,7 +99,7 @@ export default function Page({}) {
     switch (type) {
       case MESSAGES.getIndex:
         setIndex(data);
-        setMessage(`✓ Found ${data.length}`);
+        setMessage(`✓ Found ${data.length} indexed collections`);
         return;
       case MESSAGES.error:
         console.error("worker", type, data);
@@ -116,7 +111,7 @@ export default function Page({}) {
     }
   }, []);
   /**
-   * Load Web Worker on component mount. I think the path needs to be 
+   * Load Web Worker on component mount. I think the path needs to be
    * hard-coded here for webpack/bundlers to be able to include it.
    */
   useEffect(() => {
@@ -148,7 +143,6 @@ export default function Page({}) {
    */
   return (
     <div className={styles.catalog}>
-      <h2>{specification.info.title}</h2>
       <Markdown>{specification.info.description}</Markdown>
       <p>
         If code is more your style, try our{" "}

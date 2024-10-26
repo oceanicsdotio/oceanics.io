@@ -113,11 +113,11 @@ impl Cypher {
         url: &String,
         access_key: &String,
     ) -> JsValue {
-        let auth_token = basic("neo4j".to_string(), access_key.clone());
-        let _driver = driver(url.clone(), auth_token);
+        let auth_token = basic("neo4j", &access_key);
+        let _driver = driver(url, auth_token);
         let session_config = self.session_config();
         let session = _driver.session(session_config);
-        let result = session.run(self.query.clone()).await;
+        let result = session.run(&self.query).await;
         _driver.close().await;
         result
     }

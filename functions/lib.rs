@@ -30,9 +30,9 @@ extern "C" {
     fn get(this: &Record, n: usize) -> JsValue;
     // Use basic authentication
     #[wasm_bindgen(js_namespace = auth)]
-    fn basic(username: String, password: String) -> AuthToken;
+    fn basic(username: &str, password: &str) -> AuthToken;
     // Connect to database
-    fn driver(url: String, auth: AuthToken) -> Driver;
+    fn driver(url: &str, auth: AuthToken) -> Driver;
     // Create new session
     #[wasm_bindgen(method)]
     fn session(this: &Driver, config: JsValue) -> Session;
@@ -41,5 +41,5 @@ extern "C" {
     async fn close(this: &Driver);
     // Execute query
     #[wasm_bindgen(method)]
-    async fn run(this: &Session, query: String) -> JsValue;
+    async fn run(this: &Session, query: &str) -> JsValue;
 }

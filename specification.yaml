@@ -775,7 +775,9 @@ components:
       type: object
       description: |
         `Things` are objects of the physical or information world that can be identified
-        and integrated into communication networks.
+        and integrated into communication networks. These are related to `DataStreams`, `Locations`,
+        and `HistoricalLocations`. `Things` should only have a one location at a time, while past and future coordinates are related through `HistoricalLocations`. To get information about `ObservedProperties` or connected `Sensors`, you need to perform topological queries. In the
+        web interface this is done behind the scenes.
       required: [uuid, name]
       additionalProperties: false
       properties:
@@ -783,7 +785,7 @@ components:
           type: string
           format: uuid
           description: |
-            Unique identifier for entity. This is usually auto-generated, 
+            Unique identifier. This is usually auto-generated, 
             but different than the default node IDs within the Neo4j database, 
             since those are not guaranteed to persist.
         name:
