@@ -2,7 +2,7 @@
 mod catalog;  // data stream structs and visualization methods
 mod compute;
 mod oceanics;
-mod read;
+mod library;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
