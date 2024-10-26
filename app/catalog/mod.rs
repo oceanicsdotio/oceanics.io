@@ -92,6 +92,15 @@ struct CollectionQuery {
     offset: u32
 }
 
+#[derive(Deserialize)]
+struct LinkedQuery {
+    left: String,
+    left_uuid: String,
+    right: String,
+    limit: u32,
+    offset: u32
+}
+
 #[wasm_bindgen(js_name="getIndex")]
 pub async fn get_index(access_token: String) -> Result<Promise, JsValue> {
     let url = "/.netlify/functions/index".to_string();
@@ -117,6 +126,13 @@ pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsVal
 pub async fn get_collection(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
     let query: CollectionQuery = serde_wasm_bindgen::from_value(query).unwrap();
     let url = format!("/.netlify/functions/collection?left={}&limit={}&offset={}", query.left, query.limit, query.offset);
+    get_api(url, access_token).await
+}
+
+#[wasm_bindgen(js_name="getLinked")]
+pub async fn get_linked(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
+    let query: LinkedQuery = serde_wasm_bindgen::from_value(query).unwrap();
+    let url = format!("/.netlify/functions/linked?left={}&left_uuid={}&right={}&limit={}&offset={}", query.left, query.left_uuid, query.right, query.limit, query.offset);
     get_api(url, access_token).await
 }
 

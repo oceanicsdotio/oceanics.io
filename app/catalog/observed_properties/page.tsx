@@ -6,41 +6,13 @@ import specification from "@app/../specification.json";
 import layout from "@app/layout.module.css";
 import type { ObservedProperties } from "@oceanics/app";
 import Markdown from "react-markdown";
+import { NamedNode } from "../Node";
 /**
  * Get schema metadata from the OpenAPI specification.
  */
-const { title: left, description } = specification.components.schemas.ObservedProperties;
-/**
- * Derive the the type we expect from the WebAssembly bindings.
- */
-interface IObservedProperties extends Omit<ObservedProperties, "free"> {
-  onDelete: (uuid: string) => void;
-}
-/**
- * Item level component
- */
-function ObservedProperty({
-  uuid,
-  name,
-  description,
-  onDelete,
-}: IObservedProperties) {
-  const href = `/.netlify/functions/entity/?left=${left}&left_uuid=${uuid}`;
-  return (
-    <>
-      <hr />
-      <p key={uuid}>
-        <Link className={layout.link} href={href} prefetch={false}>
-          {name}
-        </Link>
-      </p>
-      <button onClick={onDelete.bind(undefined, uuid)}>Delete</button>
-      <p>uuid: {uuid}</p>
-      <p>name: {name}</p>
-      <p>description: {description}</p>
-    </>
-  );
-}
+const components = specification.components;
+const { title: left, description } =
+  components.schemas.ObservedProperties;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -50,9 +22,9 @@ export default function Page({}) {
    * Retrieve node data use Web Worker.
    */
   const { collection, message, onDelete } = useCollection({
-    left, 
-    limit: specification.components.parameters.limit.schema.default,
-    offset: specification.components.parameters.offset.schema.default
+    left,
+    limit: components.parameters.limit.schema.default,
+    offset: components.parameters.offset.schema.default,
   });
   /**
    * Client Component
@@ -68,14 +40,12 @@ export default function Page({}) {
         <code>{left}</code>.
       </p>
       <p>{message}</p>
-      {collection.map((each: Omit<ObservedProperties, "free">) => {
+      {collection.map(({uuid, ...rest}: Omit<ObservedProperties, "free">) => {
         return (
-          <ObservedProperty
-            key={each.uuid}
-            {...each}
-            onDelete={onDelete}
-          ></ObservedProperty>
-        );
+          <NamedNode key={uuid} name={rest.name} left_uuid={uuid} onDelete={onDelete}>
+            <p>description: {rest.description}</p>
+          </NamedNode>
+        )
       })}
     </div>
   );

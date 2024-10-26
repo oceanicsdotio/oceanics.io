@@ -5,28 +5,10 @@ import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import layout from "@app/layout.module.css";
 import type { Observations } from "@oceanics/app";
-const { title } = specification.components.schemas.Observations;
-interface IObservations extends Omit<Observations, "free"> {
-  onDelete: (uuid: string) => void
-}
-/**
- * Item level component
- */
-function Observation({ uuid, onDelete }: IObservations) {
-  const href = `/.netlify/functions/entity/?left=${title}&left_uuid=${uuid}`;
-  return (
-    <>
-      <hr />
-      <p key={uuid}>
-        <Link className={layout.link} href={href} prefetch={false}>
-          {uuid}
-        </Link>
-      </p>
-      <button onClick={onDelete.bind(undefined, uuid??"")}>Delete</button>
-      <p>uuid: {uuid}</p>
-    </>
-  );
-}
+import { NamedNode } from "../Node";
+const components = specification.components;
+const { title } = components.schemas.Observations;
+
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -37,8 +19,8 @@ export default function Page({}) {
    */
   const { collection, message, onDelete } = useCollection({
     left: title, 
-    limit: specification.components.parameters.limit.schema.default,
-    offset: specification.components.parameters.offset.schema.default
+    limit: components.parameters.limit.schema.default,
+    offset: components.parameters.offset.schema.default
   });
   /**
    * Client Component
@@ -50,8 +32,11 @@ export default function Page({}) {
         <code>{title}</code>.
       </p>
       <p>{message}</p>
-      {collection.map((each: Omit<Observations, "free">) => {
-        return <Observation key={each.uuid} {...each} onDelete={onDelete}></Observation>;
+      {collection.map(({uuid}: Omit<Observations, "free">) => {
+        return (
+        <NamedNode key={uuid} left_uuid={uuid as any} name={undefined} onDelete={onDelete}>
+        </NamedNode>
+        );
       })}
     </div>
   );

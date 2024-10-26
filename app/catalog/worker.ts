@@ -20,13 +20,14 @@ async function startup(message: MessageEvent){
   if (!access_token) {
     throw Error(`worker missing access token`)
   }
-  const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity } = await import("@oceanics/app");
+  const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity, getLinked } = await import("@oceanics/app");
   // Provide better error messaging on web assembly panic
   panic_hook();
   return {
     handlers: {
       getIndex: getIndex.bind(undefined, access_token),
       getCollection: getCollection.bind(undefined, access_token),
+      getLinked: getLinked.bind(undefined, access_token),
       getEntity: getEntity.bind(undefined, access_token),
       createEntity: createEntity.bind(undefined, access_token),
       deleteEntity: async (query: any) => {
