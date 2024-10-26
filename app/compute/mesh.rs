@@ -1256,7 +1256,7 @@ impl InteractiveMesh {
                 if dim.is_sign_negative() { panic!("Negative z-coordinate: {}", dim); }
             }
 
-            ctx.set_stroke_style(&JsValue::from(color_map_z(vert.z(), &style.fade)));
+            ctx.set_stroke_style_str(&color_map_z(vert.z(), &style.fade));
             ctx.begin_path();
 
             let radius = style.radius * (1.0 - style.fade * vert.z());
@@ -1338,7 +1338,7 @@ impl InteractiveMesh {
             {     
                 gradient.add_color_stop(0.0, &color_map_z(a.z(), &style.fade)).unwrap();
                 gradient.add_color_stop(1.0, &color_map_z(b.z(), &style.fade)).unwrap();
-                ctx.set_stroke_style(&gradient);
+                ctx.set_stroke_style_canvas_gradient(&gradient);
             }
 
             ctx.begin_path();
@@ -1357,7 +1357,6 @@ impl InteractiveMesh {
     pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
 
         let rstyle: Style = serde_wasm_bindgen::from_value(style).unwrap();
-        let overlay = JsValue::from(&rstyle.overlay_color);
         
         let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
         let w = canvas.width() as f64;
@@ -1365,7 +1364,7 @@ impl InteractiveMesh {
         let font = format!("{:.0} Arial", &rstyle.font_size);
         let inset = &rstyle.tick_size * 0.5;
 
-        crate::clear_rect_blending(ctx, w, h, JsValue::from(&rstyle.background_color));
+        crate::clear_rect_blending(ctx, w, h, &rstyle.background_color);
         
         let edges = self.draw_edges(ctx, w, h, &rstyle);
         let nodes = self.draw_nodes(ctx, w, h, &rstyle);
@@ -1382,14 +1381,14 @@ impl InteractiveMesh {
                 edges,
                 self.mesh.topology.edges.len()
             );
-            crate::draw_caption(ctx, caption, inset, h-inset, &overlay, font.clone());
+            crate::draw_caption(ctx, caption, inset, h-inset, &rstyle.overlay_color, font.clone());
         
             crate::draw_caption(
                 &ctx,
                 format!("{:.0} fps", fps),
                 inset,
                 rstyle.font_size + inset, 
-                &overlay,
+                &rstyle.overlay_color,
                 font
             );
         }

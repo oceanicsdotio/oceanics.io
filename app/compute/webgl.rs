@@ -444,7 +444,7 @@ impl WebGl {
         let webgl = &self.webgl;
         let color_map_size = res * res;
         let gradient = ctx.create_linear_gradient(0.0, 0.0, color_map_size as f64, 0.0);
-        ctx.set_fill_style(&gradient);
+        ctx.set_fill_style_canvas_gradient(&gradient);
         for (index, color) in colors.iter().enumerate() {
             gradient.add_color_stop(index as f32 / (colors.len() - 1) as f32, color)?
         }

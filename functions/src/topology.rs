@@ -3,7 +3,6 @@ use crate::{
     openapi::{ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
 };
 use wasm_bindgen::prelude::*;
-
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
@@ -32,7 +31,9 @@ pub async fn topology(
         _ => ErrorResponse::not_implemented(),
     }
 }
-
+/// Delete connecting relationships using a root node
+/// as the reference. Does not delete the root node itself.
+/// Will drop link to all
 async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
     let right = Node::from_uuid(&event.query.right.unwrap(), &event.query.right_uuid.unwrap());
@@ -45,7 +46,7 @@ async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsVal
         ErrorResponse::server_error()
     }
 }
-
+/// Create a relationship between a root node and some other nodes.
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
     let mut right = Node::from_uuid(&event.query.right.unwrap(), &event.query.right_uuid.unwrap());

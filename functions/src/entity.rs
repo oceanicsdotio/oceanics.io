@@ -5,7 +5,6 @@ use crate::{
     }
 };
 use wasm_bindgen::prelude::*;
-
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
@@ -40,7 +39,6 @@ pub async fn entity(
         _ => ErrorResponse::not_implemented(),
     }
 }
-
 /// Retrieve a single node conforming to a pattern and linked
 /// to the authenticated user. User, and entity query parameters
 /// should have already been checked before the parent function
@@ -66,7 +64,6 @@ pub async fn get(
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
 }
-
 /// Delete a node pattern owned by the authenticated
 /// user.
 pub async fn delete(

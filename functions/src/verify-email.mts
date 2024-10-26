@@ -1,7 +1,6 @@
 import type { Context } from "@netlify/functions";
 import * as jose from "jose";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-
 // Persist to Object Storage
 const client = new S3Client({
     endpoint: "https://nyc3.digitaloceanspaces.com",
@@ -11,12 +10,10 @@ const client = new S3Client({
         secretAccessKey: process.env.SPACES_SECRET_KEY ?? ""
     }
 });
-
 // Reused for error and success responses
 const headers = {
     'Content-Type': 'application/json; charset=utf-8'
 };
-
 /**
  * Try to decode the JWT using the server key,
  * as well as the expected issuer/audience (server
@@ -32,7 +29,6 @@ export default async (req: Request, _: Context) => {
             status: 405
         })
     }
-
     const {host} = new URL(req.url);
     const secret = new TextEncoder().encode(process.env.JWT_SIGNING_KEY);
     try {
@@ -48,7 +44,6 @@ export default async (req: Request, _: Context) => {
             Body: "verified",
             ContentType: "text/plain"
         });
-
         const response = await client.send(command);
         const status = response["$metadata"].httpStatusCode;
         const success = status === 200;

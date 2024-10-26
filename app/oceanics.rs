@@ -94,9 +94,9 @@ impl RectilinearGrid {
         ctx: &CanvasRenderingContext2d, 
         w: f64, 
         h: f64, 
-        color: &JsValue
+        color: &String
     ) {
-        ctx.set_stroke_style(&color);
+        ctx.set_stroke_style_str(&color);
         ctx.set_line_width(1.0);
         ctx.begin_path();
 
@@ -124,12 +124,12 @@ impl RectilinearGrid {
         ctx: &CanvasRenderingContext2d, 
         w: f64, 
         h: f64, 
-        color: &JsValue
+        color: &String
     ) {
         let dx = w / self.w();
         let dy = h / self.h();
 
-        ctx.set_fill_style(&color);
+        ctx.set_fill_style_str(&color);
         for (index, cell) in self.cells.iter() {
             if cell.mask {
                 let (ii, jj, _) = index;
@@ -200,10 +200,6 @@ impl InteractiveGrid {
         cursor_y: f64
     ) {
         let rstyle: Style = serde_wasm_bindgen::from_value(style).unwrap();
-        let color = JsValue::from_str(&rstyle.grid_color);
-        let bg = JsValue::from_str(&rstyle.background_color);
-        let overlay = JsValue::from_str(&rstyle.overlay_color);
-
         let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
         let w = canvas.width() as f64;
         let h = canvas.height() as f64;
@@ -212,9 +208,9 @@ impl InteractiveGrid {
 
         ctx.set_global_alpha(1.0);
 
-        crate::clear_rect_blending(ctx, w, h, bg);
-        self.grid.draw_cells(ctx, w, h, &color);
-        self.grid.draw_edges(ctx, w, h, &overlay);
+        crate::clear_rect_blending(ctx, w, h, &rstyle.background_color);
+        self.grid.draw_cells(ctx, w, h, &rstyle.grid_color);
+        self.grid.draw_edges(ctx, w, h, &rstyle.overlay_color);
         
         let dx = w / self.grid.w();
         let dy = h / self.grid.h();
@@ -239,14 +235,14 @@ impl InteractiveGrid {
         if time < 10000.0 || fps < 55.0 {
 
             let caption = format!("3D Grid ({},{},{})", self.grid.w(), self.grid.h(), self.grid.d());
-            crate::draw_caption(ctx, caption, inset, h-inset, &overlay, font.clone());
+            crate::draw_caption(ctx, caption, inset, h-inset, &rstyle.overlay_color, font.clone());
         
             crate::draw_caption(
                 &ctx,
                 format!("{:.0} fps", fps),
                 inset,
                 rstyle.font_size + inset, 
-                &overlay,
+                &rstyle.overlay_color,
                 font
             );
         }
@@ -372,7 +368,7 @@ impl MiniMap {
         time: f64,
         width: f64,
         height: f64,
-        blend: JsValue,
+        blend: String,
         sprite_size: f64,
         time_constant: f64,
         frame_constant: f64,
@@ -381,7 +377,7 @@ impl MiniMap {
     ) -> Result<(), JsValue> {
         ctx.begin_path();
         ctx.rect(0.0, 0.0, width, height);
-        ctx.set_fill_style(&blend);
+        ctx.set_fill_style_str(&blend);
         ctx.fill();
         let sprite_scale = width / (self.grid_size as f64 + 0.5);
         let phase = (time_constant * time) % 2.0 * PI;

@@ -3,7 +3,6 @@ use crate::{
     openapi::{ErrorResponse, HandlerContext, HandlerEvent, OptionsResponse, Path, DataResponse}
 };
 use wasm_bindgen::prelude::*;
-
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
@@ -37,7 +36,6 @@ pub async fn linked(
         _ => ErrorResponse::not_implemented(),
     }
 }
-
 /// Get all nodes of a single type which are linked to a non-user root node.
 /// This allows basic graph traversal, one linkage at a time. It does not allow
 /// use to get all linked nodes of all types, which would be a special application

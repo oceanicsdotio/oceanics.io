@@ -52,7 +52,6 @@ pub async fn index(
         _ => ErrorResponse::not_implemented()
     }
 }
-
 /// Retrieve pre-formatted JSON of the index, counts, and api route to access
 /// the collection. May include more information in the future, but this
 /// is te bare minimum to render a frontend index.
@@ -62,7 +61,6 @@ async fn get(url: &String, access_key: &String) -> JsValue {
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
 }
-
 /// Kind of a hack to allow external creation of uniqueness constraints.
 /// Could be abused?
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
@@ -73,7 +71,6 @@ async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue
     let _: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();
     NoContentResponse::new()
 }
-
 /// Delete all nodes connected to the authenticated user by a `Create` relationship.
 async fn delete(    
     url: &String,

@@ -44,28 +44,28 @@ pub fn create_color_map_canvas(_color: JsValue) -> CanvasRenderingContext2d {
 //    for (let stop in colors) {
 //        gradient.add_color_stop(+stop, colors[stop]);
 //    }
-    ctx.set_fill_style(&gradient);
+    ctx.set_fill_style_canvas_gradient(&gradient);
     ctx.fill_rect(0.0, 0.0, 256.0, 1.0);
     return ctx;
 }
 
 #[wasm_bindgen]
-pub fn clear_rect_blending(ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue) {
+pub fn clear_rect_blending(ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &str) {
     ctx.begin_path();
     ctx.rect(0.0, 0.0, w, h);
-    ctx.set_fill_style(&color);
+    ctx.set_fill_style_str(&color);
     ctx.fill();
 }
 
 #[wasm_bindgen]
-pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: f64, color: &JsValue, font: String) {
-    ctx.set_fill_style(color);
+pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: f64, color: &str, font: String) {
+    ctx.set_fill_style_str(color);
     ctx.set_font(&font);
     ctx.fill_text(&caption, x, y).unwrap();
 }
 
 #[wasm_bindgen]
-pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: &JsValue) -> u32 {
+pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: &str) -> u32 {
 
     let font_size: f64 = 12.0;
     let fps = (1000.0 * (frames + 1) as f64).floor() / time;

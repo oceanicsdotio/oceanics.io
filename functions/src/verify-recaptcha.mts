@@ -8,9 +8,8 @@ export default async (req: Request, _: Context) => {
         }
     }
     const { response } = await req.json();
-    const result = await fetch(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.SITE_RECAPTCHA_SECRET}&response=${response}`, { method: "POST" }
-    );
+    const url = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.SITE_RECAPTCHA_SECRET}&response=${response}`
+    const result = await fetch(url, { method: "POST" });
     const data = await result.json();
     return new Response(JSON.stringify(data), { status: result.status })
 };

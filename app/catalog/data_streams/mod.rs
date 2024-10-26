@@ -262,9 +262,6 @@ impl InteractiveDataStream {
         let w = canvas.width() as f64;
         let h = canvas.height() as f64;
         let style: DataStreamStyle = serde_wasm_bindgen::from_value(style).unwrap();
-        let color = JsValue::from_str(&style.stream_color);
-        let overlay = JsValue::from_str(&style.overlay_color);
-        let bg = JsValue::from_str(&style.background_color);
         let font = format!("{:.0}px Arial", style.font_size.floor());
         let y_tick_x_left = self.cursor.y_tick_x_left(style.tick_size);
         let x_tick_y_bottom = self.cursor.x_tick_y_bottom(style.tick_size);
@@ -279,9 +276,9 @@ impl InteractiveDataStream {
         let fps_caption = format!("{:.0} fps", fps);
         let fps_caption_inset = (style.tick_size * 0.5).min(4.0);
         // Start drawing
-        crate::clear_rect_blending(ctx, w, h, bg);
+        crate::clear_rect_blending(ctx, w, h, &style.background_color);
         // Data
-        ctx.set_fill_style(&color);
+        ctx.set_fill_style_str(&style.stream_color);
         if summary {
             // Histogram
             for (x, count) in self.histogram.bins.iter() {
@@ -307,7 +304,7 @@ impl InteractiveDataStream {
         ctx.stroke();
         // Metadata
         ctx.set_font(&font);
-        ctx.set_stroke_style(&overlay);
+        ctx.set_stroke_style_str(&style.overlay_color);
         ctx.set_line_width(style.line_width);
         ctx.begin_path();
         // Y-ticks
@@ -337,7 +334,7 @@ impl InteractiveDataStream {
         ctx.line_to(self.cursor.x, x_tick_y_bottom);
         ctx.stroke();
         // Annotations
-        ctx.set_fill_style(&overlay);
+        ctx.set_fill_style_str(&style.overlay_color);
         ctx.fill_text(
             &x_caption,
             (self.cursor.x - x_caption_width - style.label_padding)
