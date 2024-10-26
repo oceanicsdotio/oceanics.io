@@ -197,7 +197,7 @@ function Animation({
       
       const data = new Image();
       
-      worker.current = new Worker(new URL("./worker.ts", import.meta.url), {
+      worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
         type: "module",
       });
       const handle = worker.current;

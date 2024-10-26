@@ -6,6 +6,7 @@ pub mod observations;
 pub mod observed_properties;
 pub mod sensors;
 pub mod things;
+pub mod webgl;
 
 use js_sys::Promise;
 use serde::{Deserialize, Serialize};

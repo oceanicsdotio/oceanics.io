@@ -5,13 +5,14 @@ import Link from "next/link";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className={layout.content}>
-      <h1>
-        <Link className={layout.link} href="/">
-          Oceanics.io
-        </Link>
-      </h1>
+      <Link className={layout.link} href="/">
+        Home
+      </Link>
+      {"/"}
+      <Link className={layout.link} href="/about">
+        About
+      </Link>
       {children}
     </div>
   );
 }
-

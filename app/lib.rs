@@ -1,8 +1,7 @@
 #![allow(unused_variables, private_interfaces, dead_code)]
 mod catalog;  // data stream structs and visualization methods
-mod compute;
 mod oceanics;
-mod library;
+mod about;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
