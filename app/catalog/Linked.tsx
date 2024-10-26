@@ -1,13 +1,11 @@
 "use client";
 import React, { useRef, useEffect } from "react";
 import style from "@catalog/things/create/page.module.css";
-import Markdown from "react-markdown";
 import { TextSelectInput } from "@catalog/useCreate";
 import { getLinkable } from "@app/catalog/page";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
-import { title } from "process";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -87,7 +85,7 @@ export default function Linking(schema: {
         data: {
           query: {
             left_uuid,
-            left: title,
+            left: schema.title,
             right,
             limit: 10,
             offset: 0
@@ -128,6 +126,7 @@ export default function Linking(schema: {
           inputRef={neighborType}
           description={"The type of neighboring node to connect to"}
           options={options}
+          defaultValue={query.get("right")?.toString()}
         />
         <button className={style.submit}>Load</button>
       </form>
@@ -135,9 +134,10 @@ export default function Linking(schema: {
       <hr />
       <div>
         {collection.map(({ uuid, ...rest }) => {
+          const _right = (right??"").split(/\.?(?=[A-Z])/).join("_").toLowerCase();
           return (
             <p key={uuid}>
-              <a href={`/catalog/`}>{rest.name ?? uuid}</a>
+              <a href={`/catalog/${_right}/edit?uuid=${uuid}&right=${schema.title}`}>{rest.name ?? uuid}</a>
             </p>
           );
         })}

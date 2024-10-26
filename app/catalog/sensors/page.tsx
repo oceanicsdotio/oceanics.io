@@ -42,7 +42,7 @@ export default function Page({}) {
       {collection.map(({uuid, ...sensor}: ISensors) => {
         return (
           <NamedNode key={uuid} name={sensor.name} left_uuid={uuid} onDelete={onDelete}>
-            <p>description: {description}</p>
+            <p>description: {sensor.description}</p>
           </NamedNode>
         );
       })}

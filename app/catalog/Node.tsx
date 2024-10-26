@@ -13,7 +13,7 @@ export function NamedNode({
   controls
 }: {
   name?: string
-  children: ReactNode
+  children?: ReactNode
   onDelete: (uuid: string) => void
   left_uuid: string
   controls?: ReactNode

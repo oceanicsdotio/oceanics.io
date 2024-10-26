@@ -46,7 +46,6 @@ export default function Page({}) {
       {collection.map(({uuid, ...thing}: IThings) => {
         return (
           <NamedNode key={uuid} name={thing.name} left_uuid={uuid} onDelete={onDelete}>
-            <p>uuid: {uuid}</p>
             <p>description: {thing.description ?? "n/a"}</p>
             <p>properties: {thing.properties ?? "n/a"}</p>
           </NamedNode>

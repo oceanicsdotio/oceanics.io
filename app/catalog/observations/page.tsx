@@ -35,7 +35,6 @@ export default function Page({}) {
       {collection.map(({uuid}: Omit<Observations, "free">) => {
         return (
         <NamedNode key={uuid} left_uuid={uuid as any} name={undefined} onDelete={onDelete}>
-          <p>[placeholder]</p>
         </NamedNode>
         );
       })}

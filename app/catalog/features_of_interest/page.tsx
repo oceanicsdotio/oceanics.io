@@ -45,7 +45,7 @@ export default function Page({}) {
             onDelete={onDelete}
             name={rest.name}
           >
-            <p>description: {description ?? "n/a"}</p>
+            <p>description: {rest.description ?? "n/a"}</p>
             <p>encoding type: {rest.encodingType ?? "n/a"}</p>
             <p>feature: {rest.feature ?? "n/a"}</p>
           </NamedNode>

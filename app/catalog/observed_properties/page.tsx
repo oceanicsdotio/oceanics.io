@@ -43,7 +43,7 @@ export default function Page({}) {
       {collection.map(({uuid, ...rest}: Omit<ObservedProperties, "free">) => {
         return (
           <NamedNode key={uuid} name={rest.name} left_uuid={uuid} onDelete={onDelete}>
-            <p>description: {description}</p>
+            <p>description: {rest.description}</p>
           </NamedNode>
         )
       })}
