@@ -5,7 +5,7 @@ import { Node } from "@logtail/js";
 // Cloud database routing and credentials
 const url = process.env.NEO4J_HOSTNAME ?? "";
 const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
-const logger_token = process.env.LOGTAIL_SOURCE_TOKEN??""
+const logger_token = process.env.LOGTAIL_SOURCE_TOKEN ?? "";
 // OpenAPI specification
 const spec = specification.paths["/{entity}"];
 // Reusable logging reference

@@ -3,7 +3,7 @@ use crate::{
     openapi::{
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse,
         OptionsResponse, Path,
-    },
+    }
 };
 use wasm_bindgen::prelude::*;
 /// Called from JS inside the generated handler function. Any errors
@@ -14,7 +14,7 @@ pub async fn collection(
     access_key: String,
     specified: JsValue,
     event: JsValue,
-    context: JsValue,
+    context: JsValue
 ) -> JsValue {
     console_error_panic_hook::set_once();
     let event: HandlerEvent = serde_wasm_bindgen::from_value(event).unwrap();
