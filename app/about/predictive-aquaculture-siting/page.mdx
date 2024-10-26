@@ -1,12 +1,9 @@
----
-title: Predictive aquaculture siting
-published: "2019-12-14T12:00:00.000Z"
-description: |
-    "Spatiotemporal model of aquaculture expansion in Maine"
-labels: ["aquaculture", "data", "geospatial", "policy"]
-authors: [Keeney]
-references: []
----
+export const meta = {
+    title: "Predictive aquaculture siting",
+    published: "2019-12-14T12:00:00.000Z",
+    description: "Spatiotemporal model of aquaculture expansion in Maine",
+    labels: ["aquaculture", "data", "geospatial", "policy"]
+}
 
 I made some predictions about the continued expansion of aquaculture in Maine. 
 Now that we have 2 more years of data and are 40% through a **5-year forecast**, 
@@ -35,7 +32,7 @@ Objectives are to lower expenses, and fix or increase price. New sites have a me
 such that new arrivals follow a Poisson counting process. Damariscotta River had 91 LPAs as of 2017. Issuance is 191 y<sup>-1</sup>, 
 accelerating by 30 y<sup>-2</sup> (DMR). Spacing restrictions give a footprint around 0.024 km<sup>2</sup>. 
 Given a window of size $ A_0  $, and a set of $ N  $ existing leases, no viable space will remain 
-in jurisdiction area $ A  $ after $ t=A(41.66A_0-N)(\lambda A_0)^{-1}  $. 
+in jurisdiction area $ A  $ after <Equation text={"t=A(41.66A_0-N)(\lambda A_0)^{-1}"}/>. 
 
 A less ideal packing efficiency that accounts for operators buffering themselves is 0.093 km<sup>2</sup>, which significantly reduces these estimates. 
 
