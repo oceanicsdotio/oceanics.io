@@ -8,6 +8,7 @@
   - [Getting started](#getting-started)
   - [Environment](#environment)
   - [Logging](#logging)
+    - [Troubleshooting](#troubleshooting)
 
 ## About
 
@@ -64,3 +65,10 @@ WHERE
   method IS NOT NULL
 GROUP BY method, function
 ```
+
+### Troubleshooting
+
+Some tips that could help save some time...
+
+- Neo4j routing error: Likely that the URL or password for the database instance are out of date in the web UI. Can be applied from the commandline, by updating the `.env` to match the `.envrc`.
+

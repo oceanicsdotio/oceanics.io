@@ -1,6 +1,6 @@
 import { paths } from "../../specification.json";
 import { index } from "@oceanics/functions";
-import { Context } from "@netlify/functions";
+import { Handler } from "@netlify/functions";
 import { Node } from "@logtail/js";
 // Routing and credentials from environment
 const url = process.env.NEO4J_HOSTNAME ?? "";
@@ -11,9 +11,14 @@ const specification = paths["/"];
 // Reusable logging interface
 let log: Node | null = null;
 // Index and node counting handler
-export const handler = async function (event: Request, context: Context) {
+export const handler: Handler = async function (event, context) {
     const start = performance.now();
     if (!log) log = new Node(logtail_source_token);
+    log.info(`${event.httpMethod} index`, {
+        duration: 0,
+        event,
+        context
+    })
     const response = await index(
         url,
         access_key,
@@ -22,7 +27,7 @@ export const handler = async function (event: Request, context: Context) {
         context
     );
     const duration = performance.now() - start;
-    log.info(`${event.method} index`, {
+    log.info(`${event.httpMethod} index`, {
         duration,
         event,
         context
