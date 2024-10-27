@@ -1,8 +1,8 @@
 import Link from "next/link";
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { getLinkedCollections } from "@catalog/page";
-import Things from "@catalog/things/client";
+import { Webgl } from "@catalog/things/client";
 import openapi from "@app/../specification.json";
 /**
  * Static content from OpenAPI specification
@@ -33,21 +33,24 @@ export default function Page({}) {
         You can <Link href={"create/"}>create</Link> <code>{title}</code>, and
         link them to {links}.
       </p>
-      <Things
-        velocity={{
-          metadataFile:
-            "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.json",
-          source:
-            "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.png",
-        }}
-        res={16}
-        colors={["#deababff", "#660066ff"]}
-        opacity={0.92}
-        speed={0.00007}
-        diffusivity={0.004}
-        pointSize={1.0}
-        drop={0.01}
-      />
+      <Suspense>
+        <Webgl
+          velocity={{
+            metadataFile:
+              "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.json",
+            source:
+              "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.png",
+          }}
+          res={16}
+          colors={["#deababff", "#660066ff"]}
+          opacity={0.92}
+          speed={0.00007}
+          diffusivity={0.004}
+          pointSize={1.0}
+          drop={0.01}
+        />
+      </Suspense>
+      
     </>
   );
 }

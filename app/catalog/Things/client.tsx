@@ -3,10 +3,9 @@ import React, { useEffect,
   useState,
   useRef,
   type MutableRefObject, } from "react";
-import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import type { Things, WebGl } from "@oceanics/app";
-import {NamedNode} from "@app/catalog/Node";
+import {NamedNode, useCollection} from "@catalog/client";
 // import noiseVertex from "./glsl/noise-vertex.glsl";
 // import noiseFragment from "./glsl/noise-fragment.glsl";
 // import quadVertex from "./glsl/quad-vertex.glsl";
@@ -25,7 +24,8 @@ import style from "@catalog/page.module.css";
 import { TextInput } from "@catalog/client";
 /**
  * Display an index of all or some subset of the
- * available nodes in the database. Shared with edit interface.
+ * available nodes in the database. Shared between
+ * `/create` and `/edit` interfaces.
  */
 export function ThingsForm({
     limit,
@@ -231,7 +231,7 @@ type IRender = {
  * a lookup table for speed calculations. This is one way to 
  * implement fast lookups of piece-wise functions.
  */
-export default function ({
+export function Webgl({
   velocity: { metadataFile, ...velocity },
   res,
   colors,
@@ -386,7 +386,7 @@ export default function ({
    * Client Component.
    */
   return (
-    <div>
+    <>
       <p>{message}</p>
       <div>
         <canvas ref={webglRef} />
@@ -401,6 +401,6 @@ export default function ({
           </NamedNode>
         );
       })}
-    </div>
+    </>
   );
 }

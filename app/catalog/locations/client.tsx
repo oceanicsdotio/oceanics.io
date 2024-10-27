@@ -1,5 +1,4 @@
 "use client";
-import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import type { LocationData, Locations as LocationsType } from "@oceanics/app";
 import React, {
@@ -11,7 +10,7 @@ import React, {
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { NamedNode } from "@catalog/Node";
+import { NamedNode, useCollection } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
 import {TextInput, NumberInput, TextSelectInput} from "@catalog/client";

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import useCollection from "@catalog/useCollection";
+import {useCollection} from "@catalog/client";
 import specification from "@app/../specification.json";
 import Link from "next/link";
 import type {

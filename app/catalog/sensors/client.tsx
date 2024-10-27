@@ -1,9 +1,7 @@
 "use client";
-
-import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
-import { NamedNode } from "../Node";
+import { NamedNode, useCollection } from "../client";
 interface ISensors extends Omit<Sensors, "free"> {}
 const components = specification.components;
 

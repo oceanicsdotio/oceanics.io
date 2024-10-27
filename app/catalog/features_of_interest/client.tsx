@@ -1,8 +1,7 @@
 "use client";
 import specification from "@app/../specification.json";
-import useCollection from "@catalog/useCollection";
 import type { FeaturesOfInterest } from "@oceanics/app";
-import { NamedNode } from "@app/catalog/Node";
+import { NamedNode, useCollection } from "@catalog/client";
 
 const components = specification.components;
 import React, { useRef } from "react";

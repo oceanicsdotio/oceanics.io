@@ -11,7 +11,7 @@ const schema = openapi.components.schemas.Things;
  */
 export const metadata: Metadata = {
   title: `Oceanics.io | ${schema.title}`,
-  description: "Catalog of Things",
+  description: `Create new ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the

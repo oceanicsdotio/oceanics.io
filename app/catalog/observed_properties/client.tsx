@@ -1,9 +1,8 @@
 "use client";
 import React, { useRef } from "react";
-import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import type { ObservedProperties } from "@oceanics/app";
-import { NamedNode } from "../Node";
+import { NamedNode, useCollection } from "../client";
 /**
  * Get schema metadata from the OpenAPI specification.
  */

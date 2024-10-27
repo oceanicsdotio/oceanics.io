@@ -1,9 +1,8 @@
 "use client";
 import React, { useRef } from "react";
-import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import { NamedNode } from "@catalog/Node";
+import { NamedNode, useCollection } from "@catalog/client";
 type IObservations = Omit<Observations, "free"> & {
   uuid: string
 };
