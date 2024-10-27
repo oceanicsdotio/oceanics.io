@@ -12,7 +12,7 @@ const schema = specification.components.schemas.Observations;
  */
 export default function Connect({}) {
   /**
-   * Client Component
+   * Server component
    */
   return (
     <>

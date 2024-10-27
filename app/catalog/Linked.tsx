@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useEffect } from "react";
-import style from "@catalog/things/create/page.module.css";
+import style from "@catalog/page.module.css";
 import { TextSelectInput } from "@catalog/useCreate";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";

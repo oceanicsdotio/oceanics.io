@@ -17,8 +17,108 @@ import {NamedNode} from "@app/catalog/Node";
 interface IThings extends Omit<Things, "free"> {}
 const {
   title: left,
+  properties
 } = specification.components.schemas.Things;
 const { parameters } = specification.components;
+
+import style from "@catalog/page.module.css";
+import { TextInput } from "@catalog/client";
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database. Shared with edit interface.
+ */
+export function ThingsForm({
+    limit,
+    offset,
+    initial
+}: {
+    limit: number
+    offset: number
+    initial: IThings
+}) {
+  /**
+   * User must input uuid, it will not be generated within
+   * the system. Currently duplicate UUID silently fails.
+   */
+  const uuid = useRef<HTMLInputElement | null>(null);
+  /**
+   * Non-unique display name for humans. Can be unique
+   * and contain information if you so choose, but it
+   * doesn't matter to the database.
+   */
+  const name = useRef<HTMLInputElement | null>(null);
+  /**
+   * Freeform text description input reference.
+   */
+  const _description = useRef<HTMLInputElement | null>(null);
+  /**
+   * JSON format input.
+   */
+  const _properties = useRef<HTMLInputElement | null>(null);
+  /**
+   * Web Worker initialization.
+   */
+  const { message, create, disabled, onSubmit } = useCollection({
+    left, limit, offset
+  });
+  /**
+   * On submission, we delegate the request to our background
+   * worker, which will report on success/failure.
+   */
+  const onSubmitCallback = () => {
+    return {
+      uuid: uuid.current?.value,
+      name: name.current?.value,
+      description: _description.current?.value,
+      properties: _properties.current?.value,
+    };
+  };
+  /**
+   * Client Component
+   */
+  return (
+    <>
+      <p>{message}</p>
+      <hr />
+      <form
+        className={style.form}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={create}
+      >
+        <TextInput
+          name={"uuid"}
+          required
+          inputRef={uuid}
+          description={properties.uuid.description}
+          defaultValue={initial.uuid}
+        ></TextInput>
+        <TextInput
+          name={"name"}
+          required
+          inputRef={name}
+          description={properties.name.description}
+          defaultValue={initial.name}
+        ></TextInput>
+        <TextInput
+          name={"description"}
+          required
+          inputRef={_description}
+          description={properties.description.description}
+          defaultValue={initial.description}
+        ></TextInput>
+        <TextInput
+          name={"properties"}
+          inputRef={_properties}
+          description={properties.properties.description}
+          defaultValue={initial.properties}
+        ></TextInput>
+        <button className={style.submit} disabled={disabled}>
+          Create
+        </button>
+      </form>
+    </>
+  );
+}
 /**
  * Listener for Web Worker message events
  */

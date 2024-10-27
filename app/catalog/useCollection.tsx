@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, type FormEventHandler } from "react";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -6,6 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 const ACTIONS = {
   getCollection: "getCollection",
   deleteEntity: "deleteEntity",
+  createEntity: "createEntity",
   error: "error",
 };
 /**
@@ -22,13 +23,22 @@ export default function useCollection(query: {
    */
   const worker = useRef<Worker>();
   /**
-   * Node data.
+   * Node data, if any.
    */
-  let [collection, setCollection] = useState<any[]>([]);
+  const [collection, setCollection] = useState<any[]>([]);
   /**
-   * Summary message displaying load state.
+   * Form handle, used to reset inputs on successful submission,
+   * as reported through the worker message.
    */
-  let [message, setMessage] = useState("↻ Searching");
+  const create = useRef<HTMLFormElement | null>(null);
+  /**
+   * Controls disabled until the worker is ready.
+   */
+  const [disabled, setDisabled] = useState(true);
+  /**
+   * Status message to understand what is going on in the background.
+   */
+  const [message, setMessage] = useState("↻ Loading");
   /**
    * Process web worker messages.
    */
@@ -46,6 +56,15 @@ export default function useCollection(query: {
             return previous.filter((each) => each.uuid !== data.uuid);
           });
           return;
+        case ACTIONS.createEntity:
+          console.log("@client", data.type, data.data);
+          if (data.data) {
+            create.current?.reset();
+            setMessage("✓ Created 1");
+          } else {
+            setMessage("! Something Went Wrong");
+          }
+        return;
         case ACTIONS.error:
           console.error("@worker", type, data);
           return;
@@ -82,10 +101,32 @@ export default function useCollection(query: {
       console.error("User is not logged in.");
     }
     const handle = worker.current;
+    setDisabled(false);
+    // setMessage("✓ Ready");
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
   }, []);
+  /**
+   * On submission, we delegate the request to our background
+   * worker, which will report on success/failure.
+   */
+  const onSubmitCreate =
+    (callback: any): FormEventHandler =>
+    (event) => {
+      event.preventDefault();
+      const user = localStorage.getItem("gotrue.user");
+      worker.current?.postMessage({
+        type: ACTIONS.createEntity,
+        data: {
+          query: { left: query.left },
+          user,
+          body: JSON.stringify(callback()),
+        },
+      });
+      setMessage("↻ Working");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
   /**
    * Delete a resource
    */
@@ -118,5 +159,8 @@ export default function useCollection(query: {
     message,
     worker,
     onDelete,
+    disabled,
+    onSubmit: onSubmitCreate,
+    create,
   };
 }

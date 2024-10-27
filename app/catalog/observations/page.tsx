@@ -19,7 +19,7 @@ export default function Page({}) {
       <p>
         You can <Link href="create/">create</Link> <code>{title}</code>.
       </p>
-      <Collection></Collection>
+      <Collection/>
     </div>
   );
 }

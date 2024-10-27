@@ -3,19 +3,19 @@ import Link from "next/link";
 import layout from "@app/layout.module.css";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
-const { description } = specification.components.schemas.DataStreams;
+const schema = specification.components.schemas.DataStreams;
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {"/"}
       <Link
         className={layout.link}
-        href={"/catalog/data_streams/"}
+        href={"/catalog/data_streams"}
         prefetch={false}
       >
-        DataStreams
+        {schema.title}
       </Link>
-      <Markdown>{description}</Markdown>
+      <Markdown>{schema.description}</Markdown>
       <div className={layout.content}>{children}</div>
     </>
   );

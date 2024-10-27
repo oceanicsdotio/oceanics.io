@@ -9,7 +9,7 @@ import { Metadata } from "next";
 const schema = specification.components.schemas.DataStreams;
 export const metadata: Metadata = {
   title: `Oceanics.io | ${schema.title}`,
-  description: `Data catalog of ${schema.title}`,
+  description: `Catalog node editing interface`,
 };
 /**
  * Display an index of all or some subset of the

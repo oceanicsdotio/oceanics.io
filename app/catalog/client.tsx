@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import Markdown from "react-markdown";
+import style from "@catalog/page.module.css";
 import Link from "next/link";
 import specification from "@app/../specification.json";
 /**
@@ -11,6 +12,139 @@ const MESSAGES = {
   getIndex: "getIndex",
   error: "error",
 };
+
+function InputMetadata({
+  name,
+  description,
+  required = false,
+  children
+}: {
+  name: string;
+  description: string;
+  required?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <>
+      <label className={style.label} htmlFor={name}>
+        <code>{name}</code>
+        <span>{required ? " (required)" : ""}</span>
+      </label>
+      {children}
+      <Markdown>{description}</Markdown>
+    </>
+  );
+}
+
+export function NumberInput({
+  name,
+  description,
+  required = false,
+  inputRef,
+  ...rest
+}: {
+  name: string;
+  // Passthrough, naming matters
+  inputRef: MutableRefObject<HTMLInputElement | null>;
+  description: string;
+  required?: boolean;
+  defaultValue?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  return (
+    <InputMetadata
+      name={name}
+      description={description}
+      required={required}
+    >
+      <input
+        className={style.input}
+        id={name}
+        type={"number"}
+        name={name}
+        required={required}
+        ref={inputRef}
+        {...rest}
+      />
+    </InputMetadata>
+  );
+}
+
+export function TextInput({
+  name,
+  inputRef,
+  description,
+  required = false,
+  defaultValue,
+  readOnly=false
+}: {
+  name: string;
+  inputRef: MutableRefObject<HTMLInputElement | null>;
+  description: string;
+  required?: boolean;
+  defaultValue?: string;
+  readOnly?: boolean;
+}) {
+  return (
+    <InputMetadata
+      name={name}
+      description={description}
+      required={required}
+    >
+      <input
+        className={style.input}
+        id={name}
+        type={"text"}
+        name={name}
+        placeholder="..."
+        ref={inputRef}
+        required={required}
+        defaultValue={defaultValue}
+        readOnly={readOnly}
+      />
+    </InputMetadata>
+  );
+}
+
+export function TextSelectInput({
+  name,
+  inputRef,
+  description,
+  defaultValue,
+  options
+}: {
+  name: string;
+  inputRef: MutableRefObject<HTMLSelectElement | null>;
+  description: string;
+  defaultValue?: string;
+  options: string[];
+}) {
+  return (
+    <InputMetadata
+      name={name}
+      description={description}
+    >
+      <select
+        className={style.input}
+        id={name}
+        name={name}
+        ref={inputRef}
+        defaultValue={defaultValue}
+      >
+        {options.map((value: string) => {
+          return (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          );
+        })}
+      </select>
+    </InputMetadata>
+  );
+}
+
 /**
  * Data passed back from worker to render collection link
  */

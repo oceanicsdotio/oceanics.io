@@ -5,8 +5,7 @@ import Linked from "@catalog/Linked";
 /**
  * OpenAPI schema information used in the interface.
  */
-const components = specification.components;
-const schema = components.schemas.ObservedProperties;
+const schema = specification.components.schemas.ObservedProperties;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

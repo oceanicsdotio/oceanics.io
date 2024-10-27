@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
-import style from "@catalog/things/create/page.module.css";
+import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
 import useCreate, {TextInput} from "@catalog/useCreate";
 /**
