@@ -1,11 +1,8 @@
-"use client";
 import Link from "next/link";
 import React from "react";
-import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
-import type { ObservedProperties } from "@oceanics/app";
 import Markdown from "react-markdown";
-import { NamedNode } from "../Node";
+import Collection from "@app/catalog/observed_properties/client";
 /**
  * Get schema metadata from the OpenAPI specification.
  */
@@ -17,14 +14,6 @@ const { title: left, description } = components.schemas.ObservedProperties;
  */
 export default function Page({}) {
   /**
-   * Retrieve node data use Web Worker.
-   */
-  const { collection, message } = useCollection({
-    left,
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default,
-  });
-  /**
    * Client Component
    */
   return (
@@ -33,14 +22,7 @@ export default function Page({}) {
       <p>
         You can <Link href="create/">create</Link> <code>{left}</code>.
       </p>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...rest }: Omit<ObservedProperties, "free">) => {
-        return (
-          <NamedNode key={uuid} name={rest.name} uuid={uuid}>
-            <p>description: {rest.description}</p>
-          </NamedNode>
-        );
-      })}
+      <Collection></Collection>
     </div>
   );
 }
