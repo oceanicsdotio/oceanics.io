@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use js_sys::Date;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-
 /**
  * Content data type, assumed to be text-based. 
  */
@@ -41,7 +40,6 @@ impl Memo {
     fn year(&self) -> u32 {
         self.published.year() as u32
     }
-
     /**
      * Formatting the authors depends on how many names you
      * want to allow to be displayed, and the total number
@@ -79,7 +77,6 @@ impl Memo {
         }
     }
 }
-
 /**
  * Used in JavaScript context
  */
@@ -102,7 +99,6 @@ impl Memo {
         self.hash(&mut s);
         s.finish()
     }
-
     /**
      * Block style reference repr for list of citations.
      */
@@ -115,7 +111,6 @@ impl Memo {
             self.source()
         ].join(". "))
     }
-
     /**
      * Inline style reference repr for citing in markup. 
      */
@@ -126,8 +121,4 @@ impl Memo {
         };
         JsValue::from_str(&*_inline)
     }
-
-    // fn link_queries() -> Vec<String> {
-
-    // }
 }

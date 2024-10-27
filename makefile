@@ -39,7 +39,7 @@ examples.json: examples.ts specification.json
 	@ yarn exec tsx examples.ts specification.json examples.json
 
 # Build the next site within Netlify to pick up env/config.
-out: $(SRC) next.config.mjs tsconfig.json netlify.toml public/openapi.html examples.json 
+out: $(SRC) next.config.ts tsconfig.json netlify.toml public/openapi.html examples.json 
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
