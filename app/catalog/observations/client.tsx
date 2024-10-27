@@ -8,10 +8,9 @@ type IObservations = Omit<Observations, "free"> & {
   uuid: string
 };
 const components = specification.components;
-const { title, properties, description } = components.schemas.Observations;
+const { title, properties } = components.schemas.Observations;
 
 import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
 import {TextInput, NumberInput} from "@catalog/client";
 
 /**
@@ -61,7 +60,6 @@ export function Create({}) {
    */
   return (
     <>
-      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form

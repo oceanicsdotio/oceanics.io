@@ -11,12 +11,11 @@ const components = specification.components;
 const { title: left } = components.schemas.ObservedProperties;
 
 import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
 import {TextInput} from "@catalog/client";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
-const { properties, description, title } = specification.components.schemas.ObservedProperties;
+const { properties, title } = specification.components.schemas.ObservedProperties;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -54,7 +53,6 @@ export function Create({}) {
    */
   return (
     <>
-      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form

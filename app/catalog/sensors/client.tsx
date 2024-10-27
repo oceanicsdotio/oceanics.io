@@ -52,7 +52,6 @@ export function Create({}) {
    */
   return (
     <>
-      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form

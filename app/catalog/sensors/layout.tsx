@@ -9,10 +9,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {"/"}
-        <Link className={layout.link} href={"/catalog/sensors/"}>
-          {schema.title}
-        </Link>
-        <div className={layout.content}><Markdown>{schema.description}</Markdown>{children}</div>
+      <Link className={layout.link} href={"/catalog/sensors/"}>
+        {schema.title}
+      </Link>
+      <div className={layout.content}>
+        <Markdown>{schema.description}</Markdown>
+        {children}
+      </div>
     </>
   );
 }
