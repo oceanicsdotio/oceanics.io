@@ -1,10 +1,15 @@
 import React, { Suspense } from "react";
-import specification from "@app/../specification.json";
 import {Linking} from "@catalog/client";
+import type { Metadata } from "next";
+import openapi from "@app/../specification.json";
+const schema = openapi.components.schemas.Locations;
 /**
- * OpenAPI schema information used in the interface.
+ * Page browser metadata
  */
-const schema = specification.components.schemas.Locations;
+export const metadata: Metadata = {
+  title: `Oceanics.io | ${schema.title}`,
+  description: `Create new ${schema.title}. ${schema.description}`,
+};
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
