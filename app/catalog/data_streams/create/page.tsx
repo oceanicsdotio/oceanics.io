@@ -7,6 +7,9 @@ import specification from "@app/../specification.json";
  * Get DataStreams properties from OpenAPI schema
  */
 const schema = specification.components.schemas.DataStreams;
+/**
+ * Page browser metadata
+ */
 export const metadata: Metadata = {
   title: `Oceanics.io | ${schema.title}`,
   description: `Create new ${schema.title}`,

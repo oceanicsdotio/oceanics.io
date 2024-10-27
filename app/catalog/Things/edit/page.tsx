@@ -1,8 +1,8 @@
 import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
-import Linked from "@app/catalog/Linked";
-import { ThingsForm } from "@app/catalog/things/client";
+import {Linking} from "@catalog/client";
+import { ThingsForm } from "@catalog/things/client";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -24,7 +24,7 @@ export default function Page({}) {
         }}
       />
       <Suspense>
-        <Linked {...schema}></Linked>
+        <Linking {...schema}></Linking>
       </Suspense>
     </>
   );

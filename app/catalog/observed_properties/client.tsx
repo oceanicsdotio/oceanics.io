@@ -77,7 +77,7 @@ export function Create({}) {
         ></TextInput>
         <TextInput
           name={"description"}
-          inputRef={description}
+          inputRef={_description}
           required
           description={properties.description.description}
         ></TextInput>

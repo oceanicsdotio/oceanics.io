@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
-import Linked from "@catalog/Linked";
+import {Linking} from "@catalog/client";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -18,7 +18,7 @@ export default function Connect({}) {
     <>
       <Markdown>{schema.description}</Markdown>
       <Suspense>
-        <Linked {...schema}></Linked>
+        <Linking {...schema}></Linking>
       </Suspense>
     </>
   );

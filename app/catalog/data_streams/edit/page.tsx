@@ -1,12 +1,15 @@
 import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
-import Linked from "@catalog/Linked";
+import { Linking } from "@catalog/client";
 import { Metadata } from "next";
 /**
  * OpenAPI schema information used in the interface.
  */
 const schema = specification.components.schemas.DataStreams;
+/**
+ * Browser metadata
+ */
 export const metadata: Metadata = {
   title: `Oceanics.io | ${schema.title}`,
   description: `Catalog node editing interface`,
@@ -23,7 +26,7 @@ export default function Page({}) {
     <>
     <Markdown>{schema.description}</Markdown>
     <Suspense>
-      <Linked {...schema}></Linked>
+      <Linking {...schema}></Linking>
     </Suspense>
   </>
   );

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
 import { Create } from "@app/catalog/observed_properties/client";
@@ -17,7 +17,7 @@ export default function({}) {
   return (
     <>
       <Markdown>{schema.description}</Markdown>
-      <Create/>
+      <Suspense><Create/></Suspense>
     </>
   );
 }
