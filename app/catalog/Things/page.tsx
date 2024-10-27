@@ -3,17 +3,22 @@ import React from "react";
 import Markdown from "react-markdown";
 import { Metadata } from "next";
 import { getLinkedCollections } from "@catalog/page";
-import specification from "@app/../specification.json";
-import Collection from "@app/catalog/things/client";
+import Things from "@catalog/things/client";
+import openapi from "@app/../specification.json";
+/**
+ * Browser and crawler metadata
+ */
 export const metadata: Metadata = {
   title: "Oceanics.io | Things",
   description: "Catalog of Things",
 };
-const {
-  properties,
-  description,
-  title,
-} = specification.components.schemas.Things;
+/**
+ * Static content from OpenAPI specification
+ */
+const { properties, description, title } = openapi.components.schemas.Things;
+/**
+ * Linkable types of Node
+ */
 const links = getLinkedCollections(properties);
 /**
  * Display an index of all or some subset of the
@@ -21,19 +26,30 @@ const links = getLinkedCollections(properties);
  */
 export default function Page({}) {
   /**
-   * Server Component.
+   * Server component enforces `use client` boundary.
    */
   return (
     <div>
       <Markdown>{description}</Markdown>
       <p>
-        You can{" "}
-        <Link href={"create/"}>
-          create
-        </Link>{" "}
-        <code>{title}</code>, and link them to {links}.
+        You can <Link href={"create/"}>create</Link> <code>{title}</code>, and
+        link them to {links}.
       </p>
-      <Collection />
+      <Things
+        velocity={{
+          metadataFile:
+            "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.json",
+          source:
+            "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.png",
+        }}
+        res={16}
+        colors={["#deababff", "#660066ff"]}
+        opacity={0.92}
+        speed={0.00007}
+        diffusivity={0.004}
+        pointSize={1.0}
+        drop={0.01}
+      />
     </div>
   );
 }

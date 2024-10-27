@@ -5,23 +5,20 @@ import React, { useEffect,
   type MutableRefObject, } from "react";
 import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
-import type { Things } from "@oceanics/app";
+import type { Things, WebGl } from "@oceanics/app";
 import {NamedNode} from "@app/catalog/Node";
+// import noiseVertex from "./glsl/noise-vertex.glsl";
+// import noiseFragment from "./glsl/noise-fragment.glsl";
+// import quadVertex from "./glsl/quad-vertex.glsl";
+// import updateFragment from "./glsl/update-fragment-test.glsl";
+// import screenFragment from "./glsl/screen-fragment.glsl";
+// import drawVertex from "./glsl/draw-vertex-test.glsl";
+// import drawFragment from "./glsl/draw-fragment-test.glsl";
 interface IThings extends Omit<Things, "free"> {}
 const {
   title: left,
 } = specification.components.schemas.Things;
 const { parameters } = specification.components;
-
-import type { WebGl } from "@oceanics/app";
-import noiseVertex from "./glsl/noise-vertex.glsl";
-import noiseFragment from "./glsl/noise-fragment.glsl";
-import quadVertex from "./glsl/quad-vertex.glsl";
-import updateFragment from "./glsl/update-fragment-test.glsl";
-import screenFragment from "./glsl/screen-fragment.glsl";
-import drawVertex from "./glsl/draw-vertex-test.glsl";
-import drawFragment from "./glsl/draw-fragment-test.glsl";
-
 /**
  * Listener for Web Worker message events
  */
@@ -77,7 +74,7 @@ const handleMessage = () => {
 /**
  * Input to the lagrangian simulation hook
  */
-type ICompute = {
+type IRender = {
   /**
    * Where to obtain velocity data for particle simulation
    */
@@ -122,6 +119,9 @@ type ICompute = {
   drop: number;
 };
 /**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
+ * 
  * Use WebGL to calculate particle trajectories from velocity data.
  * This example uses wind data to move particles around the globe.
  * The velocity field is static, but in the future the component
@@ -131,7 +131,7 @@ type ICompute = {
  * a lookup table for speed calculations. This is one way to 
  * implement fast lookups of piece-wise functions.
  */
-function Animation({
+export default function ({
   velocity: { metadataFile, ...velocity },
   res,
   colors,
@@ -140,8 +140,7 @@ function Animation({
   diffusivity,
   pointSize,
   drop,
-}: ICompute) {
-
+}: IRender) {
     /**
    * Web worker reference.
    */
@@ -166,7 +165,16 @@ function Animation({
     const [interactive, setInteractive] = useState<{
       webgl: WebGl;
     } | null>(null);
-    /**
+
+  /**
+   * Retrieve node data using Web Worker.
+   */
+  const { collection, message } = useCollection({
+    left,
+    limit: parameters.limit.schema.default,
+    offset: parameters.offset.schema.default,
+  });
+  /**
      * When we get a message back from the worker that matches a specific pattern,
      * report or act on that info. The worker will push buffers and texture data
      * that the frontend needs to send to the webgl rendering context.
@@ -177,146 +185,114 @@ function Animation({
      * compile the shader program and return information
      * about how to bind real data to the textures and arrays.
      */
-    useEffect(() => {
-      if (!webglRef.current || !colorMapRef.current || !previewRef.current) return;
-      let canvas = webglRef.current;
-      const colorMapCanvas = colorMapRef.current;
-      const previewCanvas = previewRef.current;
-      const ctx = colorMapCanvas.getContext("2d");
-      const previewCtx = previewCanvas.getContext("2d");
-      const webgl = canvas.getContext("webgl");
-      if (!ctx || !webgl || !previewCtx) return;
-      [colorMapCanvas.width, colorMapCanvas.height] = [ res * res, res ];
-      
-      const data = new Image();
-      
-      worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
-        type: "module",
-      });
-      const handle = worker.current;
-  
-      (async () => {
-        const wasm = await import("@oceanics/app");
-        const { panic_hook, WebGl } = wasm;
-        panic_hook();
-        const {width, height} = canvas;
-        let particles = new Uint8Array(Array.from(
-          { length: res * res * 4 },
-          () => Math.floor(Math.random() * 256)
-        ))
-        // const webgl = new WebGl(
-        //   canvas,
-        //   uniforms: [{
-        //   },{
-        //     name: "u_opacity",
-        //     value: [opacity]
-        //   },{
-        //     name: "u_point_size",
-        //     value: [pointSize]
-        //   },{
-        //     name: "speed",
-        //     value: [speed]
-        //   },{
-        //     name: "diffusivity",
-        //     value: [diffusivity]
-        //   },{
-        //     name: "drop",
-        //     value: [drop]
-        //   },{
-        //     name: "seed",
-        //     value: [Math.random()]
-        //   }, {
-        //     name: "u_wind_max",
-        //     value: [u.max, v.max]
-        //   }, {
-        //     name: "u_wind_min",
-        //     data_type: "f",
-        //     value: [u.min, v.min]
-        //   }, {
-        //     name: "u_wind_res",
-        //     data_type: "f",
-        //     value: [width, height]
-        //   }],
-        //   {
-        //     vertex: quadVertex,
-        //     fragment: updateFragment,
-        //   },
-        //   {
-        //     vertex: quadVertex,
-        //     fragment: screenFragment,
-        //   },
-        //   {
-        //     vertex: drawVertex,
-        //     fragment: drawFragment,
-        //   },
-        //   {
-        //     vertex: noiseVertex,
-        //     fragment: noiseFragment,
-        //   }
-        // );
-        // data.addEventListener(
-        //   "load",
-        //   () => {
-        //     webgl.texture_from_image(canvas, data, "velocity");
-        //     console.debug(webgl.textures());
-        //   },
-        //   { capture: true, once: true }
-        // );
-        // data.crossOrigin = "";
-        // data.src = velocity.source;
-        // webgl.texture_from_color_map(ctx, res, colors, "color");
-        // handle.addEventListener("message", handleMessage, { passive: true, capture: true });
-        // setInteractive({
-        //   webgl,
-        // });
-      })();
-      // return () => {
-      //   handle.removeEventListener("message", handleMessage);
-      // };
-    }, [res, metadataFile, opacity, speed, pointSize, diffusivity, drop, velocity.source, colors]);
-  
-  return (
-    // velocity={{
-    //   metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.json",
-    //   source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/wind.png",
-    // }}
-    // res={16}
-    // colors={[
-    //   "#deababff",
-    //   "#660066ff",
-    // ]}
-    // opacity = {0.92}
-    // speed ={ 0.00007}
-    // diffusivity = {0.004}
-    // pointSize = {1.0}
-    // drop = {0.01}
-    <div>
-      <canvas ref={webglRef} />
-      <canvas ref={previewRef} />
-      <canvas ref={colorMapRef} />
-    </div>
-  );
-}
+  useEffect(() => {
+    if (!webglRef.current || !colorMapRef.current || !previewRef.current) return;
+    let canvas = webglRef.current;
+    const colorMapCanvas = colorMapRef.current;
+    const previewCanvas = previewRef.current;
+    const ctx = colorMapCanvas.getContext("2d");
+    const previewCtx = previewCanvas.getContext("2d");
+    const webgl = canvas.getContext("webgl");
+    if (!ctx || !webgl || !previewCtx) return;
+    [colorMapCanvas.width, colorMapCanvas.height] = [ res * res, res ];
+    
+    const data = new Image();
+    
+    worker.current = new Worker(new URL("@app/catalog/worker.ts", import.meta.url), {
+      type: "module",
+    });
+    const handle = worker.current;
 
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export default function Page({}) {
-  /**
-   * Retrieve node data using Web Worker.
-   */
-  const { collection, message } = useCollection({
-    left,
-    limit: parameters.limit.schema.default,
-    offset: parameters.offset.schema.default,
-  });
+    (async () => {
+      const wasm = await import("@oceanics/app");
+      const { panic_hook, WebGl } = wasm;
+      panic_hook();
+      const {width, height} = canvas;
+      let particles = new Uint8Array(Array.from(
+        { length: res * res * 4 },
+        () => Math.floor(Math.random() * 256)
+      ))
+      // const webgl = new WebGl(
+      //   canvas,
+      //   uniforms: [{
+      //   },{
+      //     name: "u_opacity",
+      //     value: [opacity]
+      //   },{
+      //     name: "u_point_size",
+      //     value: [pointSize]
+      //   },{
+      //     name: "speed",
+      //     value: [speed]
+      //   },{
+      //     name: "diffusivity",
+      //     value: [diffusivity]
+      //   },{
+      //     name: "drop",
+      //     value: [drop]
+      //   },{
+      //     name: "seed",
+      //     value: [Math.random()]
+      //   }, {
+      //     name: "u_wind_max",
+      //     value: [u.max, v.max]
+      //   }, {
+      //     name: "u_wind_min",
+      //     data_type: "f",
+      //     value: [u.min, v.min]
+      //   }, {
+      //     name: "u_wind_res",
+      //     data_type: "f",
+      //     value: [width, height]
+      //   }],
+      //   {
+      //     vertex: quadVertex,
+      //     fragment: updateFragment,
+      //   },
+      //   {
+      //     vertex: quadVertex,
+      //     fragment: screenFragment,
+      //   },
+      //   {
+      //     vertex: drawVertex,
+      //     fragment: drawFragment,
+      //   },
+      //   {
+      //     vertex: noiseVertex,
+      //     fragment: noiseFragment,
+      //   }
+      // );
+      // data.addEventListener(
+      //   "load",
+      //   () => {
+      //     webgl.texture_from_image(canvas, data, "velocity");
+      //     console.debug(webgl.textures());
+      //   },
+      //   { capture: true, once: true }
+      // );
+      // data.crossOrigin = "";
+      // data.src = velocity.source;
+      // webgl.texture_from_color_map(ctx, res, colors, "color");
+      // handle.addEventListener("message", handleMessage, { passive: true, capture: true });
+      // setInteractive({
+      //   webgl,
+      // });
+    })();
+    // return () => {
+    //   handle.removeEventListener("message", handleMessage);
+    // };
+  }, [res, metadataFile, opacity, speed, pointSize, diffusivity, drop, velocity.source, colors]);
   /**
    * Client Component.
    */
   return (
     <div>
       <p>{message}</p>
+      <div>
+        <canvas ref={webglRef} />
+        <canvas ref={previewRef} />
+        <canvas ref={colorMapRef} />
+      </div>
       {collection.map(({uuid, ...thing}: IThings) => {
         return (
           <NamedNode key={uuid} name={thing.name} uuid={uuid} >

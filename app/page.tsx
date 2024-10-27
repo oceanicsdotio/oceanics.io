@@ -1,8 +1,8 @@
 import React, { Suspense } from "react";
-import Oceanics from "./Oceanics";
+import Oceanics from "@app/client";
 import { Metadata } from "next";
-import layout from "./layout.module.css";
-import style from "./oceanics.module.css";
+import layout from "@app/layout.module.css";
+import style from "@app/page.module.css";
 import Link from "next/link";
 import Script from "next/script";
 
