@@ -3,7 +3,6 @@ import Link from "next/link";
 import React from "react";
 import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
-import layout from "@app/layout.module.css";
 import type { Observations } from "@oceanics/app";
 import { NamedNode } from "../Node";
 import Markdown from "react-markdown";
@@ -19,9 +18,9 @@ export default function Page({}) {
    * Retrieve node data use Web Worker.
    */
   const { collection, message } = useCollection({
-    left: title, 
+    left: title,
     limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default
+    offset: components.parameters.offset.schema.default,
   });
   /**
    * Client Component
@@ -30,14 +29,12 @@ export default function Page({}) {
     <div>
       <Markdown>{description}</Markdown>
       <p>
-        You can <Link className={layout.link} href="create/">create</Link>{" "}
-        <code>{title}</code>.
+        You can <Link href="create/">create</Link> <code>{title}</code>.
       </p>
       <p>{message}</p>
-      {collection.map(({uuid}: Omit<Observations, "free">) => {
+      {collection.map(({ uuid }: Omit<Observations, "free">) => {
         return (
-        <NamedNode key={uuid} uuid={uuid as any} name={undefined}>
-        </NamedNode>
+          <NamedNode key={uuid} uuid={uuid as any} name={undefined}></NamedNode>
         );
       })}
     </div>

@@ -29,7 +29,7 @@ export default function Page({}) {
     <div>
       <Markdown>{description}</Markdown>
       <p>
-        You can <Link href="create/">create</Link> <code>{title}</code>
+        You can <Link href="create/" prefetch={false}>create</Link> <code>{title}</code>
       </p>
       <p>{message}</p>
       {collection.map(({ uuid, ...rest }: IHistoricalLocations) => {

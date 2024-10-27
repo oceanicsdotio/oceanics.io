@@ -1,55 +1,31 @@
-"use client";
 import Link from "next/link";
 import React from "react";
 import specification from "@app/../specification.json";
-import useCollection from "@catalog/useCollection";
 import Markdown from "react-markdown";
-import layout from "@app/layout.module.css";
-import type { FeaturesOfInterest as FeatureType } from "@oceanics/app";
-import { NamedNode } from "../Node";
-const { title: left, description } =
-specification.components.schemas.FeaturesOfInterest;
-const components = specification.components
+import Collection from "@app/catalog/features_of_interest/client";
+import { getLinkedCollections } from "@app/catalog/page";
+const { title, description, properties } =
+  specification.components.schemas.FeaturesOfInterest;
+const links = getLinkedCollections(properties);
 /**
  * Display an index of all or some subset of the
  * available Features of Interest in the database.
  */
 export default function Page({}) {
   /**
-   * Retrieve node data use Web Worker.
-   */
-  const { collection, message } = useCollection({
-    left,
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default,
-  });
-  /**
-   * Client Component
+   * Static Component
    */
   return (
     <div>
       <Markdown>{description}</Markdown>
       <p>
         You can{" "}
-        <Link href={"create/"} className={layout.link}>
+        <Link href={"create/"} prefetch={false}>
           create
         </Link>{" "}
-        <code>{left}</code>.
+        <code>{title}</code> and link them with {links}.
       </p>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...rest }: Omit<FeatureType, "free">) => {
-        return (
-          <NamedNode
-            key={uuid}
-            uuid={uuid}
-            name={rest.name}
-          >
-            <p>description: {rest.description ?? "n/a"}</p>
-            <p>encoding type: {rest.encodingType ?? "n/a"}</p>
-            <p>feature: {rest.feature ?? "n/a"}</p>
-          </NamedNode>
-        );
-      })}
+      <Collection></Collection>
     </div>
   );
 }

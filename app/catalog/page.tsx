@@ -6,23 +6,15 @@ import styles from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
 import Index from "@app/catalog/client";
 
-
 export const metadata: Metadata = {
   title: "Oceanics.io | Catalog",
   description: "Sensor Things Catalog.",
 };
-/**
- * Convenience method to extract the expected/possible types
- * of connected entities, according to the OpenAPI spec.
- * This is used in entity specific pages.
- */
-export function getLinkable(properties: any) {
-  return Object.keys(properties)
+
+export function getLinkedCollections(properties: any) {
+  const related = Object.keys(properties)
     .filter((key: string) => key.includes("@"))
     .map((key) => key.split("@")[0]);
-}
-export function getLinkedCollections(properties: any) {
-  const related = getLinkable(properties);
   const links = related.map((name: string, index: number) => {
     let prepend = "";
     if (index === related.length - 1) {
@@ -45,7 +37,7 @@ export function getLinkedCollections(properties: any) {
  */
 export default function Page({}) {
   /**
-   * Client Component.
+   * Server Component.
    */
   return (
     <div className={styles.catalog}>

@@ -2,7 +2,6 @@
 import React, { useRef, useEffect } from "react";
 import style from "@catalog/things/create/page.module.css";
 import { TextSelectInput } from "@catalog/useCreate";
-import { getLinkable } from "@app/catalog/page";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
@@ -23,7 +22,9 @@ export default function Linking(schema: {
   title: string;
   description: string;
 }) {
-  const options = getLinkable(schema.properties);
+  const options = Object.keys(schema.properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key) => key.split("@")[0]);
   const query = useSearchParams();
   const right = query.get("right");
   const left_uuid = query.get("uuid");

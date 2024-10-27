@@ -49,7 +49,7 @@ function Collection({ name, href, content, "@iot.count": count }: ICollection) {
  * The OpenApi component uses an OpenAPI specification for a
  * simulation backend, and uses it to construct an interface.
  */
-export default function Page({}) {
+export default function Index({}) {
   /**
    * Ref to Web Worker.
    */
