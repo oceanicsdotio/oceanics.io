@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode, Suspense } from "react";
 import Markdown from "react-markdown";
 import Link from "next/link";
 import { Metadata } from "next";
@@ -36,6 +36,31 @@ export function getLinkedCollections(properties: any) {
     );
   });
   return links;
+}
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
+ */
+export function CollectionTemplate({
+  title,
+  properties,
+  children
+}: {
+  children: ReactNode,
+  title: string,
+  properties: any
+}) {
+  const links = getLinkedCollections(properties)
+  return (
+    <>
+      <p>
+        You can <Link href="create/">create</Link> <code>{title}</code>, and link them to {links}.
+      </p>
+      <Suspense>
+        {children}
+      </Suspense>
+    </>
+  );
 }
 /**
  * The OpenApi component uses an OpenAPI specification for a

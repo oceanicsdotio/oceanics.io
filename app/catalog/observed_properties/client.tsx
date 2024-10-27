@@ -95,7 +95,7 @@ export function Create({}) {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function Page({}) {
+export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */

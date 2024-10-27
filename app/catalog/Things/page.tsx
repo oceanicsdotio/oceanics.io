@@ -1,23 +1,18 @@
-import Link from "next/link";
-import React, { Suspense } from "react";
+import React from "react";
 import { Metadata } from "next";
-import { getLinkedCollections } from "@catalog/page";
+import { CollectionTemplate } from "@catalog/page";
 import { Webgl } from "@catalog/things/client";
 import openapi from "@app/../specification.json";
 /**
  * Static content from OpenAPI specification
  */
-const { properties, title } = openapi.components.schemas.Things;
-/**
- * Static linkable types of Node.
- */
-const links = getLinkedCollections(properties);
+const schema = openapi.components.schemas.Things;
 /**
  * Browser and crawler metadata.
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${title}`,
-  description: `Catalog of ${title}`,
+  title: `Oceanics.io | ${schema.title}`,
+  description: `Catalog of ${schema.title}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -28,12 +23,7 @@ export default function Page({}) {
    * Server component enforces `use client` boundary.
    */
   return (
-    <>
-      <p>
-        You can <Link href={"create/"}>create</Link> <code>{title}</code>, and
-        link them to {links}.
-      </p>
-      <Suspense>
+      <CollectionTemplate title={schema.title} properties={schema.properties}>
         <Webgl
           velocity={{
             metadataFile:
@@ -49,8 +39,6 @@ export default function Page({}) {
           pointSize={1.0}
           drop={0.01}
         />
-      </Suspense>
-      
-    </>
-  );
+      </CollectionTemplate>
+    );
 }

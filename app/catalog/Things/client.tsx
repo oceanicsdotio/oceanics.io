@@ -5,7 +5,7 @@ import React, { useEffect,
   type MutableRefObject, } from "react";
 import specification from "@app/../specification.json";
 import type { Things, WebGl } from "@oceanics/app";
-import {NamedNode, useCollection} from "@catalog/client";
+import { NamedNode, useCollection } from "@catalog/client";
 // import noiseVertex from "./glsl/noise-vertex.glsl";
 // import noiseFragment from "./glsl/noise-fragment.glsl";
 // import quadVertex from "./glsl/quad-vertex.glsl";
