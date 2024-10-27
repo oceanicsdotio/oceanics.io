@@ -1,4 +1,3 @@
-"use client";
 import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
@@ -17,10 +16,10 @@ export default function Connect({}) {
    */
   return (
     <>
-    <Markdown>{schema.description}</Markdown>
-    <Suspense>
-      <Linked {...schema}></Linked>
-    </Suspense>
-  </>
+      <Markdown>{schema.description}</Markdown>
+      <Suspense>
+        <Linked {...schema}></Linked>
+      </Suspense>
+    </>
   );
 }

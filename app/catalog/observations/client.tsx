@@ -4,6 +4,7 @@ import useCollection from "@catalog/useCollection";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
 import { NamedNode } from "../Node";
+type IObservations = Omit<Observations, "free">;
 const components = specification.components;
 const { title } = components.schemas.Observations;
 /**
@@ -25,7 +26,7 @@ export default function Page({}) {
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid }: Omit<Observations, "free">) => {
+      {collection.map(({ uuid }: IObservations) => {
         return (
           <NamedNode key={uuid} uuid={uuid as any} name={undefined}></NamedNode>
         );

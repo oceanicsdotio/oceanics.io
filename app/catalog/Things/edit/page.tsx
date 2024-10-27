@@ -1,4 +1,3 @@
-"use client";
 import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
 import Markdown from "react-markdown";
