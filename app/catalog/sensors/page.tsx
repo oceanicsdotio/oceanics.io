@@ -20,7 +20,7 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({
+  const { collection, message } = useCollection({
     left,
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default,
@@ -39,9 +39,9 @@ export default function Page({}) {
         <code>{left}</code>.
       </p>
       <p>{message}</p>
-      {collection.map(({uuid, ...sensor}: ISensors) => {
+      {collection.map((sensor: ISensors) => {
         return (
-          <NamedNode key={uuid} name={sensor.name} left_uuid={uuid} onDelete={onDelete}>
+          <NamedNode key={sensor.uuid} name={sensor.name} uuid={sensor.uuid}>
             <p>description: {sensor.description}</p>
           </NamedNode>
         );

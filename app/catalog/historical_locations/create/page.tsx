@@ -5,8 +5,7 @@ import style from "@catalog/things/create/page.module.css";
 import Markdown from "react-markdown";
 import useCreate, { TextInput } from "@catalog/useCreate";
 
-const { HistoricalLocations } = specification.components.schemas;
-const { properties } = HistoricalLocations;
+const { properties, description, title } = specification.components.schemas.HistoricalLocations;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -21,7 +20,7 @@ export default function Create({}) {
    * Web Worker.
    */
   const { onSubmit, disabled, create, message } = useCreate({
-    left: HistoricalLocations.title,
+    left: title,
   });
   /**
    * On submission, we delegate the request to our background
@@ -37,7 +36,7 @@ export default function Create({}) {
    */
   return (
     <>
-      <Markdown>{HistoricalLocations.description}</Markdown>
+      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form

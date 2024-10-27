@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>{"/"}
-        <Link className={layout.link} href={"/catalog/historical_locations/"}>
+        <Link className={layout.link} href={"/catalog/historical_locations/"} prefetch={false}>
           HistoricalLocations
         </Link>
       {children}

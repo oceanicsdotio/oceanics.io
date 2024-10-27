@@ -8,35 +8,29 @@ import styles from "@app/layout.module.css";
 export function NamedNode({
   name,
   children,
-  onDelete,
-  left_uuid,
+  uuid,
   controls
 }: {
   name?: string
   children?: ReactNode
-  onDelete: (uuid: string) => void
-  left_uuid: string
+  uuid: string
   controls?: ReactNode
 }) {
-  const url = `edit/?uuid=${left_uuid}`;
+  const url = `edit/?uuid=${uuid}`;
   const [showDetails, setShowDetails] = useState(false);
   function onDetails() {
     setShowDetails((prev) => !prev);
   }
   return (
     <div>
-      <hr />
-      <h3>
-        <Link className={styles.link} href={url} prefetch={false}>
-          {name ?? left_uuid}
-        </Link>
-      </h3>
-      {showDetails && children}
+      <Link href={url} prefetch={false}>
+        {name ?? uuid}
+      </Link>
       <div>
-        <button onClick={onDetails}>Details</button>
-        <button onClick={onDelete.bind(undefined, left_uuid)}>Delete</button>
+        <button className={styles.button} onClick={onDetails}>Show Details</button>
         {controls}
       </div>
+      {showDetails && children}
     </div>
   );
 }

@@ -10,7 +10,7 @@ export interface IEquation {
  * For more complete implementation see: 
  * https://github.com/zzish/react-latex/blob/master/src/latex.js
  */
-const Equation = ({text, output="mathml"}: IEquation) => {
+export const Equation = ({text, output="mathml"}: IEquation) => {
     const html = katex.renderToString(text, {output});
     return (
         <span dangerouslySetInnerHTML={{__html: html}} />

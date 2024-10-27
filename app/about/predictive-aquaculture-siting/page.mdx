@@ -1,3 +1,4 @@
+import {Equation as Eqn} from "@app/about/Equation"
 export const meta = {
     title: "Predictive aquaculture siting",
     published: "2019-12-14T12:00:00.000Z",
@@ -12,7 +13,7 @@ you need to model human behavior, not just the environment.*
 
 If you are unfamiliar with the area, the coastal town jurisdictions are shown in red below.
 
-Maine farmers cultured \$6.7M in mussels, oysters, and clams in 2015, and $8M in 2016 (Maine Department of Marine Resources): exceeding federal growth benchmarks [1]. Leasing is **decentralized and reactive**, with exclusion criteria including water uses, 
+Maine farmers cultured $6.7M in mussels, oysters, and clams in 2015, and $8M in 2016 (Maine Department of Marine Resources): exceeding federal growth benchmarks [1]. Leasing is **decentralized and reactive**, with exclusion criteria including water uses, 
 public assets, and lease density. Larger operations improve efficiency, and attract processing facilities—but there is 
 concern about the size of firms [2]. Residents closest to farms view them as locally undesirable [3], and decentralized 
 expansion — including limited-purpose licenses (table below) — is unlikely to balance production with social acceptance.
@@ -28,20 +29,20 @@ Sustainable growth instead requires evaluating how **scale** matches **community
 Targeted **non-marginal investment**, coordinated through voluntary bay management [2], can increase income and equity.
 
 In **single-bay management** (SBM), industry cooperatives unify siting and culture practice. 
-Objectives are to lower expenses, and fix or increase price. New sites have a mean frequency ($ λ  $, y<sup>-1</sup>), 
+Objectives are to lower expenses, and fix or increase price. New sites have a mean frequency (<Eqn text={"\\lambda"}/>, y<sup>-1</sup>), 
 such that new arrivals follow a Poisson counting process. Damariscotta River had 91 LPAs as of 2017. Issuance is 191 y<sup>-1</sup>, 
 accelerating by 30 y<sup>-2</sup> (DMR). Spacing restrictions give a footprint around 0.024 km<sup>2</sup>. 
-Given a window of size $ A_0  $, and a set of $ N  $ existing leases, no viable space will remain 
-in jurisdiction area $ A  $ after <Equation text={"t=A(41.66A_0-N)(\lambda A_0)^{-1}"}/>. 
+Given a window of size <Eqn text={"A_0"}/>, and a set of <Eqn text={"N"}/> existing leases, no viable space will remain 
+in jurisdiction area <Eqn text={"A"}/> after <Eqn text={"t=A(41.66A_0-N)(\\lambda A_0)^{-1}"}/>. 
 
 A less ideal packing efficiency that accounts for operators buffering themselves is 0.093 km<sup>2</sup>, which significantly reduces these estimates. 
 
 Growth may vary across tens of meters, so siting is fine-scale (figure below). New locations are sampled from a kernel density estimator, 
 trained on existing locations, depth, and satellite-derived oyster suitability. With projected growth, there are >200 sites in the region 
-by year 3 (table below). Mean $ t  $ is 15 years, without considering competing uses or closures. Less than 22% allocation, 
+by year 3 (table below). Mean <Eqn text={"t"}/> is 15 years, without considering competing uses or closures. Less than 22% allocation, 
 and some jurisdictions are already full. The model makes assumptions about space and market conflicts, given the area has a unique aquaculture history.
 
-| Year |$ N $|$ \lambda $|$ t $|$ min(t) $|
+| Year |<Eqn text={"N"}/>|<Eqn text={"\\lambda"}/>|<Eqn text={"t"}/>|<Eqn text={"min(t)"}/>|
 |---|---|---|---|---|
 | 0 | 91 | 36.4 | 15.2 | 0.001 |
 | 1 | 127 | 37.0 | 14.9 | \<0 |
@@ -51,7 +52,7 @@ and some jurisdictions are already full. The model makes assumptions about space
 
 One alternative is **site allocation planning** (SAP), which delineates growing zones [5] by environment and conflicting uses 
 (e.g. Maryland Natural Resource Code 4-11A-05). Production can be optimized within a given footprint. 
-Area incentives like credits or subsidies are structured at or above the municipal level—changing $ λ  $ within a 
+Area incentives like credits or subsidies are structured at or above the municipal level—changing <Eqn text={"\\lambda"}/> within a 
 jurisdiction—while shore facilities create point amenities. **Multi-stakeholder boards** (MSB) seek granular 
 siting input, and increased municipal involvement [2]. This aids information gathering, and increases legitimacy [6].
 

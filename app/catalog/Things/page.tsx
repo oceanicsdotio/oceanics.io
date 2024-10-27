@@ -313,7 +313,7 @@ export default function Page({}) {
   /**
    * Retrieve node data using Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({
+  const { collection, message } = useCollection({
     left,
     limit: parameters.limit.schema.default,
     offset: parameters.offset.schema.default,
@@ -326,7 +326,7 @@ export default function Page({}) {
       <Markdown>{description}</Markdown>
       <p>
         You can{" "}
-        <Link className={layout.link} href={"create/"}>
+        <Link href={"create/"}>
           create
         </Link>{" "}
         <code>Things</code>, and link them to {links}.
@@ -334,7 +334,7 @@ export default function Page({}) {
       <p>{message}</p>
       {collection.map(({uuid, ...thing}: IThings) => {
         return (
-          <NamedNode key={uuid} name={thing.name} left_uuid={uuid} onDelete={onDelete}>
+          <NamedNode key={uuid} name={thing.name} uuid={uuid} >
             <p>description: {thing.description ?? "n/a"}</p>
             <p>properties: {thing.properties ?? "n/a"}</p>
           </NamedNode>

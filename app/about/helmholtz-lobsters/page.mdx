@@ -1,3 +1,4 @@
+import {Equation as Eqn} from "@app/about/Equation";
 export const meta = {
    title: "Helmholtz lobsters",
    published: "2009-12-09T12:00:00.000Z",
@@ -11,13 +12,13 @@ Larval American lobsters (*Homarus americanus*) live suspended in surface waters
 
 ## Methods
 
-Lohmann et al (1995) used electromagnetic fields (EMF) to study navigation by *P. argus*. Two square coils in series create overlapping EMFs with an area of magnetic uniformity (Firester 1966). By applying appropriate voltage, the apparent geomagnetic polarity within this area can be reversed. For this design, 22 turns of 16-gauge insulated copper wire were wound around a PVC frame. Side length $S$ was 150 cm, with a coil separation of 82 cm (Figure 1). The uniform EMF of this configuration has \<0.5% deviation within a 50 cm diameter area (Firester 1966). 
+Lohmann et al (1995) used electromagnetic fields (EMF) to study navigation by *P. argus*. Two square coils in series create overlapping EMFs with an area of magnetic uniformity (Firester 1966). By applying appropriate voltage, the apparent geomagnetic polarity within this area can be reversed. For this design, 22 turns of 16-gauge insulated copper wire were wound around a PVC frame. Side length <Eqn text={"S"}/> was 150 cm, with a coil separation of 82 cm (Figure 1). The uniform EMF of this configuration has \<0.5% deviation within a 50 cm diameter area (Firester 1966). 
 
-The effect of rounded instead of square corners was ignored (pipe diameter = 5.08 cm). Firester's (1966) equation for the central field strength of a Helmholtz coil ($B$, gauss) was used with Ohm’s law to calculate the voltage $V$ necessary to reverse the magnetic field, $B=6.218 V S^{-2} R^{-1}$. 
+The effect of rounded instead of square corners was ignored (pipe diameter = 5.08 cm). Firester's (1966) equation for the central field strength of a Helmholtz coil (<Eqn text={"B"}/>, gauss) was used with Ohm’s law to calculate the voltage <Eqn text={"V"}/> necessary to reverse the magnetic field, <Eqn text={"B=6.218 V S^{-2} R^{-1}"}/>. 
 
-The resistance of the conductor $R$ (Ω/ft) is important here. Flux density and magnetic field strength can be used interchangeably in this case (Diament 2000). Additionally, air and water have similar magnetic permeability, so $B$ is accurate in either media (Lohmann et al 1995). Magnetic deviation as great as 40° existed in some areas of the lab (attributable to HVAC).  The coils were aligned using a compass in an area with minimal interference, such that north varied 5° between sides. 
+The resistance of the conductor <Eqn text={"R"}/> (Ω/ft) is important here. Flux density and magnetic field strength can be used interchangeably in this case (Diament 2000). Additionally, air and water have similar magnetic permeability, so <Eqn text={"B"}/> is accurate in either media (Lohmann et al 1995). Magnetic deviation as great as 40° existed in some areas of the lab (attributable to HVAC).  The coils were aligned using a compass in an area with minimal interference, such that north varied 5° between sides. 
 
-The horizontal geomagnetic component for Boston has a magnitude of 0.198 G (National Geophysical Data Center), but *in situ* magnetometer readings were 0.238-0.245 G. Therefore $B$=0.478 G. Two DC power supplies (3.41 and 3.50 V) were connected to the coils. Coil resistance was 1.85 and 2.05 Ω, including power supply leads (Fluke 8050A multimeter). The difference in current was under \<5 mA. The coils produced B=0.415 G, falling short of 0.478 G.
+The horizontal geomagnetic component for Boston has a magnitude of 0.198 G (National Geophysical Data Center), but *in situ* magnetometer readings were 0.238-0.245 G. Therefore <Eqn text={"B"}/>=0.478 G. Two DC power supplies (3.41 and 3.50 V) were connected to the coils. Coil resistance was 1.85 and 2.05 Ω, including power supply leads (Fluke 8050A multimeter). The difference in current was under \<5 mA. The coils produced B=0.415 G, falling short of 0.478 G.
 
 Ten *H. americanus* from the New England Aquarium were used in baseline tests, and a subset of those in EMF tests. During the experiment they were stage VI-VII (CL=8.8±0.5 mm), and molted before trials began. Lobsters were kept in individual mesh tubes in a flow-through tray with aerated 15 °C artificial seawater, under a 12:12 hr light schedule. They were fed *Artemia* daily. 
 

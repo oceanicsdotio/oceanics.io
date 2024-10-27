@@ -18,7 +18,7 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({
+  const { collection, message } = useCollection({
     left,
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default,
@@ -41,8 +41,7 @@ export default function Page({}) {
         return (
           <NamedNode
             key={uuid}
-            left_uuid={uuid}
-            onDelete={onDelete}
+            uuid={uuid}
             name={rest.name}
           >
             <p>description: {rest.description ?? "n/a"}</p>

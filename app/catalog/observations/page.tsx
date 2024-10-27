@@ -6,8 +6,9 @@ import specification from "@app/../specification.json";
 import layout from "@app/layout.module.css";
 import type { Observations } from "@oceanics/app";
 import { NamedNode } from "../Node";
+import Markdown from "react-markdown";
 const components = specification.components;
-const { title } = components.schemas.Observations;
+const { title, description } = components.schemas.Observations;
 
 /**
  * Display an index of all or some subset of the
@@ -17,7 +18,7 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({
+  const { collection, message } = useCollection({
     left: title, 
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default
@@ -27,6 +28,7 @@ export default function Page({}) {
    */
   return (
     <div>
+      <Markdown>{description}</Markdown>
       <p>
         You can <Link className={layout.link} href="create/">create</Link>{" "}
         <code>{title}</code>.
@@ -34,7 +36,7 @@ export default function Page({}) {
       <p>{message}</p>
       {collection.map(({uuid}: Omit<Observations, "free">) => {
         return (
-        <NamedNode key={uuid} left_uuid={uuid as any} name={undefined} onDelete={onDelete}>
+        <NamedNode key={uuid} uuid={uuid as any} name={undefined}>
         </NamedNode>
         );
       })}

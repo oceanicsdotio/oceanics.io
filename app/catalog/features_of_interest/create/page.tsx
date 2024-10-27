@@ -7,7 +7,7 @@ import useCreate, {TextInput} from "@catalog/useCreate";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
-const { title: left, properties, description } = specification.components.schemas.FeaturesOfInterest;
+const { title, properties, description } = specification.components.schemas.FeaturesOfInterest;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -25,7 +25,7 @@ export default function Create({}) {
    * Web Worker.
    */
   const { onSubmit, disabled, create, message } = useCreate({
-    left,
+    left: title,
   });
   /**
    * On submission, we delegate the request to our background

@@ -94,7 +94,6 @@ function Location({
   description,
   encodingType,
   location,
-  onDelete,
   map,
 }: INavigate) {
   const _location: LocationData = JSON.parse(location as any);
@@ -107,9 +106,8 @@ function Location({
   return (
     <>
       <NamedNode
-        onDelete={onDelete}
         name={name}
-        left_uuid={uuid}
+        uuid={uuid}
         controls={<button onClick={onNavigate}>View On Map</button>}
       >
         <div>
@@ -286,7 +284,6 @@ export default function Page({}) {
       <div className={styles.locations}>
         <div className={styles.mapbox} ref={ref} />
       </div>
-
       {collection.map(({ location, ...each }: ILocations) => (
         <Location
           key={each.uuid}
