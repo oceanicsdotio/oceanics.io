@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { Metadata } from "next";
-import Client from "@catalog/data_streams/client";
+import { Create } from "@catalog/data_streams/client";
 import openapi from "@app/../specification.json";
 const schema = openapi.components.schemas.DataStreams;
 /**
@@ -20,7 +20,7 @@ export default function Page({}) {
    */
   return (
     <Suspense>
-      <Client></Client>
+      <Create></Create>
     </Suspense>
   );
 }

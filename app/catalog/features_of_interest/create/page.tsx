@@ -9,6 +9,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-      <Suspense><Create/></Suspense>
+    <Suspense>
+      <Create />
+    </Suspense>
   );
 }
