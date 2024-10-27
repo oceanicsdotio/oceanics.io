@@ -21,7 +21,8 @@ import {TextInput} from "@catalog/client";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
-const { properties, title } = specification.components.schemas.DataStreams;
+export const schema = specification.components.schemas.DataStreams;
+const properties = schema.properties;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -44,7 +45,7 @@ export function Create({}) {
    * Web Worker.
    */
   const { onSubmit, disabled, create, message } = useCollection({
-    left: title,
+    left: schema.title,
     limit: 100,
     offset: 0
   });
@@ -81,14 +82,14 @@ export function Create({}) {
           name={"uuid"}
           inputRef={uuid}
           required
-          description={properties.uuid.description}
+          description={schema.properties.uuid.description}
           defaultValue={crypto.randomUUID()}
         ></TextInput>
         <TextInput
           name={"name"}
           inputRef={name}
           required
-          description={properties.name.description}
+          description={schema.properties.name.description}
         ></TextInput>
         <TextInput
           name={"description"}
@@ -254,7 +255,7 @@ function DataStream({
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function Collection({}) {
+export default function({}) {
   /**
    * Retrieve node data use Web Worker.
    */

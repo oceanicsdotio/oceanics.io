@@ -1,18 +1,14 @@
-import React from "react";
-import Markdown from "react-markdown";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { Create } from "@catalog/data_streams/client";
-import specification from "@app/../specification.json";
-/**
- * Get DataStreams properties from OpenAPI schema
- */
-const schema = specification.components.schemas.DataStreams;
+import Client from "@catalog/data_streams/client";
+import openapi from "@app/../specification.json";
+const schema = openapi.components.schemas.DataStreams;
 /**
  * Page browser metadata
  */
 export const metadata: Metadata = {
   title: `Oceanics.io | ${schema.title}`,
-  description: `Create new ${schema.title}`,
+  description: `Create new ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -23,9 +19,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <>
-      <Markdown>{schema.description}</Markdown>
-      <Create></Create>
-    </>
+    <Suspense>
+      <Client></Client>
+    </Suspense>
   );
 }

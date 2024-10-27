@@ -1,10 +1,9 @@
 import Link from "next/link";
 import React from "react";
 import specification from "@app/../specification.json";
-import Markdown from "react-markdown";
 import Collection from "@app/catalog/features_of_interest/client";
 import { getLinkedCollections } from "@app/catalog/page";
-const { title, description, properties } =
+const { title, properties } =
   specification.components.schemas.FeaturesOfInterest;
 const links = getLinkedCollections(properties);
 /**
@@ -16,8 +15,7 @@ export default function Page({}) {
    * Static Component
    */
   return (
-    <div>
-      <Markdown>{description}</Markdown>
+    <>
       <p>
         You can{" "}
         <Link href={"create/"} prefetch={false}>
@@ -26,6 +24,6 @@ export default function Page({}) {
         <code>{title}</code> and link them with {links}.
       </p>
       <Collection></Collection>
-    </div>
+    </>
   );
 }

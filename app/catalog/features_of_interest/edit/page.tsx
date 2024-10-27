@@ -1,6 +1,5 @@
 import React, { Suspense } from "react";
 import specification from "@app/../specification.json";
-import Markdown from "react-markdown";
 import {Linking} from "@catalog/client";
 /**
  * OpenAPI schema information used in the interface.
@@ -17,7 +16,6 @@ export default function Page({}) {
    */
   return (
     <>
-    <Markdown>{schema.description}</Markdown>
     <Suspense>
       <Linking {...schema}></Linking>
     </Suspense>

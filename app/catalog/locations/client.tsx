@@ -11,8 +11,11 @@ import React, {
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { NamedNode } from "../Node";
+import { NamedNode } from "@catalog/Node";
 
+import style from "@catalog/page.module.css";
+import {TextInput, NumberInput, TextSelectInput} from "@catalog/client";
+import {v7 as uuid7} from "uuid";
 
 const DEFAULTS = {
   zoom: 10,
@@ -77,10 +80,6 @@ interface INavigate extends ILocations {
   map: Map | null;
 }
 
-import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
-import {TextInput, NumberInput, TextSelectInput} from "@catalog/client";
-import {v7 as uuid7} from "uuid";
 /**
  * Number of decimal places in geospatial coordinates when automatically
  * determining location. A value of 4 gives good results to within tens
@@ -186,7 +185,6 @@ export function Create({}) {
    */
   return (
     <>
-      <Markdown>{description}</Markdown>
       <p>{message}</p>
       <hr />
       <form

@@ -1,6 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
+import openapi from "@app/../specification.json";
+import Markdown from "react-markdown";
+const schema = openapi.components.schemas.Locations;
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +12,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Link className={layout.link} href={"/catalog/locations/"}>
         Locations
       </Link>
-      <div className={layout.content}>{children}</div>
+      <div className={layout.content}>
+        <Markdown>{schema.description}</Markdown>
+        {children}
+      </div>
     </>
   );
 }

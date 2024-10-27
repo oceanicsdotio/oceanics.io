@@ -1,6 +1,5 @@
 import Link from "next/link";
 import React from "react";
-import Markdown from "react-markdown";
 import { Metadata } from "next";
 import { getLinkedCollections } from "@catalog/page";
 import Things from "@catalog/things/client";
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 /**
  * Static content from OpenAPI specification
  */
-const { properties, description, title } = openapi.components.schemas.Things;
+const { properties, title } = openapi.components.schemas.Things;
 /**
  * Linkable types of Node
  */
@@ -29,8 +28,7 @@ export default function Page({}) {
    * Server component enforces `use client` boundary.
    */
   return (
-    <div>
-      <Markdown>{description}</Markdown>
+    <>
       <p>
         You can <Link href={"create/"}>create</Link> <code>{title}</code>, and
         link them to {links}.
@@ -50,6 +48,6 @@ export default function Page({}) {
         pointSize={1.0}
         drop={0.01}
       />
-    </div>
+    </>
   );
 }
