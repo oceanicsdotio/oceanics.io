@@ -5,20 +5,20 @@ import { getLinkedCollections } from "@catalog/page";
 import Things from "@catalog/things/client";
 import openapi from "@app/../specification.json";
 /**
- * Browser and crawler metadata
- */
-export const metadata: Metadata = {
-  title: "Oceanics.io | Things",
-  description: "Catalog of Things",
-};
-/**
  * Static content from OpenAPI specification
  */
 const { properties, title } = openapi.components.schemas.Things;
 /**
- * Linkable types of Node
+ * Static linkable types of Node.
  */
 const links = getLinkedCollections(properties);
+/**
+ * Browser and crawler metadata.
+ */
+export const metadata: Metadata = {
+  title: `Oceanics.io | ${title}`,
+  description: `Catalog of ${title}`,
+};
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
