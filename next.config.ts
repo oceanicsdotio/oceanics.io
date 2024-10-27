@@ -1,10 +1,8 @@
-// https://nextjs.org/docs/basic-features/typescript#type-checking-nextconfigjs
-/**
- * @type {import('next').NextConfig}
- **/
-import withMDX from '@next/mdx'
+import type { NextConfig } from 'next';
+import withMDX from '@next/mdx';
+import remarkGFM from 'remark-gfm';
 
-const nextConfig = {
+const nextConfig: NextConfig = {
   output: "export",
   reactStrictMode: false,
   pageExtensions: ['mdx', 'tsx'],
@@ -38,5 +36,9 @@ const nextConfig = {
     return config;
   },
 };
-const final =  withMDX()(nextConfig);
+const final =  withMDX({
+  options: {
+    remarkPlugins: [remarkGFM]
+  }
+})(nextConfig);
 export default final
