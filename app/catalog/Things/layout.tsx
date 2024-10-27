@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       >
         Things
       </Link>
-      <>{children}</>
+      <div className={layout.content}>{children}</div>
     </>
   );
 }

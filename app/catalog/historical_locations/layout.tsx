@@ -1,7 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
-import layout from "../../layout.module.css";
+import layout from "@app/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Oceanics.io | Historical Location",
@@ -14,7 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <Link className={layout.link} href={"/catalog/historical_locations/"} prefetch={false}>
           HistoricalLocations
         </Link>
-      {children}
+        <div className={layout.content}>{children}</div>
     </>
   );
 }

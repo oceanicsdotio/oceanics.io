@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Link className={layout.link} href={"/catalog/observed_properties/"}>
         ObservedProperties
       </Link>
-      {children}
+      <div className={layout.content}>{children}</div>
     </>
   );
 }
