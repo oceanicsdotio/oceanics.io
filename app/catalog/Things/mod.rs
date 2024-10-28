@@ -4,13 +4,25 @@ use std::collections::hash_map::ValuesMut;
 use std::collections::{HashMap,HashSet};
 use std::iter::FromIterator;
 use std::f64::consts::PI;
-use std::ops::{Add, AddAssign, Sub, Mul, MulAssign, Div};
-use std::ops::{Index, SubAssign};
+use std::ops::{Add, AddAssign, Sub, Mul, MulAssign, Div, Index, SubAssign};
 use web_sys::{
     console, CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement, WebGlBuffer,
     WebGlFramebuffer, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlTexture,
     WebGlUniformLocation,
 };
+/**
+ * A thing is an object of the physical or information world that is capable of of being identified
+ * and integrated into communication networks.
+ */
+#[wasm_bindgen(getter_with_clone)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Things {
+    pub uuid: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub properties: Option<String>,
+}
 
 struct Program {
     program: WebGlProgram,
@@ -580,21 +592,6 @@ impl WebGl {
     }
 }
 
-/**
- * A thing is an object of the physical or information world that is capable of of being identified
- * and integrated into communication networks.
- */
-#[wasm_bindgen(getter_with_clone)]
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Things {
-    pub uuid: String,
-    pub name: String,
-    pub description: Option<String>,
-    pub properties: Option<String>,
-}
-
-
 #[wasm_bindgen]
 pub fn make_vertex_array(series: Vec<f64>) -> Vec<f64> {
 
@@ -610,10 +607,8 @@ pub fn make_vertex_array(series: Vec<f64>) -> Vec<f64> {
 pub fn rotate(angle: f32, delta: f32) -> f32 {
     return ((angle + delta) % 360.0) * 2.0*std::f32::consts::PI/360.0;
 }
-
-// Returns a transformation matrix as a flat array with 16 components
+/// Returns a transformation matrix as a flat array with 16 components
 pub fn transformation_matrix (ox: f32, oy: f32, oz: f32, rx: f32, ry: f32, rz: f32, s: f32, d: f32, f: f32, n: f32, ar: f32) -> [f32; 16] {
-
     let cx = rx.cos();
     let sx = rx.sin();
     let cy = ry.cos();
@@ -623,7 +618,6 @@ pub fn transformation_matrix (ox: f32, oy: f32, oz: f32, rx: f32, ry: f32, rz: f
     let a = d;
     let b = (n+f+2.0*d)/(f-n);
     let c = -(d*(2.0*n+2.0*f)+2.0*f*n+2.0*d*d)/(f-n);
-
     return [
         (cy*cz*s* a)/ar, cy*s*sz* a, -s*sy* b, -s*sy,
         (s*(cz*sx*sy-cx*sz)* a)/ar, s*(sx*sy*sz+cx*cz)* a, cy*s*sx* b, cy*s*sx,
@@ -635,7 +629,6 @@ pub fn transformation_matrix (ox: f32, oy: f32, oz: f32, rx: f32, ry: f32, rz: f
 }
 
 pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, aspect: f32) -> [f32; 16] {
-
     let ax = rotate(ax, dx);
     let ay = rotate(ay, dy);
     let az = rotate(az, dz);
@@ -646,7 +639,6 @@ pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, 
     let d = 3.0;
     let f = 2.0;
     let n = -1.0;
-
     return transformation_matrix(ox, oy, oz, ax, ay, az, s, d, f, n, aspect);
 }
 
@@ -656,7 +648,6 @@ pub struct Array {
 
 impl Index<usize> for Array {
     type Output = f64;
-
     fn index(&self, index: usize) -> &Self::Output {
         return &self.data[index]
     }
@@ -696,40 +687,25 @@ impl Array {
     pub fn mean(axis: usize) -> f64 {
         0.0
     }
-
     pub fn len(&self) -> usize {
         0
     }
 }
-
-
-
-/**
- * 3D rotation about any axis using quaternion multiplication
- */
+/// 3D rotation about any axis using quaternion multiplication
 fn quaternion(u: [f64;4], v: [f64;4]) -> [f64;4] {
-
     let mut r = [0.0; 4];
-
     r[0] = u[0]*v[0] - u[1]*v[1] - u[2]*v[2] - u[3]*v[3];   // A*B - dotProduct(U,V)
     r[1] = u[2]*v[3] - u[3]*v[2] + u[0]*v[1] + v[0]*u[1];   // crossProduct(U,V) + A*V + B*U;
     r[2] = u[3]*v[1] - u[1]*v[3] + u[0]*v[2] + v[0]*u[2];
     r[3] = u[1]*v[2] - u[2]*v[1] + u[0]*v[3] + v[0]*u[3];
-
     r
 }
-
-/**
- * The core data type, just a 3-element array inside a container.
- * 
- * We choose to do this so that vertex arrays can be sliced, without
- * needed to reformat memory.
- */
+/// The core data type for position and velocity.
 #[derive(Copy, Clone, Serialize)]
 struct Vec3 {
     pub value: [f64; 3]
 }
-
+/// Element wise vector addition
 impl Add<Vec3> for Vec3 {
     type Output = Vec3;
     fn add(self, _rhs: Vec3) -> Vec3 {
@@ -740,7 +716,7 @@ impl Add<Vec3> for Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise vector addition
 impl Add<&Vec3> for Vec3 {
     type Output = Vec3;
     fn add(self, _rhs: &Vec3) -> Vec3 {
@@ -751,7 +727,7 @@ impl Add<&Vec3> for Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise vector addition
 impl Add<Vec3> for &Vec3 {
     type Output = Vec3;
     fn add(self, _rhs: Vec3) -> Vec3 {
@@ -762,7 +738,7 @@ impl Add<Vec3> for &Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise vector addition
 impl Add<&Vec3> for &Vec3 {
     type Output = Vec3;
     fn add(self, _rhs: &Vec3) -> Vec3 {
@@ -773,7 +749,7 @@ impl Add<&Vec3> for &Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Uniform vector addition
 impl Add<f64> for Vec3 {
     type Output = Vec3;
     fn add(self, _rhs: f64) -> Vec3 {
@@ -784,7 +760,7 @@ impl Add<f64> for Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise += operator
 impl AddAssign<&Vec3> for Vec3 {
     fn add_assign(&mut self, rhs: &Vec3) {
         for (v, x) in self.value.iter_mut().zip(rhs.value.iter()) {
@@ -792,7 +768,7 @@ impl AddAssign<&Vec3> for Vec3 {
         }
     }
 }
-
+/// Element wise += operator
 impl AddAssign<Vec3> for &mut Vec3 {
     fn add_assign(&mut self, rhs: Vec3) {
         for (v, x) in self.value.iter_mut().zip(rhs.value.iter()) {
@@ -800,7 +776,7 @@ impl AddAssign<Vec3> for &mut Vec3 {
         }
     }
 }
-
+/// Element wise vector subtraction
 impl Sub<Vec3> for Vec3 {
     type Output = Vec3;
     fn sub(self, _rhs: Vec3) -> Vec3 {
@@ -811,7 +787,7 @@ impl Sub<Vec3> for Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise vector subtraction
 impl Sub<&Vec3> for &Vec3 {
     type Output = Vec3;
     fn sub(self, _rhs: &Vec3) -> Vec3 {
@@ -822,7 +798,7 @@ impl Sub<&Vec3> for &Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise vector multiplication
 impl Mul<Vec3> for Vec3 {
     type Output = Vec3;
     fn mul(self, _rhs: Vec3) -> Vec3 {
@@ -833,8 +809,7 @@ impl Mul<Vec3> for Vec3 {
         Vec3{ value: v }
     }
 }
-
-
+/// Element wise vector multiplication
 impl Mul<&Vec3> for &Vec3 {
     type Output = Vec3;
     fn mul(self, _rhs: &Vec3) -> Vec3 {
@@ -845,7 +820,7 @@ impl Mul<&Vec3> for &Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Uniform multiplication
 impl Mul<f64> for Vec3 {
     type Output = Self;
     fn mul(self, _rhs: f64) -> Vec3 {
@@ -856,7 +831,7 @@ impl Mul<f64> for Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Uniform multiplication
 impl Mul<f64> for &Vec3 {
     type Output = Vec3;
     fn mul(self, _rhs: f64) -> Vec3 {
@@ -867,7 +842,7 @@ impl Mul<f64> for &Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Element wise multiplication
 impl Mul<Vec3> for &Vec3 {
     type Output = Vec3;
     fn mul(self, _rhs: Vec3) -> Vec3 {
@@ -878,7 +853,7 @@ impl Mul<Vec3> for &Vec3 {
         Vec3{ value: v }
     }
 } 
-
+/// Uniform vector division
 impl Div<f64> for Vec3 {
     type Output = Vec3;
     fn div(self, rhs: f64) -> Vec3 {
@@ -889,7 +864,7 @@ impl Div<f64> for Vec3 {
         Vec3{ value: v }
     }
 }
-
+/// Uniform *= operator
 impl MulAssign<f64> for Vec3 {
     fn mul_assign(&mut self, rhs: f64) {
         for ii in 0..3 {
@@ -897,7 +872,7 @@ impl MulAssign<f64> for Vec3 {
         }
     }
 }
-
+/// Element wise *= operator
 impl MulAssign<&Vec3> for Vec3 {
     fn mul_assign(&mut self, rhs: &Vec3) {
         for (v, x) in self.value.iter_mut().zip(rhs.value.iter()) {
@@ -905,7 +880,7 @@ impl MulAssign<&Vec3> for Vec3 {
         }
     }
 }
-
+/// Element wise *= operator
 impl MulAssign<Vec3> for &mut Vec3 {
     fn mul_assign(&mut self, rhs: Vec3) {
         for (v, x) in self.value.iter_mut().zip(rhs.value.iter()) {
@@ -913,16 +888,13 @@ impl MulAssign<Vec3> for &mut Vec3 {
         }
     }
 }
-
 /**
  * Public interface for Vec3 type.
  */
 impl Vec3 {
 
     pub fn normal_form(&self) -> Vec3 {
-
         let [a, b, c] = self.value;
-
         Vec3 {
             value: [0.5*(a+1.0), 0.5*(b+1.0), 0.5*(c+1.0)]
         }
@@ -949,9 +921,7 @@ impl Vec3 {
     pub fn z(&self) -> f64 { self.value[2] }
 
     pub fn normalized(&self) -> Vec3 {
-
         let mag = self.magnitude();
-
         Vec3 { value: [
             self.x() / mag,
             self.y() / mag,
@@ -966,7 +936,6 @@ impl Vec3 {
         }
         sum
     }
-
 
     pub fn rotate(&self, angle: &f64, axis: &Vec3) -> Vec3 {
 
@@ -1006,12 +975,10 @@ impl Vec3 {
             ]
         }
     }
-    
     pub const XAXIS: Vec3 = Vec3{value: [1.0, 0.0, 0.0]};
     pub const YAXIS: Vec3 = Vec3{value: [0.0, 1.0, 0.0]};
     pub const ZAXIS: Vec3 = Vec3{value: [0.0, 0.0, 1.0]};
     pub const ORIGIN: Vec3 = Vec3{value: [0.0, 0.0, 0.0]};
-
 }
 
 /*
@@ -1042,7 +1009,6 @@ fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, dt: f
     [new_c.value, new_v.value]
 }
 
-
 fn color_map_z(z: f64, fade: &f64) -> String {
     format!(
         "rgba({},{},{},{:.2})", 
@@ -1052,8 +1018,6 @@ fn color_map_z(z: f64, fade: &f64) -> String {
         1.0 - fade * z
     )
 }
-
-
 /**
  * Reversibly combine two integers into a single integer. 
  * 
@@ -1123,7 +1087,6 @@ struct IndexInterval {
      */
     radix: u8
 }
-
 /**
  * JavaScript bindings `impl` meant to be called in the browser or a node function.
  */
@@ -1139,7 +1102,6 @@ impl IndexInterval {
             radix
         }
     }
-
     /**
      * Create an `IndexInterval` from a hash. 
      */
@@ -1153,7 +1115,6 @@ impl IndexInterval {
             radix
         }
     }
-
     /**
      * Get the net interval in the sequence
      */
@@ -1164,7 +1125,6 @@ impl IndexInterval {
             self.radix
         )
     }
-
     /**
      * Getter to allow access to hash
      */
@@ -1172,8 +1132,6 @@ impl IndexInterval {
         self.hash.clone()
     }
 }
-
-
 /**
  * The vertex array contains the points that make up the spatial component of
  * a triangulation network. 
@@ -1478,7 +1436,6 @@ impl Topology {
             }
         }
     }
-
     /**
     * Take an unordered pair of point indices, create an ordered 
     * and unique `EdgeIndex`, calculate the length of the edge,
@@ -1515,7 +1472,6 @@ pub struct TriangularMesh {
     pub vertex_array: VertexArray,
     pub topology: Topology
 }
-
 /**
  * Internal `impl` for the TriangularMesh data structure.
  */
@@ -1526,14 +1482,12 @@ impl TriangularMesh {
     pub fn insert_cell(&mut self, index: [u16; 3]) {
         self.topology.insert_cell(index);
     }
-
     /**
      * Hoist the `insert_point` function from child `vertex_array`. 
      */
     pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
         self.vertex_array.insert_point(index, coordinates);
     }
-
     /**
      * Because we memoize the edges as triangles are inserted, we can cheat and reconstruct
      * the neighbors from the pairs.
@@ -1541,10 +1495,8 @@ impl TriangularMesh {
      * This increases the cost of the program. 
      */
     pub fn neighbors(&self) -> HashMap<u16,HashSet<u16>> {
-
         let count = self.vertex_array.count();
         let mut lookup: HashMap<u16,HashSet<u16>> = HashMap::with_capacity(count);
-
         for (edge, _metadata) in self.topology.edges.iter() {
             let [a, b] = &edge.indices;
             if lookup.contains_key(a) {
@@ -1560,20 +1512,16 @@ impl TriangularMesh {
         }
         lookup
     }
-
     /**
      * Reflect across a single axis and return the reference
      * to self to enable chaining, because that tends to be
      * how the reflect command is used.
      */
     pub fn reflect(&mut self, dim: usize) -> &mut Self {
-        
         for vert in self.vertex_array.values_mut() {
             vert.value[dim] *= -1.0;
         }
-
         let mut flipped: HashSet<CellIndex> = HashSet::with_capacity(self.topology.cells.len());
-    
         for index in &self.topology.cells {
             let mut copy = index.clone();
             copy.flip();
@@ -1582,7 +1530,6 @@ impl TriangularMesh {
         self.topology.cells = flipped;
         self
     }
-
     /**
      * Insert the children of another mesh instance into the
      * current one.
@@ -1592,7 +1539,6 @@ impl TriangularMesh {
      * guarantee that no collisions happen.
      */
     fn append(&mut self, mesh: &TriangularMesh) {
-                    
         let offset = self.vertex_array.count() as u16;
         for (index, vert) in mesh.vertex_array.points().iter() {
             self.vertex_array.insert_point(
@@ -1600,7 +1546,6 @@ impl TriangularMesh {
                 *vert
             );
         }
-        
         for index in mesh.topology.cells.iter() {
             let [a, b, c] = index.indices;
             self.topology.cells.insert(CellIndex {
@@ -1612,7 +1557,6 @@ impl TriangularMesh {
             });
         }
     }
-
     /**
      * Rotate the vertices in place around an arbitrary axis.
      */
@@ -1622,12 +1566,10 @@ impl TriangularMesh {
         }
         self
     }
-
     /**
      * For all vertices except the last, scan the remaining vertices for duplicates. 
      */
     fn deduplicate(&mut self, threshold: f64) {
-        
         for ii in 0..(self.vertex_array.count()-1) as u16 { 
             for jj in (ii+1) as u16..self.vertex_array.count() as u16 { 
                 let delta = self.vertex_array.points()[&ii] - self.vertex_array.points()[&jj];
@@ -1689,15 +1631,10 @@ impl TriangularMesh {
         }
         (normals, face_normals)
     }
-
-    /**
-     * Create a simple RTIN type mesh
-     */
+    /// Create a simple RTIN type mesh
     pub fn from_rectilinear_shape(nx: usize, ny: usize) -> TriangularMesh {
-        
         let dx = 1.0 / (nx as f64);
         let dy = 1.0 / (ny as f64);
-
         let mut ni = 0;
         let mut start_pattern = false;
         let vertex_array = VertexArray::new(
@@ -1720,13 +1657,9 @@ impl TriangularMesh {
         for jj in 0..(ny+1) {
             let mut alternate_pattern = start_pattern;
             for ii in 0..(nx+1) {
-
                 let z: f64 = js_sys::Math::random();
-
                 mesh.insert_point(ni, Vec3 { value: [ dx * ii as f64, dy * jj as f64, z]});
-            
                 if (jj + 1 < (ny+1)) && (ii + 1 < (nx+1)) {
-
                     mesh.insert_cell([
                         ni as u16, 
                         (ni + nx as u16 + 1 + alternate_pattern as u16),
@@ -1744,42 +1677,10 @@ impl TriangularMesh {
             start_pattern = !start_pattern;
         }
         mesh.topology.edges.shrink_to_fit();
-
         mesh
     }
-
-    /**
-     * Divide the number of faces
-     */
-    fn subdivide(&mut self) {
-    
-        let cells = &mut self.topology.cells;
-        for _cell_index in cells.iter() {
-            // let index = [cell_index.a, cell_index.b, cell_index.c];
-            // let nv = self.vertex_array.points.len() as u16;
-
-            // for jj in 0..3 as u16 {
-            //     let ai = index[jj as usize] as u16;
-            //     let bi = (jj < 2) as u16 * (jj + 1);
-
-            //     let a: Vec3 = self.vertex_array.points[&ai].copy();
-            //     let b: Vec3 = self.vertex_array.points[&bi].copy();
-            //     let midpoint: Vec3 = (&a + &b) * 0.5;
-            //     let insert = jj + nv;
-
-            //     self.insert_point(insert, &midpoint * (0.5 * (a.magnitude() + b.magnitude()) / midpoint.magnitude()));
-                
-            //     if jj < 1 {
-            //         self.insert_cell([ai, insert+1, insert+3]);
-            //     } else {
-            //         self.insert_cell([ai, insert+1, insert]);
-            //     }   
-            // }
-            // self.insert_cell([nv, nv+1, nv+2]);
-        }
-    }
 }   
-    
+/// Style for connected nodes 2D animation
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Style {
@@ -1792,7 +1693,6 @@ pub struct Style {
     pub fade: f64,
     pub radius: f64
 }
-
 /**
  * Container for mesh that also contains cursor and rendering target information.
  */
@@ -1816,7 +1716,6 @@ impl InteractiveMesh {
             velocity: HashMap::with_capacity(0)
         }
     }
-
     /**
      * Adding an agent to the system requires inserting the coordinates
      * into the `vertex_array` mapping, and a state object into the
@@ -1828,7 +1727,6 @@ impl InteractiveMesh {
         }
         self.velocity.insert(index, Vec3{value:[0.0, 0.0, 0.0]});    
     }
-    
     /**
      * Render the current state of single Agent to HTML canvas. The basic
      * representation includes a scaled circle indicating the position, 
@@ -1863,8 +1761,6 @@ impl InteractiveMesh {
         }
         count
     } 
-
-
     /**
      * Edges are rendered as rays originating at the linked particle, and terminating
      * at a point defined by the source plus the `vec` attribute of Edge.

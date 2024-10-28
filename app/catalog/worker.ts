@@ -3,11 +3,6 @@ type WorkerCache = {
   handlers: { [key: string]: Function },
 };
 let CACHE: WorkerCache | null = null;
-const MOBILE = Boolean(
-  navigator.userAgent.match(
-    /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
-  )
-);
 /**
  * Only perform startup routine once
  */

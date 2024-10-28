@@ -1,15 +1,20 @@
 "use client";
-import React, { useRef, useEffect, useState, useCallback, type MutableRefObject, type ReactNode, type FormEventHandler } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+  type MutableRefObject,
+  type ReactNode,
+  type FormEventHandler,
+} from "react";
 import Markdown from "react-markdown";
 import style from "@catalog/page.module.css";
 import Link from "next/link";
 import specification from "@app/../specification.json";
-
 import layout from "@app/layout.module.css";
-
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -27,23 +32,25 @@ const ACTIONS = {
  * available nodes in the database.
  */
 export function useCollection(query: {
-  left: string
-  limit: number
-  offset: number
+  left?: string
+  limit?: number
+  offset?: number
+  right?: string
+  uuid?: string
 }) {
   /**
    * Ref to Web Worker.
    */
   const worker = useRef<Worker>();
   /**
-   * Node data, if any.
+   * Node or index data, if any.
    */
   const [collection, setCollection] = useState<any[]>([]);
   /**
    * Form handle, used to reset inputs on successful submission,
    * as reported through the worker message.
    */
-  const create = useRef<HTMLFormElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
   /**
    * Controls disabled until the worker is ready.
    */
@@ -58,26 +65,34 @@ export function useCollection(query: {
   const workerMessageHandler = useCallback(
     ({ data: { data, type } }: MessageEvent) => {
       switch (type) {
+        case ACTIONS.getIndex:
+          setCollection(data);
+          setMessage(`✓ Found ${data.length} indexed collections`);
+          return;
         case ACTIONS.getCollection:
-          setMessage(`✓ Found ${data.value.length}`);
+          setMessage(`✓ Found ${data.value.length} nodes`);
           setCollection(data.value);
-          window.scrollTo({top: 0, behavior: "smooth"});
+          window.scrollTo({ top: 0, behavior: "smooth" });
           return;
         case ACTIONS.deleteEntity:
-          setMessage(`✓ Deleted 1`);
+          setMessage(`✓ Deleted 1 node`);
           setCollection((previous: any[]) => {
             return previous.filter((each) => each.uuid !== data.uuid);
           });
           return;
         case ACTIONS.createEntity:
-          console.log("@client", data.type, data.data);
           if (data.data) {
-            create.current?.reset();
-            setMessage("✓ Created 1");
+            formRef.current?.reset();
+            setMessage("✓ Created 1 node");
           } else {
             setMessage("! Something Went Wrong");
           }
-        return;
+          return;
+        case ACTIONS.getLinked:
+          setMessage(`✓ Found ${data.value.length} linked nodes`);
+          setCollection(data.value);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
         case ACTIONS.error:
           console.error("@worker", type, data);
           return;
@@ -101,21 +116,9 @@ export function useCollection(query: {
     worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    const user = localStorage.getItem("gotrue.user");
-    if (typeof user !== "undefined") {
-      worker.current.postMessage({
-        type: ACTIONS.getCollection,
-        data: {
-          query,
-          user,
-        },
-      });
-    } else {
-      console.error("User is not logged in.");
-    }
     const handle = worker.current;
     setDisabled(false);
-    // setMessage("✓ Ready");
+    setMessage("✓ Ready");
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
@@ -124,43 +127,81 @@ export function useCollection(query: {
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
    */
+  const tryPostMessage = useCallback((message: { type: string; data: any }) => {
+    if (!worker.current) {
+      setMessage("! Worker isn't ready");
+      return;
+    }
+    const user = localStorage.getItem("gotrue.user");
+    if (typeof user === "undefined") {
+      setMessage("! You are not logged in");
+      return;
+    }
+    worker.current.postMessage({ user, ...message });
+    setMessage("↻ Working");
+  }, []);
+
   const onSubmitCreate =
     (callback: any): FormEventHandler =>
     (event) => {
       event.preventDefault();
-      const user = localStorage.getItem("gotrue.user");
-      worker.current?.postMessage({
+      tryPostMessage({
         type: ACTIONS.createEntity,
         data: {
           query: { left: query.left },
-          user,
           body: JSON.stringify(callback()),
         },
       });
-      setMessage("↻ Working");
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
+
+  const onGetCollection = () => {
+    tryPostMessage({
+      type: ACTIONS.getCollection,
+      data: {
+        query: {
+          left: query.left
+        },
+      },
+    });
+  };
+
+  const onGetLinked: FormEventHandler = (event) => {
+    event.preventDefault();
+    tryPostMessage({
+      type: ACTIONS.getLinked,
+      data: {
+        query: {
+          left: query.left,
+          uuid: query.uuid,
+          right: query.right
+        }
+      },
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const onGetIndex = () => {
+    tryPostMessage({
+      type: ACTIONS.getIndex,
+      data: {},
+    });
+  };
   /**
    * Delete a resource
    */
-  const onDelete = (left_uuid: string) => {
-    if (!left_uuid) {
-      console.warn("UUID is undefined during delete operation")
-      return;
-    }
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this node and its relationships?"
-      )
-    ) {
-      return;
-    }
-    const user = localStorage.getItem("gotrue.user");
-    worker.current?.postMessage({
+  const onDelete = () => {
+    const confirmation = window.confirm(
+      "Are you sure you want to delete this node and its relationships?"
+    )
+    if (!confirmation) return;
+    tryPostMessage({
       type: ACTIONS.deleteEntity,
       data: {
-        query,
-        user,
+        query: {
+          left: query.left,
+          uuid: query.uuid
+        }
       },
     });
   };
@@ -173,11 +214,13 @@ export function useCollection(query: {
     worker,
     onDelete,
     disabled,
-    onSubmit: onSubmitCreate,
-    create,
+    onSubmitCreate,
+    create: formRef,
+    onGetIndex,
+    onGetCollection,
+    onGetLinked,
   };
 }
-
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -186,12 +229,12 @@ export function NamedNode({
   name,
   children,
   uuid,
-  controls
+  controls,
 }: {
-  name?: string
-  children?: ReactNode
-  uuid: string
-  controls?: ReactNode
+  name?: string;
+  children?: ReactNode;
+  uuid: string;
+  controls?: ReactNode;
 }) {
   const url = `edit/?uuid=${uuid}`;
   const [showDetails, setShowDetails] = useState(false);
@@ -204,7 +247,9 @@ export function NamedNode({
         {name ?? uuid}
       </Link>
       <div>
-        <button className={layout.button} onClick={onDetails}>Show Details</button>
+        <button className={layout.button} onClick={onDetails}>
+          Show Details
+        </button>
         {controls}
       </div>
       {showDetails && children}
@@ -226,91 +271,14 @@ export function Linking(schema: {
   const query = useSearchParams();
   const right = query.get("right");
   const left_uuid = query.get("uuid");
+  const pathname = usePathname();
+  const { push } = useRouter();
   /**
    * Form data is synced with user input
    */
   const neighborType = useRef<HTMLSelectElement | null>(null);
-  /**
-   * Ref to Web Worker.
-   */
-  const worker = useRef<Worker>();
-  /**
-   * Node data.
-   */
-  let [collection, setCollection] = useState<any[]>([]);
-  /**
-   * Summary message displaying load state.
-   */
-  let [message, setMessage] = useState("↻ Searching");
-  /**
-   * Process web worker messages.
-   */
-  const workerMessageHandler = useCallback(
-    ({ data: { data, type } }: MessageEvent) => {
-      switch (type) {
-        case ACTIONS.getLinked:
-          setMessage(`✓ Found ${data.value.length}`);
-          setCollection(data.value);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        case ACTIONS.error:
-          console.error("@worker", type, data);
-          return;
-        default:
-          console.warn("@client", type, data);
-          return;
-      }
-    },
-    []
-  );
-  /**
-   * Load Web Worker on component mount
-   */
-  useEffect(() => {
-    if (!right) return;
-    worker.current = new Worker(
-      new URL("@catalog/worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
-    worker.current.addEventListener("message", workerMessageHandler, {
-      passive: true,
-    });
-    const user = localStorage.getItem("gotrue.user");
-    if (typeof user !== "undefined") {
-      worker.current.postMessage({
-        type: ACTIONS.getLinked,
-        data: {
-          query: {
-            left_uuid,
-            left: schema.title,
-            right,
-            limit: 10,
-            offset: 0
-          },
-          user,
-        },
-      });
-    } else {
-      console.error("User is not logged in.");
-    }
-    const handle = worker.current;
-    return () => {
-      handle.removeEventListener("message", workerMessageHandler);
-    };
-  }, []);
-
-  const pathname = usePathname();
-  const { push } = useRouter();
-
-  useEffect(() => {
-    console.log({ collection });
-  }, [collection]);
-
   return (
     <>
-      <hr />
       <form
         className={style.form}
         onSubmit={() => {
@@ -329,9 +297,7 @@ export function Linking(schema: {
         />
         <button className={style.submit}>Load</button>
       </form>
-      <p>{message}</p>
-      <hr />
-      <div>
+      {/* <div>
         {collection.map(({ uuid, ...rest }) => {
           const _right = (right??"").split(/\.?(?=[A-Z])/).join("_").toLowerCase();
           return (
@@ -340,17 +306,16 @@ export function Linking(schema: {
             </p>
           );
         })}
-      </div>
+      </div> */}
     </>
   );
 }
-
 
 function InputMetadata({
   name,
   description,
   required = false,
-  children
+  children,
 }: {
   name: string;
   description: string;
@@ -387,11 +352,7 @@ export function NumberInput({
   step?: number;
 }) {
   return (
-    <InputMetadata
-      name={name}
-      description={description}
-      required={required}
-    >
+    <InputMetadata name={name} description={description} required={required}>
       <input
         className={style.input}
         id={name}
@@ -410,8 +371,8 @@ export function TextInput({
   inputRef,
   description,
   required = false,
-  defaultValue,
-  readOnly=false
+  readOnly = false,
+  ...rest
 }: {
   name: string;
   inputRef: MutableRefObject<HTMLInputElement | null>;
@@ -419,13 +380,12 @@ export function TextInput({
   required?: boolean;
   defaultValue?: string;
   readOnly?: boolean;
+  pattern?: string;
+  minlength?: number;
+  maxlength?: number;
 }) {
   return (
-    <InputMetadata
-      name={name}
-      description={description}
-      required={required}
-    >
+    <InputMetadata name={name} description={description} required={required}>
       <input
         className={style.input}
         id={name}
@@ -434,8 +394,8 @@ export function TextInput({
         placeholder="..."
         ref={inputRef}
         required={required}
-        defaultValue={defaultValue}
         readOnly={readOnly}
+        {...rest}
       />
     </InputMetadata>
   );
@@ -446,7 +406,7 @@ export function TextSelectInput({
   inputRef,
   description,
   defaultValue,
-  options
+  options,
 }: {
   name: string;
   inputRef: MutableRefObject<HTMLSelectElement | null>;
@@ -455,10 +415,7 @@ export function TextSelectInput({
   options: string[];
 }) {
   return (
-    <InputMetadata
-      name={name}
-      description={description}
-    >
+    <InputMetadata name={name} description={description}>
       <select
         className={style.input}
         id={name}
@@ -477,23 +434,23 @@ export function TextSelectInput({
     </InputMetadata>
   );
 }
-
-/**
- * Data passed back from worker to render collection link
- */
-interface ICollection {
-  name: string;
-  href: string;
-  url: string;
-  content: string;
-  "@iot.count": number;
-}
 /**
  * Link item for listing available collections. We don't care about order,
  * because we have no way of knowing which collections have nodes until
  * we make further queries.
  */
-function Collection({ name, href, content, "@iot.count": count }: ICollection) {
+function Collection({
+  name,
+  href,
+  content,
+  "@iot.count": count,
+}: {
+  name: string;
+  href: string;
+  url: string;
+  content: string;
+  "@iot.count": number;
+}) {
   /**
    * Specification for one entity model. Could instead be passed
    * through the API, since it already knows the specification.
@@ -512,76 +469,24 @@ function Collection({ name, href, content, "@iot.count": count }: ICollection) {
     </div>
   );
 }
-/**
- * The OpenApi component uses an OpenAPI specification for a
- * simulation backend, and uses it to construct an interface.
- */
-export function Index({}) {
-  /**
-   * Ref to Web Worker.
-   */
-  const worker = useRef<Worker | null>(null);
-  /**
-   * Index data loaded from the API.
-   */
-  const [index, setIndex] = useState<ICollection[]>([]);
-  /**
-   * Display message, workaround Suspense Data Fetching debacle.
-   */
-  const [message, setMessage] = useState("↻ Searching");
-  /**
-   * Process messages from Web Worker. Warn on unprocessed.
-   */
-  const workerMessageHandler = useCallback(({ data: { type, data } }: any) => {
-    switch (type) {
-      case ACTIONS.getIndex:
-        setIndex(data);
-        setMessage(`✓ Found ${data.length} indexed collections`);
-        return;
-      case ACTIONS.error:
-        console.error("worker", type, data);
-        setMessage(`! Something went wrong`);
-        return;
-      default:
-        console.warn("client", type, data);
-        return;
-    }
-  }, []);
-  /**
-   * Load Web Worker on component mount. I think the path needs to be
-   * hard-coded here for webpack/bundlers to be able to include it.
-   */
-  useEffect(() => {
-    worker.current = new Worker(
-      new URL("@catalog/worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
-    worker.current.addEventListener("message", workerMessageHandler, {
-      passive: true,
-    });
-    const user_data = localStorage.getItem("gotrue.user");
-    if (typeof user_data !== "undefined" && user_data) {
-      worker.current.postMessage({
-        type: ACTIONS.getIndex,
-        data: { user: user_data },
-      });
-    } else {
-      setMessage("! You aren't logged in");
-    }
-    const handle = worker.current;
-    return () => {
-      handle.removeEventListener("message", workerMessageHandler);
-    };
-  }, [workerMessageHandler]);
+export default function ({}) {
+  const { onGetCollection, collection, message, disabled } = useCollection({
+    limit: 100,
+    offset: 0,
+    left: "",
+    right: ""
+  });
+  useEffect(()=>{
+    if (disabled) return;
+    onGetCollection();
+  },[disabled])
   /**
    * Client Component.
    */
   return (
     <div>
       <p>{message}</p>
-      {index.map((each, index) => (
+      {collection.map((each, index) => (
         <Collection key={`collection-${index}`} {...each} />
       ))}
     </div>

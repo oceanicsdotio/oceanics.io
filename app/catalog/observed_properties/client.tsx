@@ -30,7 +30,7 @@ export function Create({}) {
   /**
    * Web Worker.
    */
-  const { onSubmit, disabled, create, message } = useCollection({
+  const { onSubmitCreate, disabled, create, message } = useCollection({
     left: title,
     limit: 100,
     offset: 0
@@ -56,7 +56,7 @@ export function Create({}) {
       <hr />
       <form
         className={style.form}
-        onSubmit={onSubmit(onSubmitCallback)}
+        onSubmit={onSubmitCreate(onSubmitCallback)}
         ref={create}
       >
         <TextInput

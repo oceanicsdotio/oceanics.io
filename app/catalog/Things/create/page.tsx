@@ -2,16 +2,19 @@ import React, { Suspense } from "react";
 import { ThingsForm } from "@catalog/things/client";
 import openapi from "@app/../specification.json";
 import { type Metadata } from "next";
+import {v7 as uuid7} from "uuid";
+const action = "Create"
 /**
  * OpenAPI schema information used in the interface.
  */
 const schema = openapi.components.schemas.Things;
+const parameters = openapi.components.parameters;
 /**
  * Browser and crawler metadata
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
-  description: `Create new ${schema.title}. ${schema.description}`,
+  title: `${openapi.info.title} | ${schema.title}`,
+  description: `${action} ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -24,10 +27,11 @@ export default function Page({}) {
   return (
       <Suspense>
         <ThingsForm
-          limit={100}
-          offset={0}
+          action={action}
+          limit={parameters.limit.schema.default}
+          offset={parameters.offset.schema.default}
           initial={{
-            uuid: crypto.randomUUID(),
+            uuid: uuid7(),
             name: "",
           }}
         />

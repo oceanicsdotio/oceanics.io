@@ -95,19 +95,22 @@ pub struct Cypher {
 }
 
 impl Cypher {
+    /// Create a raw cypher query
     pub fn new(query: String, default_access_mode: String) -> Self {
         Cypher{
             default_access_mode,
             query
         }
     }
-
+    /// Create the config object. Very simple
+    /// for the time being, but has more features
+    /// available.
     fn session_config(&self) -> JsValue {
         JsValue::from(Config{
             default_access_mode: self.default_access_mode.clone(),
         })
     }
-
+    /// Run the QC'd query
     pub async fn run(
         &self,
         url: &String,
@@ -132,7 +135,6 @@ pub struct Links {
     label: Option<String>,
     pattern: Option<String>,
 }
-
 /// Format the cypher query representation of the Links
 /// data structure.
 ///
@@ -152,7 +154,6 @@ impl fmt::Display for Links {
         write!(f, "-[ r{}{} ]-", label, pattern)
     }
 }
-
 /// Link implementation for Python contains Cypher
 /// query generators.
 impl Links {
@@ -170,20 +171,19 @@ impl Links {
     pub fn create() -> Self {
         Links::new(Some("Create".to_string()), None)
     }
-
+    /// Matching pattern used when performing
+    /// unconstrained topological queries.
     pub fn wildcard() -> Self {
         Links {
             label: None,
             pattern: None
         }
     }
-
     /// Query to remove a links between node patterns
     pub fn drop(&self, left: &Node, right: &Node) -> Cypher {
         let query = format!("MATCH {}{}{} DELETE r", left, self, right);
         Cypher::new(query, "WRITE".to_string())
     }
-
     /// Create links between node patterns
     pub fn join(&self, left: &Node, right: &Node) -> Cypher {
         let query = format!(
@@ -196,7 +196,6 @@ impl Links {
         );
         Cypher::new(query, "WRITE".to_string())
     }
-
     /// Use link-based queries to get all children/siblings.
     /// This cypher query transforms all
     /// the results into a JSON array and sends as single record,
@@ -274,15 +273,17 @@ pub struct Node {
     pub symbol: String,
     pub label: Option<String>,
 }
-
 /// Methods used internally, but without JavaScript bindings.
 impl Node {
-
+    /// Uses the label index to get approximate node counts.
+    /// Perform the conversion to structured data within the 
+    /// query since we know there are limited number of
+    /// collections.
     pub fn get_label_counts() -> Cypher {
         let query = String::from("
             CALL apoc.meta.stats() YIELD labels 
             WITH apoc.map.removeKey(labels, 'User') AS filtered
-            UNWIND keys(filtered) as key 
+            UNWIND keys(filtered) as key ORDER BY key
             WITH key, filtered, apoc.text.split(key, '\\.?(?=[A-Z])') AS words
             WITH {
               name: key, 
@@ -295,11 +296,6 @@ impl Node {
         ");
         let cypher = Cypher::new(query, "READ".to_string());
         cypher
-    }
-
-    fn _string_to_value(key_value: &str) -> (&str, &str) {
-        let parts: Vec<&str> = key_value.split(": ").collect();
-        (parts[0].trim(), &parts[1].trim()[1..])
     }
 
     pub fn from_hash_map_and_symbol(
@@ -442,7 +438,8 @@ impl Node {
 
 /// Implement Cypher Query generation methods.
 impl Node {
-
+    /// Construct a Node of type User from email. These don't behave quite like other nodes,
+    /// and do not make it to the frontend.
     pub fn user_from_string(email: String) -> Self {
         let mut user_props = HashMap::<String, Value>::with_capacity(1);
         user_props.insert("email".to_string(), json!(email));
@@ -452,7 +449,10 @@ impl Node {
             &"User".to_string()
         )
     }
-
+    /// Create a node from label and uuid. This pattern
+    /// can be used to match single node when you know
+    /// its identifier. Not used when writing data, since
+    /// we expect to have more data than just uuid.
     pub fn from_uuid(label: &String, uuid: &String) -> Self {
         let mut user_props = HashMap::<String, Value>::with_capacity(1);
         user_props.insert("uuid".to_string(), json!(uuid));
@@ -462,7 +462,6 @@ impl Node {
             label
         )
     }
-
     /// Delete a node pattern from the graph. This
     /// explicitly prevents Provider nodes from
     /// being deleted.
@@ -481,7 +480,6 @@ impl Node {
         );
         Cypher::new(query, "WRITE".to_string())
     }
-
     /// Format a query that will merge a pattern
     /// into all matching nodes. Both the target
     /// and the update Node must have some
@@ -512,7 +510,6 @@ impl Node {
                 panic!("Cannot mutate using this pattern")
             }
         }
-
         let query = format!(
             "MATCH {} SET {} += {{ {} }}",
             self,
@@ -521,7 +518,6 @@ impl Node {
         );
         Cypher::new(query, "WRITE".to_string())
     }
-
     /// Generate a query to load data from the database.
     /// We require a label to prevent potential leaks of
     /// internal node data from a generic query.
@@ -539,7 +535,6 @@ impl Node {
         let query = format!("MATCH {} RETURN {}{}", self, self.symbol, variable);
         Cypher::new(query, "READ".to_string())
     }
-
     /// Create or update a node. Throw an error if the node
     /// has no properties. Should in no case create an
     /// instance without uuid or other indexed identifier.
@@ -558,8 +553,6 @@ impl Node {
         }
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {

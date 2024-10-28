@@ -1,7 +1,6 @@
 import React, { Suspense } from "react";
 import openapi from "@app/../specification.json";
-import { Linking } from "@catalog/client";
-import { ThingsForm } from "@catalog/things/client";
+import Client, { action } from "@catalog/things/edit/client";
 import { type Metadata } from "next";
 /**
  * OpenAPI schema information used in the interface.
@@ -11,8 +10,8 @@ const schema = openapi.components.schemas.Things;
  * Browser and crawler metadata
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
-  description: `Manage ${schema.title}. ${schema.description}`,
+  title: `${openapi.info.title} | ${schema.title}`,
+  description: `${action} ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -20,18 +19,8 @@ export const metadata: Metadata = {
  */
 export default function Page({}) {
   return (
-    <>
-      <ThingsForm
-        limit={100}
-        offset={0}
-        initial={{
-          uuid: "",
-          name: "",
-        }}
-      />
-      <Suspense>
-        <Linking {...schema}></Linking>
-      </Suspense>
-    </>
+    <Suspense>
+      <Client />
+    </Suspense>
   );
 }

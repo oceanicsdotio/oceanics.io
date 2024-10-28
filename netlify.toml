@@ -28,26 +28,3 @@
     "@logtail/js"
   ]
 
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-
-[[redirects]]
-  from = "/compute/*" 
-  to = "/"
-  status = 401
-  force = true
-
-[[redirects]]
-  from = "/read/*" 
-  to = "/"
-  status = 401
-  force = true

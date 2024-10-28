@@ -10,7 +10,7 @@ import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
 import {TextInput} from "@catalog/client";
 
-const { properties, description, title: left } = specification.components.schemas.Sensors;
+const { properties, title: left } = specification.components.schemas.Sensors;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -27,7 +27,7 @@ export function Create({}) {
   /**
    * Web Worker.
    */
-  const { onSubmit, disabled, create, message } = useCollection({
+  const { onSubmitCreate, disabled, create, message } = useCollection({
     left,
     limit: 10,
     offset: 0
@@ -54,7 +54,7 @@ export function Create({}) {
       <hr />
       <form
         className={style.form}
-        onSubmit={onSubmit(onSubmitCallback)}
+        onSubmit={onSubmitCreate(onSubmitCallback)}
         ref={create}
       >
         <TextInput

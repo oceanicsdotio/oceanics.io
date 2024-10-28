@@ -1,33 +1,25 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import {useCollection} from "@catalog/client";
-import specification from "@app/../specification.json";
+import { useCollection, TextInput } from "@catalog/client";
+import openapi from "@app/../specification.json";
+import style from "@catalog/page.module.css";
+import Markdown from "react-markdown";
 import Link from "next/link";
 import type {
   InteractiveDataStream,
   DataStreamStyle,
-  DataStreams
+  DataStreams,
 } from "@oceanics/app";
-import styles from "@catalog/page.module.css";
-
-const components = specification.components;
-const {
-  title: left,
-} = specification.components.schemas.DataStreams;
-
-import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
-import {TextInput} from "@catalog/client";
 /**
- * Get DataStreams properties from OpenAPI schema
+ * Properties from OpenAPI schema
  */
-export const schema = specification.components.schemas.DataStreams;
-const properties = schema.properties;
+const {properties, title} = openapi.components.schemas.DataStreams;
+const {parameters} = openapi.components;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Create({}) {
+export function DataStreamsForm({action}:{action: string}) {
   /**
    * Form data is synced with user input
    */
@@ -44,10 +36,10 @@ export function Create({}) {
   /**
    * Web Worker.
    */
-  const { onSubmit, disabled, create, message } = useCollection({
-    left: schema.title,
+  const { onSubmitCreate, disabled, create, message } = useCollection({
+    left: title,
     limit: 100,
-    offset: 0
+    offset: 0,
   });
   /**
    * On submission, we delegate the request to our background
@@ -75,21 +67,21 @@ export function Create({}) {
       <hr />
       <form
         className={style.form}
-        onSubmit={onSubmit(onSubmitCallback)}
+        onSubmit={onSubmitCreate(onSubmitCallback)}
         ref={create}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
-          description={schema.properties.uuid.description}
+          description={properties.uuid.description}
           defaultValue={crypto.randomUUID()}
         ></TextInput>
         <TextInput
           name={"name"}
           inputRef={name}
           required
-          description={schema.properties.name.description}
+          description={properties.name.description}
         ></TextInput>
         <TextInput
           name={"description"}
@@ -137,16 +129,12 @@ export function Create({}) {
         </select>
         <Markdown>{properties.observationType.description}</Markdown>
         <button className={style.submit} disabled={disabled}>
-          Create
+          {action}
         </button>
       </form>
     </>
   );
 }
-
-type WasmInteraction = {
-  InteractiveDataStream: typeof InteractiveDataStream;
-} | null;
 /**
  * Buffer of visible/stored observations.
  */
@@ -183,11 +171,11 @@ let draw: Omit<DataStreamStyle, "free"> = {
 function DataStream({
   dataStream,
   setSource,
-  active
+  active,
 }: {
-  dataStream: DataStreams,
-  setSource: (stream: DataStreams) => void,
-  active: boolean
+  dataStream: DataStreams;
+  setSource: (stream: DataStreams) => void;
+  active: boolean;
 }) {
   /**
    * Show additional metadata
@@ -210,10 +198,7 @@ function DataStream({
    */
   return (
     <div>
-      <Link
-        href={`edit/?uuid=${dataStream.uuid}`}
-        prefetch={false}
-      >
+      <Link href={`edit/?uuid=${dataStream.uuid}`} prefetch={false}>
         {dataStream.name ?? dataStream.uuid}
       </Link>
       {active ? " ✓" : ""}
@@ -224,7 +209,12 @@ function DataStream({
         <button onClick={onLess} disabled={detailLevel === 0}>
           Less Detail
         </button>
-        <button onClick={()=>{setSource(dataStream)}} disabled={active}>
+        <button
+          onClick={() => {
+            setSource(dataStream);
+          }}
+          disabled={active}
+        >
           View
         </button>
       </div>
@@ -238,7 +228,9 @@ function DataStream({
           <p>unit of measurement:</p>
           <p>{`\tname: ${dataStream.unitOfMeasurement?.name ?? "n/a"}`}</p>
           <p>{`\tsymbol: ${dataStream.unitOfMeasurement?.symbol ?? "n/a"}`}</p>
-          <p>{`\tdefinition: ${dataStream.unitOfMeasurement?.definition ?? "n/a"}`}</p>
+          <p>{`\tdefinition: ${
+            dataStream.unitOfMeasurement?.definition ?? "n/a"
+          }`}</p>
         </div>
       )}
       {detailLevel > 2 && (
@@ -253,19 +245,25 @@ function DataStream({
 }
 /**
  * Display an index of all or some subset of the
- * available nodes in the database.
+ * available nodes in the database. This is used 
+ * wherever you need to fetch and render all
+ * or a subset of `DataStreams`.
  */
 export default function({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({ left, 
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default });
+  const { collection, message } = useCollection({
+    left: title,
+    limit: parameters.limit.schema.default,
+    offset: parameters.offset.schema.default,
+  });
   /**
    * Keep reference to the WASM constructor
    */
-  const [ wasm, setWasm ] = useState<WasmInteraction>(null);
+  const [wasm, setWasm] = useState<{
+    InteractiveDataStream: typeof InteractiveDataStream;
+  } | null>(null);
   /**
    * Load Web Worker on component mount
    */
@@ -288,6 +286,10 @@ export default function({}) {
   const [interactive, setInteractive] = useState<InteractiveDataStream | null>(
     null
   );
+  /**
+   * Current data source. Only supports streaming one
+   * at a time for now.
+   */
   const [source, setSource] = useState<DataStreams | null>(null);
   /**
    * User controlled playback
@@ -306,33 +308,33 @@ export default function({}) {
     start: null,
     stop: null,
   });
-    /**
+  /**
    * Draw as time series. Or, Draw as histogram.
    */
-    useEffect(() => {
-      if (!interactive || !canvas.current || !play || !clock.start) return;
-      const handle = canvas.current;
-      handle.addEventListener("mousemove", ({ clientX, clientY }) => {
-        const { left, top } = handle.getBoundingClientRect();
-        interactive.update_cursor(clientX - left, clientY - top);
-      });
-      [handle.width, handle.height] = ["width", "height"].map((dim) =>
-        Number(getComputedStyle(handle).getPropertyValue(dim).slice(0, -2))
-      );
-      let requestId: number | null = null;
-      (function render() {
-        if (!play) return;
-        const elapsed = performance.now() - clock.offset - clock.start;
-        const phenomenonTime = timeConstant * elapsed;
-        const result = Math.sin(phenomenonTime);
-        interactive.pushObservation({ phenomenonTime, result }, -1.0, 1.0);
-        interactive.draw(handle, draw, false);
-        requestId = requestAnimationFrame(render);
-      })();
-      return () => {
-        if (requestId) cancelAnimationFrame(requestId);
-      };
-    }, [interactive, canvas, play]);
+  useEffect(() => {
+    if (!interactive || !canvas.current || !play || !clock.start) return;
+    const handle = canvas.current;
+    handle.addEventListener("mousemove", ({ clientX, clientY }) => {
+      const { left, top } = handle.getBoundingClientRect();
+      interactive.update_cursor(clientX - left, clientY - top);
+    });
+    [handle.width, handle.height] = ["width", "height"].map((dim) =>
+      Number(getComputedStyle(handle).getPropertyValue(dim).slice(0, -2))
+    );
+    let requestId: number | null = null;
+    (function render() {
+      if (!play) return;
+      const elapsed = performance.now() - clock.offset - clock.start;
+      const phenomenonTime = timeConstant * elapsed;
+      const result = Math.sin(phenomenonTime);
+      interactive.pushObservation({ phenomenonTime, result }, -1.0, 1.0);
+      interactive.draw(handle, draw, false);
+      requestId = requestAnimationFrame(render);
+    })();
+    return () => {
+      if (requestId) cancelAnimationFrame(requestId);
+    };
+  }, [interactive, canvas, play]);
   /**
    * Load Web Worker on component mount
    */
@@ -391,8 +393,6 @@ export default function({}) {
     <div>
       <p>{message}</p>
       <div>
-        <canvas className={styles.canvas} ref={canvas} />
-      </div>
         <button onClick={onPlay} disabled={play || !source}>
           Play
         </button>
@@ -402,6 +402,10 @@ export default function({}) {
         <button onClick={onRestart} disabled={!clock.start}>
           Restart
         </button>
+      </div>
+      <div>
+        <canvas className={style.canvas} ref={canvas} />
+      </div>
       {collection.map((dataStream) => {
         const active = dataStream.uuid === source?.uuid;
         return (

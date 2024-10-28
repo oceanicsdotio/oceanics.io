@@ -1,14 +1,15 @@
 import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { Create } from "@catalog/data_streams/client";
+import { DataStreamsForm } from "@catalog/data_streams/client";
 import openapi from "@app/../specification.json";
 const schema = openapi.components.schemas.DataStreams;
+const action = "Create";
 /**
- * Page browser metadata
+ * Browser metadata
  */
 export const metadata: Metadata = {
   title: `Oceanics.io | ${schema.title}`,
-  description: `Create new ${schema.title}. ${schema.description}`,
+  description: `${action} ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -20,7 +21,7 @@ export default function Page({}) {
    */
   return (
     <Suspense>
-      <Create></Create>
+      <DataStreamsForm action={action}></DataStreamsForm>
     </Suspense>
   );
 }
