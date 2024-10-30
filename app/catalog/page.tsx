@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import styles from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
-import { Index } from "@catalog/client";
+import Client from "@catalog/client";
 /**
  * Browser and crawler metadata
  */
@@ -80,7 +80,7 @@ export default function Page({}) {
           OpenAPI documentation for integration developers.
         </Link>
       </p>
-      <Index/>
+      <Client/>
     </div>
   );
 }

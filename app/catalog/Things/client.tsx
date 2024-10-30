@@ -5,47 +5,17 @@ import React, {
   useRef,
   type MutableRefObject,
 } from "react";
-import openapi from "@app/../specification.json";
+import OpenAPI from "@app/../specification.json";
 import type { Things, InteractiveMesh } from "@oceanics/app";
 import { NamedNode, TextInput, useCollection } from "@catalog/client";
 import style from "@catalog/page.module.css";
-interface IThings extends Omit<Things, "free"> {}
+export interface IThings extends Omit<Things, "free"> {}
 /**
  * Metadata from the OpenAPI specification
  */
-const schema = openapi.components.schemas.Things;
+const schema = OpenAPI.components.schemas.Things;
 const properties = schema.properties;
-const parameters = openapi.components.parameters;
-
-export function ThingsQuery({
-  limit,
-  offset,
-  action,
-  initial,
-}: {
-  limit: number;
-  offset: number;
-  action: string;
-  initial: IThings;
-}) {
-  const { message, create, disabled, onSubmitCreate } = useCollection({
-    left: schema.title,
-    limit,
-    offset,
-  });
-  return (
-    <>
-      <p>{message}</p>
-      <ThingsForm
-        action={action}
-        create={create}
-        disabled={disabled}
-        onSubmit={onSubmitCreate}
-        initial={initial}
-      />
-    </>
-  );
-}
+const parameters = OpenAPI.components.parameters;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database. Shared between
@@ -141,23 +111,13 @@ export function ThingsForm({
   );
 }
 /**
- * Display an index of all or some subset of the
- * available nodes in the database.
- *
- * Use WebGL to calculate particle trajectories from velocity data.
- * This example uses wind data to move particles around the globe.
- * The velocity field is static, but in the future the component
- * will support pulling frames from video or gif formats.
- *
- * Paints a color-map to a hidden canvas and then samples it as
- * a lookup table for speed calculations. This is one way to
- * implement fast lookups of piece-wise functions.
+ * Visualization interface wrapper as custom hook
  */
-export default function () {
+export function useWebAssembly() {
   /**
    * Preview 2D render target.
    */
-  const previewRef: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
+  const ref: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
   /**
    * Keep reference to the WASM constructor
    */
@@ -170,14 +130,6 @@ export default function () {
    * target the GL context.
    */
   const [interactive, setInteractive] = useState<InteractiveMesh | null>(null);
-  /**
-   * Retrieve node data using Web Worker.
-   */
-  const { collection, message } = useCollection({
-    left: schema.title,
-    limit: parameters.limit.schema.default,
-    offset: parameters.offset.schema.default,
-  });
   /**
    * Load WASM runtime and save just the method handles
    * we need locally. Not sure if this saves us anything,
@@ -201,23 +153,34 @@ export default function () {
     const data = new InteractiveMesh(10, 10);
     setInteractive(data);
   }, [wasm]);
-  /**
-   * Once we have the interactive instance,
-   * start trying to render a scene based on
-   * the data.
+  return {
+    ref,
+    interactive
+  }
+}
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
+ */
+export default function () {
+    /**
+   * Retrieve node data using Web Worker.
    */
-  useEffect(() => {
-    console.info("Status", { interactive });
-  }, [interactive]);
+    const { message, disabled, collection, onGetCollection } = useCollection({
+      left: schema.title,
+      limit: parameters.limit.schema.default,
+      offset: parameters.offset.schema.default,
+    });
+    useEffect(()=>{
+      if (disabled) return
+      onGetCollection()
+    },[disabled])
   /**
    * Client Component.
    */
   return (
     <>
       <p>{message}</p>
-      <div>
-        <canvas className={style.canvas} ref={previewRef} />
-      </div>
       {collection.map(({ uuid, ...thing }: IThings) => {
         return (
           <NamedNode key={uuid} name={thing.name} uuid={uuid}>

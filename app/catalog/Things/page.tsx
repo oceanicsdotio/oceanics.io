@@ -2,16 +2,16 @@ import React from "react";
 import { Metadata } from "next";
 import { CollectionTemplate } from "@catalog/page";
 import Client from "@catalog/things/client";
-import openapi from "@app/../specification.json";
+import OpenAPI from "@app/../specification.json";
 /**
  * Static content from OpenAPI specification
  */
-const schema = openapi.components.schemas.Things;
+const schema = OpenAPI.components.schemas.Things;
 /**
  * Browser and crawler metadata.
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
+  title: `${OpenAPI.info.title} | ${schema.title}`,
   description: `Catalog of ${schema.title}`,
 };
 /**

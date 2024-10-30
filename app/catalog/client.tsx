@@ -32,11 +32,11 @@ const ACTIONS = {
  * available nodes in the database.
  */
 export function useCollection(query: {
-  left?: string
-  limit?: number
-  offset?: number
-  right?: string
-  uuid?: string
+  left?: string;
+  limit?: number;
+  offset?: number;
+  right?: string;
+  uuid?: string;
 }) {
   /**
    * Ref to Web Worker.
@@ -133,11 +133,13 @@ export function useCollection(query: {
       return;
     }
     const user = localStorage.getItem("gotrue.user");
-    if (typeof user === "undefined") {
+    if (typeof user === "undefined" || !user) {
+      const err = "! You are not logged in";
+      console.error(err);
       setMessage("! You are not logged in");
       return;
     }
-    worker.current.postMessage({ user, ...message });
+    worker.current.postMessage({ ...message, data: { ...message.data, user } });
     setMessage("↻ Working");
   }, []);
 
@@ -160,7 +162,9 @@ export function useCollection(query: {
       type: ACTIONS.getCollection,
       data: {
         query: {
-          left: query.left
+          left: query.left,
+          limit: query.limit,
+          offset: query.offset
         },
       },
     });
@@ -174,8 +178,8 @@ export function useCollection(query: {
         query: {
           left: query.left,
           uuid: query.uuid,
-          right: query.right
-        }
+          right: query.right,
+        },
       },
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -193,15 +197,15 @@ export function useCollection(query: {
   const onDelete = () => {
     const confirmation = window.confirm(
       "Are you sure you want to delete this node and its relationships?"
-    )
+    );
     if (!confirmation) return;
     tryPostMessage({
       type: ACTIONS.deleteEntity,
       data: {
         query: {
           left: query.left,
-          uuid: query.uuid
-        }
+          uuid: query.uuid,
+        },
       },
     });
   };
@@ -469,20 +473,20 @@ function Collection({
     </div>
   );
 }
+/**
+ * Client Component.
+ */
 export default function ({}) {
-  const { onGetCollection, collection, message, disabled } = useCollection({
+  const { onGetIndex, collection, message, disabled } = useCollection({
     limit: 100,
     offset: 0,
     left: "",
-    right: ""
+    right: "",
   });
-  useEffect(()=>{
+  useEffect(() => {
     if (disabled) return;
-    onGetCollection();
-  },[disabled])
-  /**
-   * Client Component.
-   */
+    onGetIndex();
+  }, [disabled]);
   return (
     <div>
       <p>{message}</p>
