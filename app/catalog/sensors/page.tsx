@@ -23,7 +23,7 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate title={schema.title} properties={schema.properties}>
+    <CollectionTemplate title={schema.title} properties={schema.properties} description={schema.description}>
         <Client></Client>
     </CollectionTemplate>
   );

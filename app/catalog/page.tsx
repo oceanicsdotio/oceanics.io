@@ -44,18 +44,26 @@ export function getLinkedCollections(properties: any) {
 export function CollectionTemplate({
   title,
   properties,
-  children
+  children,
+  description
 }: {
-  children: ReactNode,
-  title: string,
+  children: ReactNode
+  title: string
   properties: any
+  description: string
 }) {
   const links = getLinkedCollections(properties)
   return (
     <>
-      <p>
+            
+      <details>
+        <summary>Details</summary>
+        <Markdown>{description}</Markdown>
+        <p>
         You can <Link href="create/">create</Link> <code>{title}</code>, and link them to {links}.
       </p>
+      </details>
+      
       <Suspense>
         {children}
       </Suspense>

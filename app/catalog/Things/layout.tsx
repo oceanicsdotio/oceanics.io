@@ -1,9 +1,11 @@
 import React from "react";
 import Link from "next/link";
 import layout from "@app/layout.module.css";
-import Markdown from "react-markdown";
-import openapi from "@app/../specification.json";
-const schema = openapi.components.schemas.Things;
+import OpenAPI from "@app/../specification.json";
+/**
+ * Static metadata from OpenAPI spec
+ */
+const title = OpenAPI.components.schemas.Things.title;
 /**
  * Layer the navigation links in nested layouts.
  */
@@ -14,12 +16,11 @@ export default function({ children }: { children: React.ReactNode }) {
       <Link
         className={layout.link}
         style={{ display: "inline-block" }}
-        href={`/catalog/${schema.title.toLowerCase()}/`}
+        href={`/catalog/${title.toLowerCase()}/`}
       >
-        {schema.title}
+        {title}
       </Link>
       <div className={layout.content}>
-        <Markdown>{schema.description}</Markdown>
         {children}
       </div>
     </>

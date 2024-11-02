@@ -13,7 +13,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {schema.title}
       </Link>
       <div className={layout.content}>
-        <Markdown>{schema.description}</Markdown>
         {children}
       </div>
     </>

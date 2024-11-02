@@ -12,7 +12,7 @@ const schema = OpenAPI.components.schemas.Things;
  */
 export const metadata: Metadata = {
   title: `${OpenAPI.info.title} | ${schema.title}`,
-  description: `Catalog of ${schema.title}`,
+  description: `${schema.title} catalog`,
 };
 /**
  * Display an index of all or some subset of the
@@ -23,8 +23,12 @@ export default function Page({}) {
    * Server component enforces `use client` boundary.
    */
   return (
-      <CollectionTemplate title={schema.title} properties={schema.properties}>
-        <Client/>
-      </CollectionTemplate>
-    );
+    <CollectionTemplate
+      title={schema.title}
+      properties={schema.properties}
+      description={schema.description}
+    >
+      <Client />
+    </CollectionTemplate>
+  );
 }

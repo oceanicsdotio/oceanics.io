@@ -241,23 +241,18 @@ export function NamedNode({
   controls?: ReactNode;
 }) {
   const url = `edit/?uuid=${uuid}`;
-  const [showDetails, setShowDetails] = useState(false);
-  function onDetails() {
-    setShowDetails((prev) => !prev);
-  }
   return (
-    <div>
-      <Link href={url} prefetch={false}>
-        {name ?? uuid}
-      </Link>
+    <details>
+      <summary>
+        <Link href={url} prefetch={false}>
+          {name ?? uuid}
+        </Link>
+      </summary>
       <div>
-        <button className={layout.button} onClick={onDetails}>
-          Show Details
-        </button>
         {controls}
       </div>
-      {showDetails && children}
-    </div>
+      {children}
+    </details>
   );
 }
 /**
@@ -461,16 +456,15 @@ function Collection({
    */
   const { description }: any = (specification.components.schemas as any)[name];
   return (
-    <div key={href}>
-      <hr />
-      <p>
+    <details key={href}>
+      <summary>
         <Link href={href} prefetch={false}>
           {content}
         </Link>
-        <span>{` ✓ N=${count}`}</span>
-      </p>
+        <span>{` ✓ ${count}`}</span>
+      </summary>
       <Markdown>{description}</Markdown>
-    </div>
+    </details>
   );
 }
 /**

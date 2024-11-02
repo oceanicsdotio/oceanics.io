@@ -20,7 +20,7 @@ export default function Page({}) {
    * Static Component
    */
   return (
-    <CollectionTemplate title={schema.title} properties={schema.properties}>
+    <CollectionTemplate title={schema.title} properties={schema.properties} description={schema.description}>
         <Client></Client>
     </CollectionTemplate>
   );
