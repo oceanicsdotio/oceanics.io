@@ -4454,15 +4454,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mdx-js/loader@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "@mdx-js/loader@npm:3.0.1"
+"@mdx-js/loader@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@mdx-js/loader@npm:3.1.0"
   dependencies:
     "@mdx-js/mdx": "npm:^3.0.0"
     source-map: "npm:^0.7.0"
   peerDependencies:
     webpack: ">=5"
-  checksum: 10/e2eff3ae99958590730a7b23bf5def7720745066065ef2bb7face4f60d913d1083da617c7b4004a2906267ead5609c1d00cd452cb303cd77dea1048d80e1ca35
+  peerDependenciesMeta:
+    webpack:
+      optional: true
+  checksum: 10/983b8d4949f4d214a17f4ad8597a50de36ace75e93292d2493b5fb6077d69d6abc8230b62f88b818c04f12a01d281d63edb6a0738937f7e259406a73ce998134
   languageName: node
   linkType: hard
 
@@ -23895,7 +23898,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.0"
     "@babel/preset-typescript": "npm:^7.24.7"
     "@logtail/js": "npm:^0.5.1"
-    "@mdx-js/loader": "npm:^3.0.1"
+    "@mdx-js/loader": "npm:^3.1.0"
     "@mdx-js/react": "npm:^3.0.1"
     "@netlify/functions": "npm:^2.8.2"
     "@netlify/plugin-csp-nonce": "npm:^1.2.10"
