@@ -83,6 +83,6 @@ pub async fn delete(
     if result.summary.counters.stats.nodes_deleted == 1 {
         NoContentResponse::new()
     } else {
-        ErrorResponse::server_error()
+        ErrorResponse::server_error(None)
     }
 }

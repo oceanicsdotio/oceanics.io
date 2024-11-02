@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use cypher::Node;
 use wasm_bindgen::prelude::*;
 use std::convert::From;
 // Drivers and data types
@@ -7,6 +8,13 @@ mod openapi;
 // Route handlers
 mod src;
 extern crate console_error_panic_hook;
+
+#[wasm_bindgen]
+pub async fn on_signup(url: String, access_key: String, user: String) {
+    let user = Node::user_from_string(user);
+    let cypher = user.create();
+    cypher.run(&url, &access_key).await;
+}
 
 /// Standard library bindings
 #[wasm_bindgen]

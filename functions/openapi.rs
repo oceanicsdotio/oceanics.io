@@ -125,8 +125,9 @@ impl ErrorResponse {
         ErrorResponse::new("Unauthorized", 403, "No user in context")
     }
 
-    pub fn server_error() -> JsValue {
-        ErrorResponse::new("Server error", 500, "Something went wrong")
+    pub fn server_error(details: Option<&str>) -> JsValue {
+        let details = details.unwrap_or("Something went wrong");
+        ErrorResponse::new("Server error", 500, details)
     }
 }
 

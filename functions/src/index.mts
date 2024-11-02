@@ -14,11 +14,6 @@ let log: Node | null = null;
 export const handler: Handler = async function (event, context) {
     const start = performance.now();
     if (!log) log = new Node(logtail_source_token);
-    log.info(`${event.httpMethod} index`, {
-        duration: 0,
-        event,
-        context
-    })
     const response = await index(
         url,
         access_key,

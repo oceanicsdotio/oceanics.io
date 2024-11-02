@@ -179,14 +179,14 @@ describe("idempotent", function () {
     // Create unlinked single entities
     describe(`collection.post`, function () {
       // Delete all nodes owned by User
-      beforeAll(async function () {
-        return fetch(INDEX, {
-          method: "DELETE",
-          headers: {
-            "Authorization": `Bearer ${token}`
-          },
-        })
-      });
+      // beforeAll(async function () {
+      //   return fetch(INDEX, {
+      //     method: "DELETE",
+      //     headers: {
+      //       "Authorization": `Bearer ${token}`
+      //     },
+      //   })
+      // });
       // Create entities linked to the authenticated service account holder
       test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
         const _filter = ([key]: [string, unknown]) => !key.includes("@"); 
@@ -200,6 +200,7 @@ describe("idempotent", function () {
             "Authorization": `Bearer ${token}`
           },
         })
+        console.log(await response.json())
         expect(response.status).toEqual(204);
       });
       // Error handling case

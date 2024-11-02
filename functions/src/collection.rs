@@ -71,9 +71,14 @@ async fn post(url: &String, access_key: &String, user: String, event: HandlerEve
     let cypher = Links::create().insert(&user, &node);
     let raw = cypher.run(&url, &access_key).await;
     let result = serde_wasm_bindgen::from_value::<QueryResult>(raw);
-    if result.is_ok_and(|value| value.summary.counters.stats.nodes_created == 1) {
+    if result.as_ref().is_ok_and(|value| value.summary.counters.stats.nodes_created == 1) {
         NoContentResponse::new()
+    } else if result.is_ok() {
+        let details = "Query succeeded but did not create a new node.";
+        ErrorResponse::server_error(Some(details))
     } else {
-        ErrorResponse::server_error()
+        let error = result.err().unwrap();
+        let details = format!("{}", error);
+        ErrorResponse::server_error(Some(&details))
     }
 }

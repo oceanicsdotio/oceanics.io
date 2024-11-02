@@ -43,7 +43,7 @@ async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsVal
     if result.summary.counters.stats.relationships_deleted == 1 {
         NoContentResponse::new()
     } else {
-        ErrorResponse::server_error()
+        ErrorResponse::server_error(None)
     }
 }
 /// Create a relationship between a root node and some other nodes.
@@ -57,6 +57,6 @@ async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue
     if result.summary.counters.stats.relationships_created == 1 {
         NoContentResponse::new()
     } else {
-        ErrorResponse::server_error()
+        ErrorResponse::server_error(None)
     }
 }

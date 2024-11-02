@@ -61,8 +61,13 @@ test: out coverage
 .PHONY: test
 
 # Deploy to production.
-deploy: out
+prod: out
 	@ yarn netlify deploy --prod --message "Makefile Deploy" --open
+.PHONY: prod
+
+# Deploy to test environment.
+deploy: out
+	@ yarn netlify deploy --alias=test --message "Makefile Deploy" --open
 .PHONY: deploy
 
 # Remove build artifacts.
