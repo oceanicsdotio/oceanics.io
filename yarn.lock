@@ -5132,15 +5132,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=b6f27a&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/a321d3fd722a893d201c989d5c4e18c04c70b91811378571d0e4c517990668216bbeb2456e20a21e1904ff8c1d32ae5cfb9d62792eb4c8c0409103f2a9cd4180
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=451c13&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/9908f77a371e8da8d98a10eed6034fba8b438858537cda199ad5af2e6f85b370ea62cfefcbd3594191fbe555174f177c85714dff7feefed309fd9f4d8a984d7c
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -17612,32 +17612,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"neo4j-driver-bolt-connection@npm:5.25.0":
-  version: 5.25.0
-  resolution: "neo4j-driver-bolt-connection@npm:5.25.0"
+"neo4j-driver-bolt-connection@npm:5.26.0":
+  version: 5.26.0
+  resolution: "neo4j-driver-bolt-connection@npm:5.26.0"
   dependencies:
     buffer: "npm:^6.0.3"
-    neo4j-driver-core: "npm:5.25.0"
+    neo4j-driver-core: "npm:5.26.0"
     string_decoder: "npm:^1.3.0"
-  checksum: 10/59b78faf11af13a55402418c3a3dc147a7a70c6bdfc9d1c536fbaee269986840f2abc19b9b647a69efbdd80d70d6dc1f5dd7d54b5380a4c50434e3f32dbe9ac0
+  checksum: 10/105ac1d7b19f9c5c22648c624c363a283c2616efd069943fc54bb3dd38ca13728ab9eac1d98ec165fd848a5d910b12e60d4410fc82fb55749d6616ce3f487f57
   languageName: node
   linkType: hard
 
-"neo4j-driver-core@npm:5.25.0":
-  version: 5.25.0
-  resolution: "neo4j-driver-core@npm:5.25.0"
-  checksum: 10/d30cdd534417ac3a631039fc94840ec0d7c62006143dc3e2bfe6c3d51947bd42f1d5a5f5f53f8ed2e69b8818cfcdafa8b41d5460f6e5c7cae36f848bb4886364
+"neo4j-driver-core@npm:5.26.0":
+  version: 5.26.0
+  resolution: "neo4j-driver-core@npm:5.26.0"
+  checksum: 10/2165a150f85f48bb81619218fe35d89ae9cf9737efa12342b291045286ff231c6d23d5f9489ecee78d4a4dd0629e05e31c33e04d776c7cb106f5e8ed8d97a6cb
   languageName: node
   linkType: hard
 
-"neo4j-driver@npm:^5.25.0":
-  version: 5.25.0
-  resolution: "neo4j-driver@npm:5.25.0"
+"neo4j-driver@npm:^5.26.0":
+  version: 5.26.0
+  resolution: "neo4j-driver@npm:5.26.0"
   dependencies:
-    neo4j-driver-bolt-connection: "npm:5.25.0"
-    neo4j-driver-core: "npm:5.25.0"
+    neo4j-driver-bolt-connection: "npm:5.26.0"
+    neo4j-driver-core: "npm:5.26.0"
     rxjs: "npm:^7.8.1"
-  checksum: 10/0bcef3bb200160b69c577c3d54be68a9804474f245a6c581b4f3c66de3bd90716e1848e4e94d60804dd228d391fc68ab6c608240e6d65660bc447553d7d49af3
+  checksum: 10/c7b51c600760a16a47662db4366799d36b8714da77438cebe57dd23679f4c2233db7b96e38d5f012461e7181892548be9dd2ebc72906c03a2739871a4ff0c151
   languageName: node
   linkType: hard
 
@@ -23875,7 +23875,7 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     katex: "npm:^0.16.11"
     mapbox-gl: "npm:^3.7.0"
-    neo4j-driver: "npm:^5.25.0"
+    neo4j-driver: "npm:^5.26.0"
     netlify-cli: "npm:^17.36.4"
     next: "npm:15.0.1"
     openapi-types: "npm:^12.1.3"
