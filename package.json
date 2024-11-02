@@ -18,7 +18,7 @@
         "@logtail/js": "^0.5.1",
         "@mdx-js/loader": "^3.0.1",
         "@mdx-js/react": "^3.0.1",
-        "@netlify/functions": "^2.8.1",
+        "@netlify/functions": "^2.8.2",
         "@next/mdx": "15.0.1",
         "@oceanics/app": "file:app/lib",
         "@oceanics/functions": "file:functions/lib",
