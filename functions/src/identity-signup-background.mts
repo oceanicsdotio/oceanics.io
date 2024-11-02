@@ -11,14 +11,11 @@ let log: Node | null = null;
 export default async function (event: Request, context: Context) {
     const start = performance.now();
     if (!log) log = new Node(logtail_source_token);
-    const data = await event.json();
-    const payload = data.payload;
-    const user = payload.user ?? null;
-    if (!user) {
+    const { user } = await event.json();
+    if (typeof user === "undefined") {
         const duration = performance.now() - start;
         log.error(`identity-signup-background`, {
             duration,
-            data,
             event,
             context
         })
@@ -29,7 +26,6 @@ export default async function (event: Request, context: Context) {
     log.info(`identity-signup-background`, {
         duration,
         event,
-        context,
-        data
+        context
     })
 };
