@@ -1,15 +1,13 @@
-import React, { Suspense } from "react";
-import {Linking} from "@catalog/client";
+import React from "react";
+import Client from "./client";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
+import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
 const schema = openapi.components.schemas.HistoricalLocations;
 /**
  * Page browser metadata
  */
-export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
-  description: `Create new ${schema.title}. ${schema.description}`,
-};
+export const metadata: Metadata = formatMetadata("Update", schema);
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -19,8 +17,8 @@ export default function Connect({}) {
    * Client Component
    */
   return (
-      <Suspense>
-        <Linking {...schema}></Linking>
-      </Suspense>
+      <CollectionTemplate schema={schema}>
+        <Client/>
+      </CollectionTemplate>
   );
 }

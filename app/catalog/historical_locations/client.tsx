@@ -15,20 +15,24 @@ const { properties, title } = specification.components.schemas.HistoricalLocatio
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Create({}) {
+export function HistoricalLocationsForm({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: {
+  action: string;
+  initial: IHistoricalLocations;
+  onSubmit: any;
+  formRef: any;
+  disabled: boolean;
+}) {
   /**
    * Form data is synced with user input
    */
   const uuid = useRef<HTMLInputElement | null>(null);
   const time = useRef<HTMLInputElement | null>(null);
-  /**
-   * Web Worker.
-   */
-  const { onSubmitCreate, disabled, formRef: create, message } = useCollection({
-    left: title,
-    limit: 100,
-    offset: 0
-  });
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
@@ -42,20 +46,17 @@ export function Create({}) {
    * Client Component
    */
   return (
-    <>
-      <p>{message}</p>
-      <hr />
       <form
         className={style.form}
-        onSubmit={onSubmitCreate(onSubmitCallback)}
-        ref={create}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={formRef}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
           description={properties.uuid.description}
-          defaultValue={crypto.randomUUID()}
+          defaultValue={initial.uuid}
         ></TextInput>
         <label className={style.label} htmlFor={"time"}>
           <code>time</code>
@@ -70,10 +71,9 @@ export function Create({}) {
         />
         <Markdown>{properties.time.description}</Markdown>
         <button className={style.submit} disabled={disabled}>
-          Create
+          {action}
         </button>
       </form>
-    </>
   );
 }
 

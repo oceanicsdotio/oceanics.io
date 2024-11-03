@@ -1,16 +1,14 @@
 import React from "react";
-import { CollectionTemplate } from "@catalog/page";
+import { CollectionTemplate, formatMetadata } from "@catalog/page";
 import Client from "@catalog/data_streams/client";
 import { Metadata } from "next";
 import openapi from "@app/../specification.json";
 const schema = openapi.components.schemas.DataStreams;
+const action = "Read"
 /**
  * Browser metadata
  */
-export const metadata: Metadata = {
-  title: `${openapi.info.title} | ${schema.title}`,
-  description: `${schema.title} catalog.`,
-};
+export const metadata: Metadata = formatMetadata(action, schema);
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

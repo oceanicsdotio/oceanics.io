@@ -1,7 +1,8 @@
-import React, { Suspense } from "react";
+import React from "react";
 import specification from "@app/../specification.json";
 import { Linking } from "@catalog/client";
 import type { Metadata } from "next";
+import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -9,10 +10,7 @@ const schema = specification.components.schemas.FeaturesOfInterest;
 /**
  * Page browser metadata
  */
-  export const metadata: Metadata = {
-    title: `Oceanics.io | ${schema.title}`,
-    description: `Create new ${schema.title}. ${schema.description}`,
-  };
+export const metadata: Metadata = formatMetadata("Update", schema);
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -23,9 +21,9 @@ export default function Page({}) {
    */
   return (
     <>
-    <Suspense>
+    <CollectionTemplate schema={schema}>
       <Linking {...schema}></Linking>
-    </Suspense>
+    </CollectionTemplate>
   </>
   );
 }

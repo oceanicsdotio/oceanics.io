@@ -14,7 +14,6 @@ import { NamedNode, useCollection } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
 import {TextInput, NumberInput, TextSelectInput} from "@catalog/client";
-import {v7 as uuid7} from "uuid";
 
 const DEFAULTS = {
   zoom: 10,
@@ -93,7 +92,19 @@ const { properties, title, description } = specification.components.schemas.Loca
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Create({}) {
+export function LocationsForm({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: {
+  action: string;
+  initial: ILocations;
+  onSubmit: any;
+  formRef: any;
+  disabled: boolean;
+}) {
   /**
    * Form data is synced with user input
    */
@@ -108,14 +119,6 @@ export function Create({}) {
    * Geolocation data
    */
   const [position, setPosition] = useState<GeolocationPosition | null>(null);
-  /**
-   * Web Worker.
-   */
-  const { onSubmitCreate, disabled, formRef: create, message } = useCollection({
-    left: title,
-    limit: 100,
-    offset: 0
-  });
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
@@ -183,33 +186,32 @@ export function Create({}) {
    * Client Component
    */
   return (
-    <>
-      <p>{message}</p>
-      <hr />
       <form
         className={style.form}
-        onSubmit={onSubmitCreate(onSubmitCallback)}
-        ref={create}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={formRef}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
           description={properties.uuid.description}
-          defaultValue={uuid7()}
-          readOnly={true}
+          defaultValue={initial.uuid}
+          readOnly
         ></TextInput>
         <TextInput
           name={"name"}
           inputRef={name}
           required
           description={properties.name.description}
+          defaultValue={initial.name}
         ></TextInput>
         <TextInput
           name={"description"}
           inputRef={_description}
           required
           description={properties.description.description}
+          defaultValue={initial.description}
         ></TextInput>
         <TextSelectInput
           name={"encodingType"}
@@ -247,11 +249,9 @@ export function Create({}) {
           Use Device Coordinates
         </button>
         <button className={style.submit} disabled={disabled}>
-          Create Location
+          {action}
         </button>
       </form>
-
-    </>
   );
 }
 

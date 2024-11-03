@@ -2,7 +2,7 @@
 import specification from "@app/../specification.json";
 import type { FeaturesOfInterest } from "@oceanics/app";
 import { NamedNode, useCollection } from "@catalog/client";
-
+interface IFeaturesOfInterest extends Omit<FeaturesOfInterest, "free"> {}
 const components = specification.components;
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -15,7 +15,19 @@ const { title, properties } = specification.components.schemas.FeaturesOfInteres
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Create({}) {
+export function FeaturesOfInterestForm({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: {
+  action: string;
+  initial: IFeaturesOfInterest;
+  onSubmit: any;
+  formRef: any;
+  disabled: boolean;
+}) {
   /**
    * Form data is synced with user input
    */
@@ -24,14 +36,6 @@ export function Create({}) {
   const _description = useRef<HTMLInputElement | null>(null);
   const encodingType = useRef<HTMLInputElement | null>(null);
   const feature = useRef<HTMLInputElement | null>(null);
-  /**
-   * Web Worker.
-   */
-  const { onSubmitCreate, disabled, formRef: create, message } = useCollection({
-    left: title,
-    limit: 100,
-    offset: 0
-  });
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
@@ -47,48 +51,48 @@ export function Create({}) {
    * Client Component
    */
   return (
-    <>
-      <p>{message}</p>
-      <hr />
       <form
         className={style.form}
-        onSubmit={onSubmitCreate(onSubmitCallback)}
-        ref={create}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={formRef}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
           description={properties.uuid.description}
-          defaultValue={crypto.randomUUID()}
+          defaultValue={initial.uuid}
         ></TextInput>
         <TextInput
           name={"name"}
           inputRef={name}
           required
           description={properties.name.description}
+          defaultValue={initial.name}
         ></TextInput>
         <TextInput
           name={"description"}
           inputRef={_description}
           required
           description={properties.description.description}
+          defaultValue={initial.description}
         ></TextInput>
         <TextInput
           name={"encodingType"}
           inputRef={encodingType}
           description={properties.encodingType.description}
+          defaultValue={initial.encodingType}
         ></TextInput>
         <TextInput
           name={"feature"}
           inputRef={feature}
           description={properties.feature.description}
+          defaultValue={initial.feature}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
-          Create
+          {action}
         </button>
       </form>
-    </>
   );
 }
 

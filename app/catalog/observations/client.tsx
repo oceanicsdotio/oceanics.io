@@ -16,7 +16,19 @@ import {TextInput, NumberInput} from "@catalog/client";
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Create({}) {
+export function ObservationsForm({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: {
+  action: string;
+  initial: IObservations;
+  onSubmit: any;
+  formRef: any;
+  disabled: boolean;
+}) {
   /**
    * Form data is synced with user input
    */
@@ -28,14 +40,6 @@ export function Create({}) {
   const validTimeStart = useRef<HTMLInputElement | null>(null);
   const validTimeEnd = useRef<HTMLInputElement | null>(null);
   const parameters = useRef<HTMLInputElement | null>(null);
-  /**
-   * Web Worker.
-   */
-  const { onSubmitCreate, disabled, formRef: create, message } = useCollection({
-    left: title,
-    limit: 100,
-    offset: 0
-  });
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
@@ -58,64 +62,66 @@ export function Create({}) {
    * Client Component
    */
   return (
-    <>
-      <p>{message}</p>
-      <hr />
       <form
         className={style.form}
-        onSubmit={onSubmitCreate(onSubmitCallback)}
-        ref={create}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={formRef}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
           description={properties.uuid.description}
-          defaultValue={crypto.randomUUID()}
+          defaultValue={initial.uuid}
         ></TextInput>
         <NumberInput
           name={"phenomenonTime"}
           inputRef={phenomenonTime}
           required
           description={properties.phenomenonTime.description}
-          defaultValue={performance.now()}
+          defaultValue={initial.phenomenonTime}
         ></NumberInput>
         <NumberInput
           name={"result"}
           inputRef={result}
           required
           description={properties.result.description}
+          defaultValue={initial.result}
         ></NumberInput>
         <NumberInput
           name={"resultTime"}
           inputRef={resultTime}
           description={properties.resultTime.description}
+          defaultValue={initial.resultTime}
         ></NumberInput>
         <TextInput
           name={"resultQuality"}
           inputRef={resultQuality}
           description={properties.resultQuality.description}
+          defaultValue={initial.resultQuality}
         ></TextInput>
         <TextInput
           name={"validTimeStart"}
           inputRef={validTimeStart}
           description={properties.validTime.description}
+          defaultValue={initial.validTime?.start.toString()}
         ></TextInput>
         <TextInput
-          name={"validTimeStart"}
+          name={"validTimeEnd"}
           inputRef={validTimeEnd}
           description={properties.validTime.description}
+          defaultValue={initial.validTime?.end.toString()}
         ></TextInput>
         <TextInput
           name={"parameters"}
           inputRef={parameters}
           description={properties.parameters.description}
+          defaultValue={initial.parameters}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
-          Create
+          {action}
         </button>
       </form>
-    </>
   );
 }
 

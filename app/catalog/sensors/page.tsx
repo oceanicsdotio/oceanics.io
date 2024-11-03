@@ -2,7 +2,7 @@ import React from "react";
 import openapi from "@app/../specification.json";
 import Client from "@app/catalog/sensors/client";
 import type { Metadata } from "next";
-import { CollectionTemplate } from "@catalog/page";
+import { CollectionTemplate, formatMetadata } from "@catalog/page";
 /**
  * OpenAPI metadata.
  */
@@ -10,10 +10,7 @@ const schema = openapi.components.schemas.Sensors;
 /**
  * Browser and crawler metadata.
  */
-export const metadata: Metadata = {
-  title: `${openapi.info.title} | ${schema.title}`,
-  description: `${schema.title} catalog`,
-};
+export const metadata: Metadata = formatMetadata("Read", schema);
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
