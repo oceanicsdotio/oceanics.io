@@ -5,7 +5,7 @@ import { NamedNode, useCollection } from "../client";
 interface ISensors extends Omit<Sensors, "free"> {}
 const components = specification.components;
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
 import {TextInput} from "@catalog/client";
@@ -106,7 +106,6 @@ export function SensorsForm({
       </form>
   );
 }
-
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -115,20 +114,24 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, disabled, onGetCollection } = useCollection({
     left,
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default,
   });
+  useEffect(() => {
+    if (disabled) return;
+    onGetCollection();
+  }, [disabled]);
   /**
    * Client Component
    */
   return (
     <>
       <p>{message}</p>
-      {collection.map((sensor: ISensors) => {
+      {collection.map(({uuid, ...sensor}: ISensors) => {
         return (
-          <NamedNode key={sensor.uuid} name={sensor.name} uuid={sensor.uuid}>
+          <NamedNode key={uuid} name={sensor.name} uuid={uuid}>
             <p>description: {sensor.description}</p>
           </NamedNode>
         );

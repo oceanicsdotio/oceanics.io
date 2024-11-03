@@ -8,7 +8,7 @@ use std::f64::consts::PI;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ObservedProperties {
-    pub name: String,
+    pub name: Option<String>,
     pub uuid: String,
     pub description: Option<String>,
     pub definition: Option<String>

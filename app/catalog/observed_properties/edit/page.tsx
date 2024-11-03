@@ -7,8 +7,8 @@ const schema = openapi.components.schemas.ObservedProperties;
  * Page browser metadata
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
-  description: `Create new ${schema.title}. ${schema.description}`,
+  title: `${openapi.info.title} | ${schema.title}`,
+  description: `Update ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the

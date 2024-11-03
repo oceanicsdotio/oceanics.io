@@ -157,26 +157,26 @@ export function useWebAssembly() {
   }, [wasm]);
   return {
     ref,
-    interactive
-  }
+    interactive,
+  };
 }
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function () {
-    /**
+  /**
    * Retrieve node data using Web Worker.
    */
-    const { message, disabled, collection, onGetCollection } = useCollection({
-      left: schema.title,
-      limit: parameters.limit.schema.default,
-      offset: parameters.offset.schema.default,
-    });
-    useEffect(()=>{
-      if (disabled) return
-      onGetCollection()
-    },[disabled])
+  const { message, disabled, collection, onGetCollection } = useCollection({
+    left: schema.title,
+    limit: parameters.limit.schema.default,
+    offset: parameters.offset.schema.default,
+  });
+  useEffect(() => {
+    if (disabled) return;
+    onGetCollection();
+  }, [disabled]);
   /**
    * Client Component.
    */
