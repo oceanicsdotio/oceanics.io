@@ -1,8 +1,8 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { Metadata } from "next";
-import { DataStreamsForm } from "@catalog/data_streams/client";
+import Client from "./client";
 import openapi from "@app/../specification.json";
-import { formatMetadata } from "@app/catalog/page";
+import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
 const schema = openapi.components.schemas.DataStreams;
 const action = "Create";
 /**
@@ -18,8 +18,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <Suspense>
-      <DataStreamsForm action={action}></DataStreamsForm>
-    </Suspense>
+    <CollectionTemplate schema={schema} showActions={false}>
+      <Client/>
+    </CollectionTemplate>
   );
 }

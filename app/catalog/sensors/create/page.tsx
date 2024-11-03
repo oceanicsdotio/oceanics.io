@@ -18,7 +18,7 @@ export default function ({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionTemplate schema={schema} showActions={false}>
       <Client />
     </CollectionTemplate>
   );

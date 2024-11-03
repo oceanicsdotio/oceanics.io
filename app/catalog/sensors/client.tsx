@@ -60,6 +60,7 @@ export function SensorsForm({
           required
           description={properties.uuid.description}
           defaultValue={initial.uuid}
+          readOnly
         ></TextInput>
         <TextInput
           name={"name"}

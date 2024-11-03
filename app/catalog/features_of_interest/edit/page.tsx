@@ -1,6 +1,6 @@
 import React from "react";
 import specification from "@app/../specification.json";
-import { Linking } from "@catalog/client";
+import Client from "./client";
 import type { Metadata } from "next";
 import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
 /**
@@ -21,8 +21,8 @@ export default function Page({}) {
    */
   return (
     <>
-    <CollectionTemplate schema={schema}>
-      <Linking {...schema}></Linking>
+    <CollectionTemplate schema={schema} showActions={false}>
+      <Client/>
     </CollectionTemplate>
   </>
   );

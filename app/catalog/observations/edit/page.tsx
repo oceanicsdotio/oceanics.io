@@ -17,7 +17,7 @@ export default function Page({}) {
    * Server component
    */
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionTemplate schema={schema} showActions={false}>
       <Client/>
     </CollectionTemplate>
   );

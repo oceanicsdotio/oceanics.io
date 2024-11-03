@@ -71,9 +71,7 @@ const DEFAULTS = {
 };
 const { parameters } = specification.components;
 
-interface ILocations extends Omit<LocationsType, "free"> {
-  onDelete: (uuid: string) => void;
-}
+interface ILocations extends Omit<LocationsType, "free"> {}
 interface INavigate extends ILocations {
   map: Map | null;
 }
@@ -87,7 +85,7 @@ const GEOLOCATION_PRECISION = 5;
 /**
  * OpenAPI schema information used in the interface.
  */
-const { properties, title, description } = specification.components.schemas.Locations;
+const schema = specification.components.schemas.Locations;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -126,14 +124,14 @@ export function LocationsForm({
   const onSubmitCallback = () => {
     return {
       uuid: uuid.current?.value,
-      name: name.current?.value,
-      description: _description.current?.value,
-      encodingType: encodingType.current?.value,
+      name: name.current?.value || undefined,
+      description: _description.current?.value || undefined,
+      encodingType: encodingType.current?.value || undefined,
       location: {
-        type: locationType.current?.value,
+        type: locationType.current?.value || undefined,
         coordinates: [
-          locationLatitude.current?.valueAsNumber,
-          locationLongitude.current?.valueAsNumber
+          locationLatitude.current?.valueAsNumber || undefined,
+          locationLongitude.current?.valueAsNumber || undefined
         ]
       }
     };
@@ -195,7 +193,7 @@ export function LocationsForm({
           name={"uuid"}
           inputRef={uuid}
           required
-          description={properties.uuid.description}
+          description={schema.properties.uuid.description}
           defaultValue={initial.uuid}
           readOnly
         ></TextInput>
@@ -203,28 +201,28 @@ export function LocationsForm({
           name={"name"}
           inputRef={name}
           required
-          description={properties.name.description}
+          description={schema.properties.name.description}
           defaultValue={initial.name}
         ></TextInput>
         <TextInput
           name={"description"}
           inputRef={_description}
           required
-          description={properties.description.description}
+          description={schema.properties.description.description}
           defaultValue={initial.description}
         ></TextInput>
         <TextSelectInput
           name={"encodingType"}
           inputRef={encodingType}
-          defaultValue={properties.encodingType.default}
-          description={properties.encodingType.description}
-          options={properties.encodingType.enum}
+          defaultValue={schema.properties.encodingType.default}
+          description={schema.properties.encodingType.description}
+          options={schema.properties.encodingType.enum}
         />
         <TextSelectInput
           name={"type"}
           inputRef={locationType}
-          defaultValue={properties.location.properties.type.default}
-          description={properties.location.properties.type.description}
+          defaultValue={schema.properties.location.properties.type.default}
+          description={schema.properties.location.properties.type.description}
           options={["Point"]}  // properties.location.properties.type.enum
         />
         <NumberInput
@@ -302,11 +300,15 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, onDelete } = useCollection({
-    left: title,
+  const { collection, message, disabled, onGetCollection } = useCollection({
+    left: schema.title,
     limit: parameters.limit.schema.default,
     offset: parameters.offset.schema.default,
   });
+  useEffect(() => {
+    if (disabled) return;
+    onGetCollection();
+  }, [disabled]);
   /**
    * MapBox container reference.
    */
@@ -453,7 +455,6 @@ export default function Page({}) {
           map={map}
           {...each}
           location={location}
-          onDelete={onDelete}
         ></Location>
       ))}
     </div>

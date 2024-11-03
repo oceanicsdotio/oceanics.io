@@ -4,7 +4,7 @@ import type { FeaturesOfInterest } from "@oceanics/app";
 import { NamedNode, useCollection } from "@catalog/client";
 interface IFeaturesOfInterest extends Omit<FeaturesOfInterest, "free"> {}
 const components = specification.components;
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import style from "@catalog/page.module.css";
 import {TextInput} from "@catalog/client";
 /**
@@ -43,8 +43,8 @@ export function FeaturesOfInterestForm({
   const onSubmitCallback = () => {
     return {
       uuid: uuid.current?.value,
-      name: name.current?.value,
-      description: _description.current?.value,
+      name: name.current?.value || undefined,
+      description: _description.current?.value || undefined,
     };
   };
   /**
@@ -62,6 +62,7 @@ export function FeaturesOfInterestForm({
           required
           description={properties.uuid.description}
           defaultValue={initial.uuid}
+          readOnly={true}
         ></TextInput>
         <TextInput
           name={"name"}
@@ -100,15 +101,18 @@ export function FeaturesOfInterestForm({
  * Display an index of all or some subset of the
  * available Features of Interest in the database.
  */
-export default function Collection({}) {
+export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, disabled, onGetCollection } = useCollection({
     left: title,
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default,
   });
+  useEffect(()=>{
+    if (!disabled) onGetCollection()
+  }, [disabled])
   /**
    * Client Component
    */

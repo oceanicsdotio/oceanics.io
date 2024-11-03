@@ -17,7 +17,7 @@ export default function Connect({}) {
    * Client Component
    */
   return (
-      <CollectionTemplate schema={schema}>
+      <CollectionTemplate schema={schema} showActions={false}>
         <Client/>
       </CollectionTemplate>
   );

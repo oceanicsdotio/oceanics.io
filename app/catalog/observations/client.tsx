@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
 import { NamedNode, useCollection } from "@catalog/client";
@@ -47,15 +47,15 @@ export function ObservationsForm({
   const onSubmitCallback = () => {
     return {
       uuid: uuid.current?.value,
-      phenomenonTime: phenomenonTime.current?.value,
-      result: result.current?.value,
-      resultTime: resultTime.current?.value,
-      resultQuality: resultQuality.current?.value,
+      phenomenonTime: phenomenonTime.current?.value || undefined,
+      result: result.current?.value || undefined,
+      resultTime: resultTime.current?.value || undefined,
+      resultQuality: resultQuality.current?.value || undefined,
       validTime: [
-        validTimeStart.current?.value, 
-        validTimeEnd.current?.value
+        validTimeStart.current?.value || undefined, 
+        validTimeEnd.current?.value || undefined
       ],
-      parameters: parameters.current?.value
+      parameters: parameters.current?.value || undefined
     };
   };
   /**
@@ -73,6 +73,7 @@ export function ObservationsForm({
           required
           description={properties.uuid.description}
           defaultValue={initial.uuid}
+          readOnly
         ></TextInput>
         <NumberInput
           name={"phenomenonTime"}
@@ -133,11 +134,15 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, disabled, onGetCollection } = useCollection({
     left: title,
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default,
   });
+  useEffect(() => {
+    if (disabled) return;
+    onGetCollection();
+  }, [disabled]);
   /**
    * Client Component
    */

@@ -17,7 +17,7 @@ export default function Page({}) {
    * Client Component
    */
   return (
-      <CollectionTemplate schema={schema}>
+      <CollectionTemplate schema={schema} showActions={false}>
         <Client/>
       </CollectionTemplate>
   );

@@ -48,9 +48,9 @@ export function ObservedPropertiesForm({
   const onSubmitCallback = () => {
     return {
       uuid: uuid.current?.value,
-      name: name.current?.value,
-      description: _description.current?.value,
-      definition: definition.current?.value,
+      name: name.current?.value || undefined,
+      description: _description.current?.value || undefined,
+      definition: definition.current?.value || undefined,
     };
   };
   /**
@@ -68,6 +68,7 @@ export function ObservedPropertiesForm({
         required
         description={properties.uuid.description}
         defaultValue={initial.uuid}
+        readOnly
       ></TextInput>
       <TextInput
         name={"name"}
@@ -119,7 +120,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, ...rest }: Omit<ObservedProperties, "free">) => {
+      {collection.map(({ uuid, ...rest }: IObservedProperties) => {
         return (
           <NamedNode key={uuid} name={rest.name} uuid={uuid}>
             <p>description: {rest.description}</p>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Linking } from "@catalog/client";
+import Client from "./client";
 import { Metadata } from "next";
 import openapi from "@app/../specification.json";
 import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
@@ -18,8 +18,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate schema={schema}>
-      <Linking {...schema}></Linking>
+    <CollectionTemplate schema={schema} showActions={false}>
+      <Client/>
     </CollectionTemplate>
   );
 }

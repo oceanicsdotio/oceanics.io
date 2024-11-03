@@ -1,8 +1,8 @@
-import React, { Suspense } from "react";
-import {Linking} from "@catalog/client";
+import React from "react";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
-import { formatMetadata } from "@app/catalog/page";
+import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
+import Client from "./client";
 const schema = openapi.components.schemas.Locations;
 /**
  * Page browser metadata
@@ -17,8 +17,8 @@ export default function Page({}) {
    * Client Component
    */
   return (
-    <Suspense>
-      <Linking {...schema}></Linking>
-    </Suspense>
+    <CollectionTemplate schema={schema} showActions={false}>
+      <Client/>
+    </CollectionTemplate>
   );
 }

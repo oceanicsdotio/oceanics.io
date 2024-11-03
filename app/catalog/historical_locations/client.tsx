@@ -1,5 +1,5 @@
 "use client";
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import specification from "@app/../specification.json";
 import type { HistoricalLocations } from "@oceanics/app";
 import { NamedNode, useCollection } from "@catalog/client";
@@ -39,7 +39,8 @@ export function HistoricalLocationsForm({
    */
   const onSubmitCallback = () => {
     return {
-      uuid: uuid.current?.value,
+      uuid: uuid.current?.value || undefined,
+      time: time.current?.value || undefined,
     };
   };
   /**
@@ -57,6 +58,7 @@ export function HistoricalLocationsForm({
           required
           description={properties.uuid.description}
           defaultValue={initial.uuid}
+          readOnly={true}
         ></TextInput>
         <label className={style.label} htmlFor={"time"}>
           <code>time</code>
@@ -85,11 +87,14 @@ export default function Page({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, disabled, onGetCollection } = useCollection({
     left: title,
     limit: components.parameters.limit.schema.default,
     offset: components.parameters.offset.schema.default,
   });
+  useEffect(()=>{
+    if (!disabled) onGetCollection()
+  }, [disabled])
   /**
    * Client Component
    */

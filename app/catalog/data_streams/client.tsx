@@ -10,6 +10,7 @@ import type {
   DataStreamStyle,
   DataStreams,
 } from "@oceanics/app";
+interface IDataStreams extends Omit<DataStreams, "free"> {}
 /**
  * Properties from OpenAPI schema
  */
@@ -19,7 +20,19 @@ const {parameters} = openapi.components;
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function DataStreamsForm({action}:{action: string}) {
+export function DataStreamsForm({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: {
+  action: string;
+  initial: IDataStreams;
+  onSubmit: any;
+  formRef: any;
+  disabled: boolean;
+}) {
   /**
    * Form data is synced with user input
    */
@@ -33,14 +46,6 @@ export function DataStreamsForm({action}:{action: string}) {
   const observedArea = useRef<HTMLInputElement | null>(null);
   const phenomenaTime = useRef<HTMLInputElement | null>(null);
   const resultTime = useRef<HTMLInputElement | null>(null);
-  /**
-   * Web Worker.
-   */
-  const { onSubmitCreate, disabled, formRef: create, message } = useCollection({
-    left: title,
-    limit: 100,
-    offset: 0,
-  });
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
@@ -62,37 +67,38 @@ export function DataStreamsForm({action}:{action: string}) {
    * Client Component
    */
   return (
-    <>
-      <p>{message}</p>
-      <hr />
       <form
         className={style.form}
-        onSubmit={onSubmitCreate(onSubmitCallback)}
-        ref={create}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={formRef}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
           description={properties.uuid.description}
-          defaultValue={crypto.randomUUID()}
+          defaultValue={initial.uuid}
+          readOnly={true}
         ></TextInput>
         <TextInput
           name={"name"}
           inputRef={name}
           required
           description={properties.name.description}
+          defaultValue={initial.name}
         ></TextInput>
         <TextInput
           name={"description"}
           inputRef={description}
           required
           description={properties.description.description}
+          defaultValue={initial.description}
         ></TextInput>
         <TextInput
           name={"unitOfMeasurementName"}
           inputRef={unitOfMeasurementName}
           description={properties.unitOfMeasurement.properties.name.description}
+          defaultValue={initial.unitOfMeasurement?.name}
         ></TextInput>
         <TextInput
           name={"unitOfMeasurementSymbol"}
@@ -100,6 +106,7 @@ export function DataStreamsForm({action}:{action: string}) {
           description={
             properties.unitOfMeasurement.properties.symbol.description
           }
+          defaultValue={initial.unitOfMeasurement?.symbol}
         ></TextInput>
         <TextInput
           name={"unitOfMeasurementDefinition"}
@@ -107,6 +114,7 @@ export function DataStreamsForm({action}:{action: string}) {
           description={
             properties.unitOfMeasurement.properties.definition.description
           }
+          defaultValue={initial.unitOfMeasurement?.definition}
         ></TextInput>
 
         <label className={style.label} htmlFor={"observationType"}>
@@ -132,7 +140,6 @@ export function DataStreamsForm({action}:{action: string}) {
           {action}
         </button>
       </form>
-    </>
   );
 }
 /**
@@ -253,11 +260,14 @@ export default function({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useCollection({
+  const { collection, message, disabled, onGetCollection } = useCollection({
     left: title,
     limit: parameters.limit.schema.default,
     offset: parameters.offset.schema.default,
   });
+  useEffect(()=>{
+    if (!disabled) onGetCollection()
+  }, [disabled])
   /**
    * Keep reference to the WASM constructor
    */

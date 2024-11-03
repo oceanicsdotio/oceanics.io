@@ -65,6 +65,7 @@ export function CollectionTemplate({
   showActions?: boolean;
 }) {
   const links = getLinkedCollections(schema.properties);
+  const segment = schema.title.split(/\.?(?=[A-Z])/).join("_").toLowerCase()
   return (
     <>
       <details>
@@ -75,7 +76,7 @@ export function CollectionTemplate({
       <details open={showActions}>
         <summary>Actions</summary>
         <p>
-          You can <Link href="create/">create</Link> <code>{schema.title}</code>
+          You can <Link href={`/catalog/${segment}/create/`}>create</Link> <code>{schema.title}</code>
           , and link them to {links}.
         </p>
       </details>
