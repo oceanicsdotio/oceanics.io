@@ -408,9 +408,13 @@ export function Paging(page: {
 }) {
   return (
     <p>
-      <a style={{color: "lightblue"}} href={page.previous}>{"Back"}</a>
+      <a style={{ color: "lightblue" }} href={page.previous}>
+        {"Back"}
+      </a>
       <span>{` | Page ${page.current} | `}</span>
-      <a style={{color: "lightblue"}} href={page.next}>{"Next"}</a>
+      <a style={{ color: "lightblue" }} href={page.next}>
+        {"Next"}
+      </a>
     </p>
   );
 }
@@ -424,13 +428,13 @@ export function NamedNode({
   children,
   uuid,
   controls,
-  nav = null
+  nav = null,
 }: {
-  name?: string
-  children?: ReactNode
-  uuid: string
-  controls?: ReactNode
-  nav?: string | null
+  name?: string;
+  children?: ReactNode;
+  uuid: string;
+  controls?: ReactNode;
+  nav?: string | null;
 }) {
   const url = `edit?uuid=${uuid}`;
   return (
@@ -438,10 +442,16 @@ export function NamedNode({
       <summary>
         <Link href={url} prefetch={false}>
           {name ?? uuid}
-        </Link>{" [ "}
-        {nav && <Link href={`${nav}?uuid=${uuid}`} prefetch={false}>
-          {nav}
-        </Link>}{" ]"}
+        </Link>
+        {nav && (
+          <>
+            {" [ "}
+            <Link href={`${nav}?uuid=${uuid}`} prefetch={false}>
+              {nav}
+            </Link>
+            {" ]"}
+          </>
+        )}
       </summary>
       <div>{controls}</div>
       {children}
@@ -678,11 +688,11 @@ export default function ({}) {
     onGetIndex();
   }, [disabled]);
   return (
-    <div>
+    <>
       <p>{message}</p>
       {collection.map((each, index) => (
         <Collection key={`collection-${index}`} {...each} />
       ))}
-    </div>
+    </>
   );
 }

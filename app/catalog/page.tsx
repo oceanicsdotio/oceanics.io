@@ -71,7 +71,6 @@ export function CollectionTemplate({
       <details>
         <summary>About This Collection</summary>
         <Markdown>{schema.description}</Markdown>
-        <p></p>
       </details>
       <details open={showActions}>
         <summary>Actions</summary>
@@ -80,6 +79,7 @@ export function CollectionTemplate({
           , and link them to {links}.
         </p>
       </details>
+      <hr/>
       <Suspense>{children}</Suspense>
     </>
   );
@@ -107,6 +107,7 @@ export default function Page({}) {
         </Link>
       </p>
       </details>
+      <hr/>
       <Client />
     </div>
   );
