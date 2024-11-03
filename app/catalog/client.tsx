@@ -85,7 +85,7 @@ export function useCollection(query: {
           return;
         case ACTIONS.deleteEntity:
           setMessage(`✓ Deleted 1 node`);
-          push(`/catalog/${query.left}`);
+          push(`/catalog/${query.left?.split(/\.?(?=[A-Z])/).join("_").toLowerCase()}`);
           return;
         case ACTIONS.createEntity:
           if (data) {
