@@ -291,15 +291,23 @@ impl Node {
     /// Perform the conversion to structured data within the 
     /// query since we know there are limited number of
     /// collections.
+    /// 
+    /// When there are no existing nodes in the index, the
+    /// cache doesn't always return an entry for the `stats()`
+    /// call, so we also have to look up which nodes have had
+    /// a uniqueness constraint on `uuid`
     pub fn get_label_counts() -> Cypher {
         let query = String::from("
-            CALL apoc.meta.stats() YIELD labels 
-            WITH apoc.map.removeKey(labels, 'User') AS filtered
-            UNWIND keys(filtered) as key ORDER BY key
+            CALL apoc.schema.nodes() YIELD type, label, properties
+            WHERE type = 'UNIQUENESS' AND 'uuid' IN properties
+            WITH collect(label) AS indexed
+            CALL apoc.meta.stats() YIELD labels
+            WITH apoc.map.removeKey(labels, 'User') AS filtered, indexed
+            UNWIND apoc.coll.toSet(keys(filtered)+indexed) as key ORDER BY key
             WITH key, filtered, apoc.text.split(key, '\\.?(?=[A-Z])') AS words
             WITH {
               name: key, 
-              count: filtered[key], 
+              count: apoc.map.get(filtered, key, 0), 
               url: '/api/' + key,
               content: apoc.text.join(words, ' '),
               href: '/catalog/' + lower(apoc.text.join(words, '_'))

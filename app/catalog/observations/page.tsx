@@ -1,5 +1,5 @@
 import React from "react";
-import Client from "@catalog/observations/client";
+import ClientComponent from "@catalog/observations/client";
 import { CollectionTemplate, formatMetadata } from "@catalog/page";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
@@ -18,7 +18,7 @@ export default function Page({}) {
    */
   return (
     <CollectionTemplate schema={schema}>
-        <Client></Client>
+        <ClientComponent/>
     </CollectionTemplate>
   );
 }

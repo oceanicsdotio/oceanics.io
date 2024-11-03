@@ -2,9 +2,9 @@
 import React from "react";
 import OpenAPI from "@app/../specification.json";
 import { useUpdate } from "@catalog/client";
-import { ObservedPropertiesForm } from "@catalog/observed_properties/client";
+import { Form } from "@catalog/observed_properties/client";
 import style from "@catalog/page.module.css";
-export const action = "Update";
+const action = "Update";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -18,7 +18,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      <ObservedPropertiesForm action={action} {...form} />
+      <Form action={action} {...form} />
       <button className={style.submit} onClick={onDelete}>
         Delete
       </button>

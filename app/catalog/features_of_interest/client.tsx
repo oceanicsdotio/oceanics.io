@@ -1,21 +1,25 @@
 "use client";
 import specification from "@app/../specification.json";
 import type { FeaturesOfInterest } from "@oceanics/app";
-import { NamedNode, useCollection } from "@catalog/client";
-interface IFeaturesOfInterest extends Omit<FeaturesOfInterest, "free"> {}
-const components = specification.components;
-import React, { useEffect, useRef } from "react";
+import {
+  NamedNode,
+  Paging,
+  useGetCollection,
+  type Initial,
+  TextInput
+} from "@catalog/client";
+import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
-import {TextInput} from "@catalog/client";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
-const { title, properties } = specification.components.schemas.FeaturesOfInterest;
+const schema = specification.components.schemas.FeaturesOfInterest;
+const properties = schema.properties;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function FeaturesOfInterestForm({
+export function Form({
   action,
   initial,
   onSubmit,
@@ -23,7 +27,7 @@ export function FeaturesOfInterestForm({
   disabled,
 }: {
   action: string;
-  initial: IFeaturesOfInterest;
+  initial: Initial<FeaturesOfInterest>;
   onSubmit: any;
   formRef: any;
   disabled: boolean;
@@ -51,73 +55,66 @@ export function FeaturesOfInterestForm({
    * Client Component
    */
   return (
-      <form
-        className={style.form}
-        onSubmit={onSubmit(onSubmitCallback)}
-        ref={formRef}
-      >
-        <TextInput
-          name={"uuid"}
-          inputRef={uuid}
-          required
-          description={properties.uuid.description}
-          defaultValue={initial.uuid}
-          readOnly={true}
-        ></TextInput>
-        <TextInput
-          name={"name"}
-          inputRef={name}
-          required
-          description={properties.name.description}
-          defaultValue={initial.name}
-        ></TextInput>
-        <TextInput
-          name={"description"}
-          inputRef={_description}
-          required
-          description={properties.description.description}
-          defaultValue={initial.description}
-        ></TextInput>
-        <TextInput
-          name={"encodingType"}
-          inputRef={encodingType}
-          description={properties.encodingType.description}
-          defaultValue={initial.encodingType}
-        ></TextInput>
-        <TextInput
-          name={"feature"}
-          inputRef={feature}
-          description={properties.feature.description}
-          defaultValue={initial.feature}
-        ></TextInput>
-        <button className={style.submit} disabled={disabled}>
-          {action}
-        </button>
-      </form>
+    <form
+      className={style.form}
+      onSubmit={onSubmit(onSubmitCallback)}
+      ref={formRef}
+    >
+      <TextInput
+        name={"uuid"}
+        inputRef={uuid}
+        required
+        description={properties.uuid.description}
+        defaultValue={initial.uuid}
+        readOnly={true}
+      ></TextInput>
+      <TextInput
+        name={"name"}
+        inputRef={name}
+        required
+        description={properties.name.description}
+        defaultValue={initial.name}
+      ></TextInput>
+      <TextInput
+        name={"description"}
+        inputRef={_description}
+        required
+        description={properties.description.description}
+        defaultValue={initial.description}
+      ></TextInput>
+      <TextInput
+        name={"encodingType"}
+        inputRef={encodingType}
+        description={properties.encodingType.description}
+        defaultValue={initial.encodingType}
+      ></TextInput>
+      <TextInput
+        name={"feature"}
+        inputRef={feature}
+        description={properties.feature.description}
+        defaultValue={initial.feature}
+      ></TextInput>
+      <button className={style.submit} disabled={disabled}>
+        {action}
+      </button>
+    </form>
   );
 }
-
 /**
  * Display an index of all or some subset of the
  * available Features of Interest in the database.
  */
 export default function ({}) {
   /**
-   * Retrieve node data use Web Worker.
+   * Retrieve node data using Web Worker. Redirect if there are
+   * no nodes of the given type.
    */
-  const { collection, message, disabled, onGetCollection } = useCollection({
-    left: title,
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default,
-  });
-  useEffect(()=>{
-    if (!disabled) onGetCollection()
-  }, [disabled])
+  const { message, collection, page } = useGetCollection(schema.title);
   /**
    * Client Component
    */
   return (
-    <div>
+    <>
       <p>{message}</p>
       {collection.map(({ uuid, ...rest }: Omit<FeaturesOfInterest, "free">) => {
         return (
@@ -128,6 +125,7 @@ export default function ({}) {
           </NamedNode>
         );
       })}
-    </div>
+      <Paging {...page} />
+    </>
   );
 }

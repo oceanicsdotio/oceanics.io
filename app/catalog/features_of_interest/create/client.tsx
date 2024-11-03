@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import openapi from "@app/../specification.json";
-import { FeaturesOfInterestForm } from "../client";
+import { Form } from "../client";
 import { useCreate } from "@catalog/client";
 const action = "Create";
 /**
@@ -17,7 +17,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      <FeaturesOfInterestForm action={action} {...form} initial={form.initial as any}/>
+      <Form action={action} {...form} initial={form.initial as any}/>
     </>
   );
 }

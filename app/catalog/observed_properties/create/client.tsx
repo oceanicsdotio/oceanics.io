@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import openapi from "@app/../specification.json";
-import { ObservedPropertiesForm } from "@catalog/observed_properties/client";
+import { Form } from "../client";
 import { useCreate } from "@catalog/client";
 const action = "Create";
 /**
@@ -17,7 +17,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      <ObservedPropertiesForm action={action} {...form} />
+      <Form action={action} {...form} />
     </>
   );
 }

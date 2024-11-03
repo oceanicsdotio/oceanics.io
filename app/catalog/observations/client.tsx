@@ -1,33 +1,27 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import { NamedNode, useCollection } from "@catalog/client";
-type IObservations = Omit<Observations, "free"> & {
-  uuid: string
-};
+import { NamedNode, Paging, useGetCollection, TextInput, NumberInput, type Initial } from "../client";
 const components = specification.components;
 const { title, properties } = components.schemas.Observations;
-
 import style from "@catalog/page.module.css";
-import {TextInput, NumberInput} from "@catalog/client";
-
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function ObservationsForm({
+export function Form({
   action,
   initial,
   onSubmit,
   formRef,
   disabled,
 }: {
-  action: string;
-  initial: IObservations;
-  onSubmit: any;
-  formRef: any;
-  disabled: boolean;
+  action: string
+  initial: Initial<Observations>
+  onSubmit: any
+  formRef: any
+  disabled: boolean
 }) {
   /**
    * Form data is synced with user input
@@ -125,35 +119,27 @@ export function ObservationsForm({
       </form>
   );
 }
-
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function Page({}) {
+export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, disabled, onGetCollection } = useCollection({
-    left: title,
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default,
-  });
-  useEffect(() => {
-    if (disabled) return;
-    onGetCollection();
-  }, [disabled]);
+  const { collection, message, page } = useGetCollection(title);
   /**
    * Client Component
    */
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid }: IObservations) => {
+      {collection.map(({ uuid }: Initial<Observations>) => {
         return (
-          <NamedNode key={uuid} uuid={uuid} name={undefined}></NamedNode>
+          <NamedNode key={uuid} uuid={uuid as any} name={undefined}></NamedNode>
         );
       })}
+      <Paging {...page}/>
     </>
   );
 }

@@ -2,7 +2,7 @@
 import React from "react";
 import OpenAPI from "@app/../specification.json";
 import { useUpdate } from "@catalog/client";
-import { FeaturesOfInterestForm } from "../client";
+import { Form } from "../client";
 import style from "@catalog/page.module.css";
 export const action = "Update";
 /**
@@ -18,7 +18,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      <FeaturesOfInterestForm action={action} {...form} initial={form.initial as any}/>
+      <Form action={action} {...form} initial={form.initial as any}/>
       <button className={style.submit} onClick={onDelete}>
         Delete
       </button>

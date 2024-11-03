@@ -1,16 +1,15 @@
 "use client";
-import React, {useEffect, useRef} from "react";
+import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { HistoricalLocations } from "@oceanics/app";
-import { NamedNode, useCollection } from "@catalog/client";
-const components = specification.components;
-interface IHistoricalLocations extends Omit<HistoricalLocations, "free"> {};
+import { NamedNode, Paging, useGetCollection, type Initial } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
 import { TextInput } from "@catalog/client";
 
-const { properties, title } = specification.components.schemas.HistoricalLocations;
+const schema = specification.components.schemas.HistoricalLocations;
+const properties = schema.properties
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -23,7 +22,7 @@ export function HistoricalLocationsForm({
   disabled,
 }: {
   action: string;
-  initial: IHistoricalLocations;
+  initial: Initial<HistoricalLocations>;
   onSubmit: any;
   formRef: any;
   disabled: boolean;
@@ -85,29 +84,24 @@ export function HistoricalLocationsForm({
  */
 export default function Page({}) {
   /**
-   * Retrieve node data use Web Worker.
+   * Retrieve node data using Web Worker. Redirect if there are
+   * no nodes of the given type.
    */
-  const { collection, message, disabled, onGetCollection } = useCollection({
-    left: title,
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default,
-  });
-  useEffect(()=>{
-    if (!disabled) onGetCollection()
-  }, [disabled])
+  const { message, collection, page } = useGetCollection(schema.title);
   /**
    * Client Component
    */
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, ...rest }: IHistoricalLocations) => {
+      {collection.map(({ uuid, ...rest }: Initial<HistoricalLocations>) => {
         return (
           <NamedNode key={uuid} uuid={uuid}>
             <p>time: {rest.time}</p>
           </NamedNode>
         );
       })}
+      <Paging {...page}/>
     </>
   );
 }

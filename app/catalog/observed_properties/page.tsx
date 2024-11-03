@@ -1,6 +1,6 @@
 import React from "react";
 import openapi from "@app/../specification.json";
-import Client from "@catalog/observed_properties/client";
+import ClientComponent from "./client";
 import type { Metadata } from "next";
 import { CollectionTemplate, formatMetadata } from "@catalog/page";
 /**
@@ -16,12 +16,9 @@ export const metadata: Metadata = formatMetadata("Read", schema);
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Client Component
-   */
   return (
     <CollectionTemplate schema={schema}>
-        <Client></Client>
+        <ClientComponent/>
     </CollectionTemplate>
   );
 }

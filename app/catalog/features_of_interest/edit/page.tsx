@@ -2,7 +2,7 @@ import React from "react";
 import specification from "@app/../specification.json";
 import Client from "./client";
 import type { Metadata } from "next";
-import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
+import { CollectionTemplate, formatMetadata } from "@catalog/page";
 /**
  * OpenAPI schema information used in the interface.
  */

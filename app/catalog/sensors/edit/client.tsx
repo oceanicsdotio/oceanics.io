@@ -2,7 +2,7 @@
 import React from "react";
 import OpenAPI from "@app/../specification.json";
 import { useUpdate } from "@catalog/client";
-import { SensorsForm } from "@catalog/sensors/client";
+import { Form } from "../client";
 import style from "@catalog/page.module.css";
 export const action = "Update";
 /**
@@ -18,7 +18,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      <SensorsForm action={action} {...form} />
+      <Form action={action} {...form} />
       <button className={style.submit} onClick={onDelete}>
         Delete
       </button>

@@ -9,8 +9,8 @@ import Client from "@catalog/client";
  * Browser and crawler metadata
  */
 export const metadata: Metadata = {
-  title: "Oceanics.io | Catalog",
-  description: "Sensor Things Catalog.",
+  title: `${openapi.info.title} | Catalog`,
+  description: "SensorThings Catalog.",
 };
 
 export function formatMetadata(
@@ -54,7 +54,7 @@ export function getLinkedCollections(properties: any) {
 export function CollectionTemplate({
   schema,
   children,
-  showActions = true,
+  showActions = false,
 }: {
   children: ReactNode;
   schema: {
@@ -94,14 +94,19 @@ export default function Page({}) {
    */
   return (
     <div className={styles.catalog}>
-      <Markdown>{openapi.info.description}</Markdown>
-      <p>
+      <details open={true}>
+        <summary>
+          About This Catalog
+        </summary>
+        <Markdown>{openapi.info.description}</Markdown>
+        <p>
         If code is more your style, try our{" "}
         <Link href="/openapi/" prefetch={false}>
           {" "}
           OpenAPI documentation for integration developers.
         </Link>
       </p>
+      </details>
       <Client />
     </div>
   );

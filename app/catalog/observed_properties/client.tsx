@@ -1,27 +1,23 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { ObservedProperties } from "@oceanics/app";
-import { NamedNode, useCollection } from "../client";
-interface IObservedProperties extends Omit<ObservedProperties,"free"> {}
-/**
- * Get schema metadata from the OpenAPI specification.
- */
-const components = specification.components;
-const { title: left } = components.schemas.ObservedProperties;
+import { NamedNode, Paging, useGetCollection } from "../client";
+interface IObservedProperties extends Omit<ObservedProperties,"free"> {};
 
 import style from "@catalog/page.module.css";
 import { TextInput } from "@catalog/client";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
-const { properties } =
+const schema =
   specification.components.schemas.ObservedProperties;
+  const properties = schema.properties
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function ObservedPropertiesForm({
+export function Form({
   action,
   initial,
   onSubmit,
@@ -103,17 +99,10 @@ export function ObservedPropertiesForm({
  */
 export default function ({}) {
   /**
-   * Retrieve node data use Web Worker.
+   * Retrieve node data using Web Worker. Redirect if there are
+   * no nodes of the given type.
    */
-  const { collection, message, disabled, onGetCollection } = useCollection({
-    left,
-    limit: components.parameters.limit.schema.default,
-    offset: components.parameters.offset.schema.default,
-  });
-  useEffect(() => {
-    if (disabled) return;
-    onGetCollection();
-  }, [disabled]);
+  const { message, collection, page } = useGetCollection(schema.title);
   /**
    * Client Component
    */
@@ -127,6 +116,7 @@ export default function ({}) {
           </NamedNode>
         );
       })}
+      <Paging {...page}/>
     </>
   );
 }

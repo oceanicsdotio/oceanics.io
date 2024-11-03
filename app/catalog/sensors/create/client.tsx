@@ -2,7 +2,7 @@
 import React from "react";
 import openapi from "@app/../specification.json";
 import { useCreate } from "@catalog/client";
-import { SensorsForm } from "@catalog/sensors/client";
+import { Form } from "../client";
 const action = "Create";
 /**
  * OpenAPI schema information used in the interface.
@@ -17,7 +17,7 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      <SensorsForm action={action} {...form} />
+      <Form action={action} {...form} />
     </>
   );
 }

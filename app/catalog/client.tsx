@@ -16,6 +16,7 @@ const parameters = specification.components.parameters;
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { v7 as uuid7 } from "uuid";
+export type Initial<T> = Omit<T, "free">;
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -34,13 +35,26 @@ const ACTIONS = {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function useCollection(query: {
-  left?: string;
-  limit?: number;
-  offset?: number;
-  right?: string;
-  uuid?: string;
-}) {
+function useCollection(
+  query: {
+    left?: string;
+    limit: number;
+    offset: number;
+    right?: string;
+    uuid?: string;
+  },
+  expectSome = false
+) {
+  const pathSegment = query.left
+    ?.split(/\.?(?=[A-Z])/)
+    .join("_")
+    .toLowerCase();
+  const previous = query.offset
+    ? `/catalog/${pathSegment}/?offset=${Math.max(
+        query.offset - query.limit,
+        0
+      )}&limit=${query.limit}`
+    : undefined;
   const { push } = useRouter();
   /**
    * Ref to Web Worker.
@@ -63,6 +77,7 @@ export function useCollection(query: {
    * Status message to understand what is going on in the background.
    */
   const [message, setMessage] = useState("↻ Loading");
+  const [next, setNext] = useState<string>();
   /**
    * Process web worker messages.
    */
@@ -74,18 +89,38 @@ export function useCollection(query: {
           setMessage(`✓ Found ${data.length} indexed collections`);
           return;
         case ACTIONS.getCollection:
-          setMessage(`✓ Found ${data.value.length} nodes`);
-          setCollection(data.value);
+          const count = Math.min(data.value.length, query.limit);
+          const moreExist = count && query.limit < data.value.length;
           window.scrollTo({ top: 0, behavior: "smooth" });
+          let _message = `✓ Found ${count} nodes`;
+          if (moreExist) {
+            setMessage(_message);
+            setCollection((data.value as any[]).slice(0, query.limit));
+            const newOffset = query.limit + query.offset;
+            setNext(
+              `/catalog/${pathSegment}/?offset=${newOffset}&limit=${query.limit}`
+            );
+          } else if (count) {
+            setMessage(_message);
+            setCollection(data.value);
+          } else if (expectSome) {
+            setMessage(`${_message}, redirecting...`);
+            setTimeout(() => {
+              push(`/catalog/${pathSegment}/create/`);
+            }, 500);
+          } else {
+            setMessage(_message);
+          }
           return;
         case ACTIONS.getEntity:
-          setMessage(`✓ Found 1 matching node`);
-          setCollection(data.value);
           window.scrollTo({ top: 0, behavior: "smooth" });
+          setCollection(data.value);
+          setMessage(`✓ Found 1 matching node`);
           return;
         case ACTIONS.deleteEntity:
+          window.scrollTo({ top: 0, behavior: "smooth" });
           setMessage(`✓ Deleted 1 node`);
-          push(`/catalog/${query.left?.split(/\.?(?=[A-Z])/).join("_").toLowerCase()}`);
+          push(`/catalog/${pathSegment}/`);
           return;
         case ACTIONS.createEntity:
           if (data) {
@@ -193,7 +228,7 @@ export function useCollection(query: {
       data: {
         query: {
           left: query.left,
-          limit: query.limit,
+          limit: query.limit + 1,
           offset: query.offset,
         },
       },
@@ -267,6 +302,11 @@ export function useCollection(query: {
     onGetCollection,
     onGetEntity,
     onGetLinked,
+    page: {
+      next,
+      previous,
+      current: Math.ceil(query.offset / query.limit) + 1,
+    },
   };
 }
 
@@ -284,7 +324,7 @@ export function useCreate(title: string) {
       formRef,
       initial,
       disabled,
-      onSubmit: onSubmitCreate
+      onSubmit: onSubmitCreate,
     },
     setInitial,
     message,
@@ -294,18 +334,26 @@ export function useCreate(title: string) {
 export function useUpdate(title: string) {
   const query = useSearchParams();
   const uuid = query.get("uuid") ?? "";
-  const { message, disabled, collection, onGetEntity, formRef, onSubmitUpdate, onDelete } = useCollection({
+  const {
+    message,
+    disabled,
+    collection,
+    onGetEntity,
+    formRef,
+    onSubmitUpdate,
+    onDelete,
+  } = useCollection({
     left: title,
     limit: parameters.limit.schema.default,
     offset: parameters.offset.schema.default,
-    uuid
+    uuid,
   });
-  const [initial, setInitial] = useState<{uuid: string}>({ uuid });
-  useEffect(()=>{
+  const [initial, setInitial] = useState<{ uuid: string }>({ uuid });
+  useEffect(() => {
     if (!disabled) {
-      onGetEntity()
+      onGetEntity();
     }
-  }, [disabled])
+  }, [disabled]);
   useEffect(() => {
     if (!collection.length) return;
     const [node] = collection;
@@ -317,11 +365,54 @@ export function useUpdate(title: string) {
       disabled,
       formRef,
       onSubmit: onSubmitUpdate,
-      initial
+      initial,
     },
-    onDelete
-  }
+    onDelete,
+  };
+}
+/**
+ * Shared by collection index pages. Wraps the useCollection hook,
+ * and fires a query once the worker is ready.
+ *
+ * Redirect to Create page if there are no existing nodes to view.
+ */
+export function useGetCollection(title: string) {
+  const expectSomeOrRedirect = true;
+  const query = useSearchParams();
+  const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
+  const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
+  const { message, disabled, collection, onGetCollection, page } =
+    useCollection(
+      {
+        left: title,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+      },
+      expectSomeOrRedirect
+    );
+  useEffect(() => {
+    if (disabled) return;
+    onGetCollection();
+  }, [disabled]);
+  return {
+    collection,
+    message,
+    page,
+  };
+}
 
+export function Paging(page: {
+  previous?: string;
+  next?: string;
+  current: number;
+}) {
+  return (
+    <p>
+      <a style={{color: "lightblue"}} href={page.previous}>{"Back"}</a>
+      <span>{` | Page ${page.current} | `}</span>
+      <a style={{color: "lightblue"}} href={page.next}>{"Next"}</a>
+    </p>
+  );
 }
 
 /**
@@ -333,19 +424,24 @@ export function NamedNode({
   children,
   uuid,
   controls,
+  nav = null
 }: {
-  name?: string;
-  children?: ReactNode;
-  uuid: string;
-  controls?: ReactNode;
+  name?: string
+  children?: ReactNode
+  uuid: string
+  controls?: ReactNode
+  nav?: string | null
 }) {
-  const url = `edit/?uuid=${uuid}`;
+  const url = `edit?uuid=${uuid}`;
   return (
     <details>
       <summary>
         <Link href={url} prefetch={false}>
           {name ?? uuid}
-        </Link>
+        </Link>{" [ "}
+        {nav && <Link href={`${nav}?uuid=${uuid}`} prefetch={false}>
+          {nav}
+        </Link>}{" ]"}
       </summary>
       <div>{controls}</div>
       {children}
@@ -556,10 +652,11 @@ function Collection({
    * through the API, since it already knows the specification.
    */
   const { description }: any = (specification.components.schemas as any)[name];
+  const redirect = count > 0 ? href : href + "/create/";
   return (
     <details key={href}>
       <summary>
-        <Link href={href} prefetch={false}>
+        <Link href={redirect} prefetch={false}>
           {content}
         </Link>
         <span>{` ✓ ${count}`}</span>
@@ -575,8 +672,6 @@ export default function ({}) {
   const { onGetIndex, collection, message, disabled } = useCollection({
     limit: 100,
     offset: 0,
-    left: "",
-    right: "",
   });
   useEffect(() => {
     if (disabled) return;

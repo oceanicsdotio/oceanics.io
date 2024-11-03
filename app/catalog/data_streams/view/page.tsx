@@ -1,12 +1,12 @@
 import React from "react";
-import Client from "./client";
-import type { Metadata } from "next";
-import openapi from "@app/../specification.json";
 import { CollectionTemplate, formatMetadata } from "@catalog/page";
-const schema = openapi.components.schemas.FeaturesOfInterest;
-const action = "Create"
+import Client from "./client";
+import { Metadata } from "next";
+import openapi from "@app/../specification.json";
+const schema = openapi.components.schemas.DataStreams;
+const action = "View"
 /**
- * Page browser metadata
+ * Browser metadata
  */
 export const metadata: Metadata = formatMetadata(action, schema);
 /**
@@ -15,11 +15,11 @@ export const metadata: Metadata = formatMetadata(action, schema);
  */
 export default function Page({}) {
   /**
-   * Server Component
+   * Static Component
    */
   return (
-    <CollectionTemplate schema={schema} showActions={false}>
-      <Client/>
+    <CollectionTemplate schema={schema}>
+        <Client></Client>
     </CollectionTemplate>
   );
 }
