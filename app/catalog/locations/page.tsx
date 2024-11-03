@@ -14,7 +14,7 @@ export const metadata: Metadata = {
  */
 export default function Page({}) {
   return (
-    <CollectionTemplate title={schema.title} properties={schema.properties} description={schema.description}>
+    <CollectionTemplate schema={schema}>
         <Client></Client>
     </CollectionTemplate>
   );

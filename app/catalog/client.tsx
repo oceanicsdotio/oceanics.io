@@ -12,9 +12,10 @@ import Markdown from "react-markdown";
 import style from "@catalog/page.module.css";
 import Link from "next/link";
 import specification from "@app/../specification.json";
-import layout from "@app/layout.module.css";
+const parameters = specification.components.parameters;
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { v7 as uuid7 } from "uuid";
 /**
  * Web worker messages that are explicitly handled in this
  * context. The shared worker may understand/send other types.
@@ -23,6 +24,8 @@ const ACTIONS = {
   getCollection: "getCollection",
   deleteEntity: "deleteEntity",
   createEntity: "createEntity",
+  updateEntity: "updateEntity",
+  getEntity: "getEntity",
   getIndex: "getIndex",
   getLinked: "getLinked",
   error: "error",
@@ -38,6 +41,7 @@ export function useCollection(query: {
   right?: string;
   uuid?: string;
 }) {
+  const { push } = useRouter();
   /**
    * Ref to Web Worker.
    */
@@ -74,16 +78,27 @@ export function useCollection(query: {
           setCollection(data.value);
           window.scrollTo({ top: 0, behavior: "smooth" });
           return;
+        case ACTIONS.getEntity:
+          setMessage(`✓ Found 1 matching node`);
+          setCollection(data.value);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
         case ACTIONS.deleteEntity:
           setMessage(`✓ Deleted 1 node`);
-          setCollection((previous: any[]) => {
-            return previous.filter((each) => each.uuid !== data.uuid);
-          });
+          push(`/catalog/${query.left}`);
           return;
         case ACTIONS.createEntity:
-          if (data.data) {
-            formRef.current?.reset();
+          if (data) {
             setMessage("✓ Created 1 node");
+            window.location.reload();
+          } else {
+            setMessage("! Something Went Wrong");
+          }
+          return;
+        case ACTIONS.updateEntity:
+          if (data) {
+            setMessage("✓ Updated 1 node");
+            window.scrollTo({ top: 0, behavior: "smooth" });
           } else {
             setMessage("! Something Went Wrong");
           }
@@ -157,6 +172,21 @@ export function useCollection(query: {
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+  const onSubmitUpdate =
+    (callback: any): FormEventHandler =>
+    (event) => {
+      event.preventDefault();
+      const { uuid, ...data } = callback();
+      tryPostMessage({
+        type: ACTIONS.updateEntity,
+        data: {
+          query: { left: query.left, left_uuid: uuid },
+          body: JSON.stringify(data),
+        },
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
   const onGetCollection = () => {
     tryPostMessage({
       type: ACTIONS.getCollection,
@@ -164,7 +194,19 @@ export function useCollection(query: {
         query: {
           left: query.left,
           limit: query.limit,
-          offset: query.offset
+          offset: query.offset,
+        },
+      },
+    });
+  };
+
+  const onGetEntity = () => {
+    tryPostMessage({
+      type: ACTIONS.getEntity,
+      data: {
+        query: {
+          left: query.left,
+          left_uuid: query.uuid,
         },
       },
     });
@@ -204,7 +246,7 @@ export function useCollection(query: {
       data: {
         query: {
           left: query.left,
-          uuid: query.uuid,
+          left_uuid: query.uuid,
         },
       },
     });
@@ -219,12 +261,69 @@ export function useCollection(query: {
     onDelete,
     disabled,
     onSubmitCreate,
-    create: formRef,
+    onSubmitUpdate,
+    formRef,
     onGetIndex,
     onGetCollection,
+    onGetEntity,
     onGetLinked,
   };
 }
+
+export function useCreate(title: string) {
+  const { message, disabled, onSubmitCreate, formRef } = useCollection({
+    left: title,
+    limit: parameters.limit.schema.default,
+    offset: parameters.offset.schema.default,
+  });
+  const [initial, setInitial] = useState<{ uuid: string }>({
+    uuid: uuid7(),
+  });
+  return {
+    form: {
+      formRef,
+      initial,
+      disabled,
+      onSubmit: onSubmitCreate
+    },
+    setInitial,
+    message,
+  };
+}
+
+export function useUpdate(title: string) {
+  const query = useSearchParams();
+  const uuid = query.get("uuid") ?? "";
+  const { message, disabled, collection, onGetEntity, formRef, onSubmitUpdate, onDelete } = useCollection({
+    left: title,
+    limit: parameters.limit.schema.default,
+    offset: parameters.offset.schema.default,
+    uuid
+  });
+  const [initial, setInitial] = useState<{uuid: string}>({ uuid });
+  useEffect(()=>{
+    if (!disabled) {
+      onGetEntity()
+    }
+  }, [disabled])
+  useEffect(() => {
+    if (!collection.length) return;
+    const [node] = collection;
+    setInitial(node);
+  }, [collection]);
+  return {
+    message,
+    form: {
+      disabled,
+      formRef,
+      onSubmit: onSubmitUpdate,
+      initial
+    },
+    onDelete
+  }
+
+}
+
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -248,9 +347,7 @@ export function NamedNode({
           {name ?? uuid}
         </Link>
       </summary>
-      <div>
-        {controls}
-      </div>
+      <div>{controls}</div>
       {children}
     </details>
   );
@@ -323,12 +420,16 @@ function InputMetadata({
 }) {
   return (
     <>
-      <label className={style.label} htmlFor={name}>
-        <code>{name}</code>
-        <span>{required ? " (required)" : ""}</span>
+      <label htmlFor={name}>
+        <details>
+          <summary>
+            <code>{name}</code>
+            <span>{required ? " (required)" : ""}</span>
+          </summary>
+          <Markdown>{description}</Markdown>
+        </details>
       </label>
       {children}
-      <Markdown>{description}</Markdown>
     </>
   );
 }

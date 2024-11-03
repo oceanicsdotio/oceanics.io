@@ -16,7 +16,7 @@ const LINKED = `${FUNCTIONS}/linked`;
  * Get iterable of node types, suitable for concurrent testing
  */
 let nodeTypes: [string, number][] = [];
-const types = (examples as unknown as [string]).reduce((acc: { [key: string]: number}, [label]) => {
+const types = (examples as unknown as [string]).reduce((acc: { [key: string]: number }, [label]) => {
   return {
     ...acc,
     [label]: (acc[label] ?? 0) + 1
@@ -71,7 +71,7 @@ describe("idempotent", function () {
         expect(result.access_token.length).toBeGreaterThan(0);
       })
     })
-    
+
     describe("user.get", function () {
       test("fetch user data", async function () {
         const response = await fetch(`${IDENTITY}/user`, {
@@ -103,7 +103,7 @@ describe("idempotent", function () {
         });
         expect(response.status).toEqual(204);
         expect(response.headers.has("allow"));
-        expect((response.headers.get("allow")||"").split(",")).toHaveLength(3)
+        expect((response.headers.get("allow") || "").split(",")).toHaveLength(3)
       });
     })
     // Create unique constraint if it does not exist
@@ -115,7 +115,7 @@ describe("idempotent", function () {
           headers: {
             "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify({label: nodeType})
+          body: JSON.stringify({ label: nodeType })
         })
         expect(response.status).toEqual(204);
       });
@@ -137,7 +137,7 @@ describe("idempotent", function () {
   })
 
   // Check collection handler
-  describe("collection", function() {
+  describe("collection", function () {
     const N_METHODS = 3;
     let token: string;
     beforeAll(async function () {
@@ -155,7 +155,7 @@ describe("idempotent", function () {
         })
         expect(response.status).toEqual(STATUS);
         expect(response.headers.has("allow"));
-        expect((response.headers.get("allow")||"").split(",").length).toBe(N_METHODS);
+        expect((response.headers.get("allow") || "").split(",").length).toBe(N_METHODS);
       });
       // But technically doesn't need to know node type
       test("fails with bad request on missing left query parameter", async function () {
@@ -188,7 +188,7 @@ describe("idempotent", function () {
       });
       // Create entities linked to the authenticated service account holder
       test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
-        const _filter = ([key]: [string, unknown]) => !key.includes("@"); 
+        const _filter = ([key]: [string, unknown]) => !key.includes("@");
         const filtered = Object.entries(properties).filter(_filter);
         const body = JSON.stringify(Object.fromEntries(filtered));
         const response = await fetch(`${COLLECTION}?left=${nodeType}`, {
@@ -204,7 +204,7 @@ describe("idempotent", function () {
       // Error handling case
       test("redirects unknown entity to 404", async function () {
         const response = await fetch(`${COLLECTION}?left=Nothings`, {
-          body: JSON.stringify({name: "Nothing"}),
+          body: JSON.stringify({ name: "Nothing" }),
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -255,7 +255,7 @@ describe("idempotent", function () {
         let collected = [];
         let lookAhead = true
         while (lookAhead) {
-          const response = await fetch(`${COLLECTION}?left=${nodeType}&offset=${offset}&limit=${PAGE_SIZE+1}`, {
+          const response = await fetch(`${COLLECTION}?left=${nodeType}&offset=${offset}&limit=${PAGE_SIZE + 1}`, {
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`
@@ -287,7 +287,7 @@ describe("idempotent", function () {
       })
       expect(response.status).toEqual(204);
       expect(response.headers.has("allow"));
-      expect((response.headers.get("allow")||"").split(",").length).toBe(3)
+      expect((response.headers.get("allow") || "").split(",").length).toBe(4)
     });
   });
 
@@ -312,14 +312,33 @@ describe("idempotent", function () {
     })
   })
 
-  describe("topology", function() {
+  // describe("entity.put", function () {
+  //   let token: string;
+  //   beforeAll(async function () {
+  //     token = await fetchToken();
+  //   });
+  //   test.each(examples as unknown as [string, string][])(`mutate %s %s`, async function (nodeType: string, uuid: string) {
+  //     const response = await fetch(`${ENTITY}?left=${nodeType}&left_uuid=${uuid}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         "Authorization": `Bearer ${token}`
+  //       },
+  //       body: JSON.stringify({
+  //         name: "redacted"
+  //       })
+  //     })
+  //     expect(response.status).toEqual(204);
+  //   })
+  // })
+
+  describe("topology", function () {
     let linkedExamples: [string, string, string, string][] = [];
     examples.forEach((each) => {
       const [left, left_uuid, props]: any = each;
       Object.entries(props).forEach(([key, value]) => {
         if (key.includes("@iot.navigation")) {
           let [right] = key.split("@");
-          (value as any[]).forEach(({name: [name]}) => {
+          (value as any[]).forEach(({ name: [name] }) => {
             examples.forEach((item) => {
               const [_right, right_uuid, _props]: any = item;
               const is_label_match = right === _right;
@@ -349,11 +368,11 @@ describe("idempotent", function () {
         })
         expect(response.status).toEqual(204);
         expect(response.headers.has("allow"));
-        expect((response.headers.get("allow")||"").split(",").length).toBe(3)
+        expect((response.headers.get("allow") || "").split(",").length).toBe(3)
       });
     });
     // Create relationships between nodes
-    describe("topology.post", function() {
+    describe("topology.post", function () {
       // Create links from specification examples
       test.each(linkedExamples)(`join %s %s with %s %s`, async function (left: string, leftUuid: string, right: string, rightUuid: string) {
         const response = await fetch(
@@ -370,7 +389,7 @@ describe("idempotent", function () {
       });
     });
 
-    describe("linked.get", function() {
+    describe("linked.get", function () {
       test.each(linkedExamples)(`query %s %s to %s %s`, async function (left: string, leftUuid: string, right: string, rightUuid: string) {
         // forward linking, back-linked doesn't necessarily work because there may be multiplicity 
         // in one direction or the other.
@@ -389,17 +408,17 @@ describe("idempotent", function () {
     })
   })
 })
-    
+
 
 describe("canonical data sources", function () {
   let sources: any;
   beforeAll(function () {
     const contents = fs.readFileSync("locations.yml", "utf-8");
-    const {geojson} = yaml.parse(contents);
+    const { geojson } = yaml.parse(contents);
     sources = geojson
   })
 
-  describe("aquaculture", function() {
+  describe("aquaculture", function () {
     let token: string;
     beforeAll(async function () {
       token = await fetchToken();

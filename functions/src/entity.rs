@@ -1,6 +1,5 @@
 use crate::{
-    cypher::{Links, Node, QueryResult, SerializedQueryResult},
-    openapi::{
+    cypher::{Links, Node, QueryResult, SerializedQueryResult}, log, openapi::{
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
     }
 };
@@ -33,9 +32,10 @@ pub async fn entity(
         return ErrorResponse::bad_request("Missing node uuid in query string")
     }
     match &event.http_method[..] {
-        "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE"]),
+        "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE", "PUT"]),
         "GET" => get(&url, &access_key, user.unwrap(), event).await,
         "DELETE" => delete(&url, &access_key, user.unwrap(), event).await,
+        "PUT" => put(&url, &access_key, user.unwrap(), event).await,
         _ => ErrorResponse::not_implemented(),
     }
 }
@@ -84,5 +84,24 @@ pub async fn delete(
         NoContentResponse::new()
     } else {
         ErrorResponse::server_error(None)
+    }
+}
+
+async fn put(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
+    let user = Node::user_from_string(user);
+    let query = &event.query;
+    let label = query.left.as_ref().unwrap();
+    let updates = Node::new(event.body, "n".to_string(), Some(label.clone()));
+    let uuid = query.left_uuid.as_ref().unwrap();
+    let node = Node::from_uuid(&label, &uuid);
+    let cypher = Links::create().mutate_child(&user, &node, &updates);
+    let raw = cypher.run(&url, &access_key).await;
+    let result = serde_wasm_bindgen::from_value::<QueryResult>(raw);
+    if result.is_ok() {
+        NoContentResponse::new()
+    } else {
+        let error = result.err().unwrap();
+        let details = format!("{}", error);
+        ErrorResponse::server_error(Some(&details))
     }
 }

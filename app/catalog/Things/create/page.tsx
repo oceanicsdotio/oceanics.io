@@ -1,17 +1,19 @@
-import React, { Suspense } from "react";
-import openapi from "@app/../specification.json";
+import React from "react";
+import OpenAPI from "@app/../specification.json";
 import Client from "./client";
+import { CollectionTemplate } from "@catalog/page";
 import { type Metadata } from "next";
+const action = "Create";
 /**
  * OpenAPI schema information used in the interface.
  */
-const schema = openapi.components.schemas.Things;
+const schema = OpenAPI.components.schemas.Things;
 /**
- * Browser and crawler metadata
+ * Browser and crawler metadata.
  */
 export const metadata: Metadata = {
-  title: `${openapi.info.title} | ${schema.title}`,
-  description: `Create ${schema.title}. ${schema.description}`,
+  title: `${OpenAPI.info.title} | ${schema.title}`,
+  description: `${action} ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -19,11 +21,11 @@ export const metadata: Metadata = {
  */
 export default function Page({}) {
   /**
-   * Server component
+   * Server component enforces `use client` boundary.
    */
   return (
-      <Suspense>
-        <Client/>
-      </Suspense>
+    <CollectionTemplate schema={schema} showActions={false}>
+      <Client />
+    </CollectionTemplate>
   );
 }

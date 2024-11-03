@@ -1,14 +1,15 @@
 import React, { Suspense } from "react";
-import { Create } from "@catalog/sensors/client";
+import Client from "@catalog/sensors/create/client";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
 const schema = openapi.components.schemas.Sensors;
+const action = "Create"
 /**
  * Page browser metadata
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
-  description: `Create new ${schema.title}. ${schema.description}`,
+  title: `${openapi.info.title} | ${schema.title}`,
+  description: `${action} ${schema.title}. ${schema.description}`,
 };
 /**
  * Display an index of all or some subset of the
@@ -20,7 +21,7 @@ export default function ({}) {
    */
   return (
     <Suspense>
-      <Create />
+      <Client />
     </Suspense>
   );
 }

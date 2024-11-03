@@ -36,7 +36,7 @@ export function DataStreamsForm({action}:{action: string}) {
   /**
    * Web Worker.
    */
-  const { onSubmitCreate, disabled, create, message } = useCollection({
+  const { onSubmitCreate, disabled, formRef: create, message } = useCollection({
     left: title,
     limit: 100,
     offset: 0,

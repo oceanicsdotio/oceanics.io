@@ -5,11 +5,11 @@ import Link from "next/link";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className={layout.content}>
-      <Link className={layout.link} href={"/"}>
+      <Link className={layout.link} href={"/"} prefetch={false}>
         Home
       </Link>
       {"/"}
-      <Link className={layout.link} href="/catalog">
+      <Link className={layout.link} href="/catalog" prefetch={false}>
         Catalog
       </Link>
       {children}

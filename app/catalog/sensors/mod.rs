@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Sensors {
-    pub name: String,
+    pub name: Option<String>,
     pub uuid: String,
     pub description: Option<String>,
     #[wasm_bindgen(js_name=encodingType)]

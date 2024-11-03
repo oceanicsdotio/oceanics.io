@@ -19,7 +19,7 @@ use web_sys::{
 #[serde(rename_all = "camelCase")]
 struct Things {
     pub uuid: String,
-    pub name: String,
+    pub name: Option<String>,
     pub description: Option<String>,
     pub properties: Option<String>,
 }

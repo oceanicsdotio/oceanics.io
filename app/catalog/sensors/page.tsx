@@ -11,8 +11,8 @@ const schema = openapi.components.schemas.Sensors;
  * Browser and crawler metadata.
  */
 export const metadata: Metadata = {
-  title: `Oceanics.io | ${schema.title}`,
-  description: `Catalog of ${schema.title}`,
+  title: `${openapi.info.title} | ${schema.title}`,
+  description: `${schema.title} catalog`,
 };
 /**
  * Display an index of all or some subset of the
@@ -23,7 +23,7 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate title={schema.title} properties={schema.properties} description={schema.description}>
+    <CollectionTemplate schema={schema}>
         <Client></Client>
     </CollectionTemplate>
   );

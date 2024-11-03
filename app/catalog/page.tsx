@@ -42,31 +42,34 @@ export function getLinkedCollections(properties: any) {
  * available nodes in the database.
  */
 export function CollectionTemplate({
-  title,
-  properties,
+  schema,
   children,
-  description
+  showActions=true
 }: {
   children: ReactNode
-  title: string
-  properties: any
-  description: string
+  schema: {
+    title: string
+    properties: any
+    description: string
+  }
+  showActions?: boolean
 }) {
-  const links = getLinkedCollections(properties)
+  const links = getLinkedCollections(schema.properties);
   return (
     <>
-            
       <details>
-        <summary>Details</summary>
-        <Markdown>{description}</Markdown>
-        <p>
-        You can <Link href="create/">create</Link> <code>{title}</code>, and link them to {links}.
-      </p>
+        <summary>About This Collection</summary>
+        <Markdown>{schema.description}</Markdown>
+        <p></p>
       </details>
-      
-      <Suspense>
-        {children}
-      </Suspense>
+      <details open={showActions}>
+        <summary>Actions</summary>
+        <p>
+          You can <Link href="create/">create</Link> <code>{schema.title}</code>, and
+          link them to {links}.
+        </p>
+      </details>
+      <Suspense>{children}</Suspense>
     </>
   );
 }
@@ -88,7 +91,7 @@ export default function Page({}) {
           OpenAPI documentation for integration developers.
         </Link>
       </p>
-      <Client/>
+      <Client />
     </div>
   );
 }

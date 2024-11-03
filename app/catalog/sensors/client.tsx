@@ -15,7 +15,15 @@ const { properties, title: left } = specification.components.schemas.Sensors;
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Create({}) {
+export function SensorsForm({
+  action, disabled, onSubmit, formRef, initial
+}:{
+  action: string
+  initial: ISensors
+  onSubmit: any
+  formRef: any
+  disabled: boolean
+}) {
   /**
    * Form data is synced with user input
    */
@@ -25,56 +33,47 @@ export function Create({}) {
   const metadata = useRef<HTMLInputElement | null>(null);
   const encodingType = useRef<HTMLSelectElement | null>(null);
   /**
-   * Web Worker.
-   */
-  const { onSubmitCreate, disabled, create, message } = useCollection({
-    left,
-    limit: 10,
-    offset: 0
-  });
-  /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
    */
   const onSubmitCallback = () => {
     return {
       uuid: uuid.current?.value,
-      name: name.current?.value,
-      description: _description.current?.value,
-      metadata: metadata.current?.value,
-      encodingType: encodingType.current?.value
+      name: name.current?.value || undefined,
+      description: _description.current?.value || undefined,
+      metadata: metadata.current?.value || undefined,
+      encodingType: encodingType.current?.value || undefined
     };
   };
   /**
    * Client Component
    */
   return (
-    <>
-      <p>{message}</p>
-      <hr />
       <form
         className={style.form}
-        onSubmit={onSubmitCreate(onSubmitCallback)}
-        ref={create}
+        onSubmit={onSubmit(onSubmitCallback)}
+        ref={formRef}
       >
         <TextInput
           name={"uuid"}
           inputRef={uuid}
           required
           description={properties.uuid.description}
-          defaultValue={crypto.randomUUID()}
+          defaultValue={initial.uuid}
         ></TextInput>
         <TextInput
           name={"name"}
           inputRef={name}
           required
           description={properties.name.description}
+          defaultValue={initial.name}
         ></TextInput>
         <TextInput
           name={"description"}
           inputRef={_description}
           required
           description={properties.description.description}
+          defaultValue={initial.description}
         ></TextInput>
         <label className={style.label} htmlFor={"encodingType"}>
           <code>encodingType</code>
@@ -101,10 +100,10 @@ export function Create({}) {
           description={properties.metadata.description}
         ></TextInput>
         <button className={style.submit} disabled={disabled}>
-          Create
+          {action}
         </button>
+        <button className={style.submit} type="reset">Reset</button>
       </form>
-    </>
   );
 }
 

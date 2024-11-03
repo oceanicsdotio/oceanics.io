@@ -17,6 +17,7 @@ export default function({ children }: { children: React.ReactNode }) {
         className={layout.link}
         style={{ display: "inline-block" }}
         href={`/catalog/${title.toLowerCase()}/`}
+        prefetch={false}
       >
         {title}
       </Link>

@@ -25,13 +25,13 @@ export function ThingsForm({
   action,
   initial,
   onSubmit,
-  create,
+  formRef,
   disabled,
 }: {
   action: string;
   initial: IThings;
   onSubmit: any;
-  create: any;
+  formRef: any;
   disabled: boolean;
 }) {
   /**
@@ -60,9 +60,9 @@ export function ThingsForm({
   const onSubmitCallback = () => {
     return {
       uuid: uuid.current?.value,
-      name: name.current?.value,
-      description: _description.current?.value,
-      properties: _properties.current?.value,
+      name: name.current?.value || undefined,
+      description: _description.current?.value || undefined,
+      properties: _properties.current?.value || undefined,
     };
   };
   /**
@@ -72,31 +72,33 @@ export function ThingsForm({
     <form
       className={style.form}
       onSubmit={onSubmit(onSubmitCallback)}
-      ref={create}
+      ref={formRef}
     >
       <TextInput
         name={"uuid"}
-        required
+        readOnly
+        required={!properties.uuid.type.includes("null")}
         inputRef={uuid}
         description={properties.uuid.description}
         defaultValue={initial.uuid}
       ></TextInput>
       <TextInput
         name={"name"}
-        required
+        required={!properties.name.type.includes("null")}
         inputRef={name}
         description={properties.name.description}
         defaultValue={initial.name}
       ></TextInput>
       <TextInput
         name={"description"}
-        required
+        required={!properties.description.type.includes("null")}
         inputRef={_description}
         description={properties.description.description}
         defaultValue={initial.description}
       ></TextInput>
       <TextInput
         name={"properties"}
+        required={!properties.properties.type.includes("null")}
         inputRef={_properties}
         description={properties.properties.description}
         defaultValue={initial.properties}

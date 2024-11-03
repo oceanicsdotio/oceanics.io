@@ -245,6 +245,18 @@ impl Links {
         Cypher::new(query, "WRITE".to_string())
     }
 
+    pub fn mutate_child(&self, left: &Node, right: &Node, updates: &Node) -> Cypher {
+        let query = format!(
+            "MATCH {}{}{} SET {} += {{ {} }}",
+            left,
+            self,
+            right,
+            right.symbol,
+            updates.pattern()
+        );
+        Cypher::new(query, "WRITE".to_string())
+    }
+
     /// Detach and delete both the root node and the child nodes. Use
     /// this to delete a pattern, for example removing a user account and
     /// all owned data. In some cases this can leave orphan nodes,

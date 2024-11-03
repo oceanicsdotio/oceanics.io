@@ -770,7 +770,9 @@ components:
       title: "Things"
       examples:
         - name: Sealab
+          description: A research institution located offshore.
         - name: R/V Lloigor
+          description: A regional class research vessel operating in the Gulf of Maine.
 
       type: object
       description: |
@@ -803,18 +805,20 @@ components:
             Short but useful explanation of what the entity is.
 
         properties:
-          type: object
+          type:
+            - object
+            - "null"
           description: Key-value properties
 
         HistoricalLocations@iot.navigation:
           readOnly: true
           oneOf:
-
+            - type: "null"
             - type: array
               title: references
               items:
                 type: string
-
+                format: url
             - type: array
               title: objects
               items:
@@ -823,12 +827,12 @@ components:
         Locations@iot.navigation:
           readOnly: true
           oneOf:
-
+            - type: "null"
             - type: array
               title: references
               items:
                 type: string
-
+                format: url
             - type: array
               title: objects
               items:
@@ -837,12 +841,12 @@ components:
         DataStreams@iot.navigation:
           readOnly: true
           oneOf:
-
+            - type: "null"
             - type: array
               title: references
               items:
                 type: string
-
+                format: url
             - type: array
               title: objects
               items:

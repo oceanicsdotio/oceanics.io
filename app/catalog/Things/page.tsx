@@ -23,11 +23,7 @@ export default function Page({}) {
    * Server component enforces `use client` boundary.
    */
   return (
-    <CollectionTemplate
-      title={schema.title}
-      properties={schema.properties}
-      description={schema.description}
-    >
+    <CollectionTemplate schema={schema}>
       <Client />
     </CollectionTemplate>
   );
