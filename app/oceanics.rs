@@ -8,11 +8,8 @@ use wasm_bindgen::prelude::*;
 struct Cell {
     pub mask: bool
 }
-
-/**
- * Styles are used in rendering the WebGL/Canvas animations
- * and static images of the grid
- */
+/// Styles are used in rendering the WebGL/Canvas animations
+/// and static images of the grid
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Style {
@@ -23,25 +20,21 @@ struct Style {
     pub font_size: f64, 
     pub tick_size: f64
 }
-/**
- * Good old-fashioned 3D grid, usually projected 
- * into the X,Y plane. The precision of the hash
- * allows 65535 values in X,Y and 255 values in Z,
- * which is appropriate for most oceanographic
- * applications.
- *
- * Use other methods for higher resolution applications
- */
+/// Good old-fashioned 3D grid, usually projected 
+/// into the X,Y plane. The precision of the hash
+/// allows 65535 values in X,Y and 255 values in Z,
+/// which is appropriate for most oceanographic
+/// applications.
+///
+/// Use other methods for higher resolution applications
 struct RectilinearGrid {
     shape: [usize; 3],
     cells: HashMap<(u16,u16,u8), Cell>,
 }
 
 impl RectilinearGrid {
-    /**
-     * Create a new Grid that is both rectilinear and rectangular,
-     * with Only the number of desired cells in each dimension
-     */
+    /// Create a new Grid that is both rectilinear and rectangular,
+    /// with Only the number of desired cells in each dimension
     pub fn new(nx: u16, ny: u16, nz: u8) -> RectilinearGrid {
         RectilinearGrid { 
             shape: [
@@ -54,29 +47,17 @@ impl RectilinearGrid {
             ) 
         }
     }
-
-    /**
-    * Width convenience method, assumes X is the horizontal
-    * axis in screen orientation
-    */
+   /// Width convenience method, assumes X is the horizontal
+   /// axis in screen orientation
     pub fn w(&self) -> f64 {self.shape[0] as f64}
-
-    /**
-    * Height convenience method. Returns discrete height
-    * assuming that Y is up in screen orientation
-    */
+   /// Height convenience method. Returns discrete height
+   /// assuming that Y is up in screen orientation
     pub fn h(&self) -> f64 {self.shape[1] as f64}
-
-    /**
-    * Depth convenience method, returns number of vertical
-    * cells, assuming that Z is into the screen orientation.
-    */
+   /// Depth convenience method, returns number of vertical
+   /// cells, assuming that Z is into the screen orientation.
     pub fn d(&self) -> f64 {self.shape[2] as f64}
-
-    /** 
-    * Flexible sizing, in case implementing with vector 
-    * instead of array
-    */
+   /// Flexible sizing, in case implementing with vector 
+   /// instead of array
     #[allow(dead_code)]
     fn size(&self) -> usize {
         let mut result: usize = 1;
@@ -85,10 +66,7 @@ impl RectilinearGrid {
         }
         result
     }
-
-    /** 
-     * Draw the grid lines and any selected cells
-     */
+    /// Draw the grid lines and any selected cells
     pub fn draw_edges(
         &self, 
         ctx: &CanvasRenderingContext2d, 
@@ -115,10 +93,7 @@ impl RectilinearGrid {
         }
         ctx.stroke();
     }
-
-    /**
-     * Draw the lines and any selected cells
-     */
+    /// Draw the lines and any selected cells
     pub fn draw_cells(
         &self, 
         ctx: &CanvasRenderingContext2d, 
@@ -137,12 +112,9 @@ impl RectilinearGrid {
             }
         }
     }
-
-    /**
-     * Add a tracked cell to the grid. Cells have 3 spatial index
-     * dimensions. 
-     * They are masked by default. 
-     */
+    /// Add a tracked cell to the grid. Cells have 3 spatial index
+    /// dimensions. 
+    /// They are masked by default. 
     #[allow(dead_code)]
     pub fn insert(&mut self, i: u16, j: u16, k: u8) -> bool {
         let insert = !self.cells.contains_key(&(i, j, k));
@@ -152,27 +124,18 @@ impl RectilinearGrid {
         return insert;
     }
 }
-
-
-/**
- * Container for rectilinear grid that also has a cursor reference,
- * and keeps track of metadata related to sampling and rendering.
- */
+/// Container for rectilinear grid that also has a cursor reference,
+/// and keeps track of metadata related to sampling and rendering.
 #[wasm_bindgen]
 pub struct InteractiveGrid {
     grid: RectilinearGrid,
     frames: usize,
     stencil_radius: u8
 }
-
-/**
- * Public Web implementation of InteractiveGrid. 
- */
+/// Public Web implementation of InteractiveGrid. 
 #[wasm_bindgen]
 impl InteractiveGrid {
-    /**
-    * JavaScript binding for creating a new interactive grid container
-    */
+   /// JavaScript binding for creating a new interactive grid container
     #[wasm_bindgen(constructor)]
     pub fn new(
         nx: u16, 
@@ -186,11 +149,8 @@ impl InteractiveGrid {
             stencil_radius: stencil
         }
     }
-
-    /** 
-     * Animation frame is used as a visual feedback test 
-     * that utilizes most public methods of the data structure.
-     */
+    /// Animation frame is used as a visual feedback test 
+    /// that utilizes most public methods of the data structure.
     pub fn draw(
         &mut self, 
         canvas: HtmlCanvasElement, 
@@ -216,12 +176,10 @@ impl InteractiveGrid {
         let dy = h / self.grid.h();
         let radius = self.stencil_radius as f64;
         let diameter = 1.0 + 2.0*radius;
-
         let focus_x = ((cursor_x / dx).floor() - radius) * dx;
         let focus_y = ((cursor_y / dy).floor() - radius) * dy;
         
         ctx.set_line_width(rstyle.line_width*1.5);
-
         ctx.begin_path();
         ctx.move_to(focus_x, focus_y);
         ctx.line_to(focus_x + dx*diameter, focus_y);
@@ -229,14 +187,10 @@ impl InteractiveGrid {
         ctx.line_to(focus_x, focus_y+dy*diameter);
         ctx.close_path();
         ctx.stroke();
-
         let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
-
         if time < 10000.0 || fps < 55.0 {
-
             let caption = format!("3D Grid ({},{},{})", self.grid.w(), self.grid.h(), self.grid.d());
             crate::draw_caption(ctx, caption, inset, h-inset, &rstyle.overlay_color, font.clone());
-        
             crate::draw_caption(
                 &ctx,
                 format!("{:.0} fps", fps),
@@ -246,7 +200,6 @@ impl InteractiveGrid {
                 font
             );
         }
-        
         self.frames += 1;
     }
 }

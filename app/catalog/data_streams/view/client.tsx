@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useGetCollection } from "@catalog/client";
+import { Initial, useGetCollection } from "@catalog/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
 import type {
@@ -28,7 +28,7 @@ let timeConstant = 1 / capacity;
  * Drawing style type is from WASM, but we have to leave
  * out bound methods.
  */
-let draw: Omit<DataStreamStyle, "free"> = {
+let draw: Initial<DataStreamStyle> = {
   streamColor: "lightblue",
   overlayColor: "lightblue",
   backgroundColor: "#11002299",

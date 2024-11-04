@@ -125,7 +125,7 @@ export default function () {
       <p>{message}</p>
       {collection.map(({ uuid, ...thing }: Initial<Things>) => {
         return (
-          <NamedNode key={uuid} name={thing.name} uuid={uuid}>
+          <NamedNode key={uuid} name={thing.name} uuid={uuid} nav={"view"}>
             <p>description: {thing.description ?? "n/a"}</p>
             <p>properties: {thing.properties ?? "n/a"}</p>
           </NamedNode>
