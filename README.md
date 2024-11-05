@@ -71,4 +71,3 @@ GROUP BY method, function
 Some tips that could help save some time...
 
 - Neo4j routing error: Likely that the URL or password for the database instance are out of date in the web UI. Can be applied from the commandline, by updating the `.env` to match the `.envrc`.
-
