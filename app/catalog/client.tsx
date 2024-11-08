@@ -7,6 +7,7 @@ import React, {
   type MutableRefObject,
   type ReactNode,
   type FormEventHandler,
+  Suspense
 } from "react";
 import Markdown from "react-markdown";
 import style from "@catalog/page.module.css";
@@ -233,6 +234,21 @@ function useCollection(
         },
       },
     });
+    return collection
+  };
+
+  const getCollection = () => {
+    tryPostMessage({
+      type: ACTIONS.getCollection,
+      data: {
+        query: {
+          left: query.left,
+          limit: query.limit + 1,
+          offset: query.offset,
+        },
+      },
+    });
+    return collection
   };
 
   const onGetEntity = () => {
@@ -268,6 +284,14 @@ function useCollection(
       data: {},
     });
   };
+
+  const getIndex = () => {
+    tryPostMessage({
+      type: ACTIONS.getIndex,
+      data: {},
+    });
+    return collection
+  };
   /**
    * Delete a resource
    */
@@ -302,6 +326,8 @@ function useCollection(
     onGetCollection,
     onGetEntity,
     onGetLinked,
+    getCollection,
+    getIndex
     page: {
       next,
       previous,
@@ -688,11 +714,11 @@ export default function ({}) {
     onGetIndex();
   }, [disabled]);
   return (
-    <>
+    <Suspense fallback={<p>{message}</p>}>
       <p>{message}</p>
-      {collection.map((each, index) => (
-        <Collection key={`collection-${index}`} {...each} />
+      {collection.map((each) => (
+        <Collection key={each.href} {...each} />
       ))}
-    </>
+    </Suspense>
   );
 }
