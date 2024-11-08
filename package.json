@@ -67,7 +67,7 @@
         "eslint-config-next": "15.0.1",
         "http-proxy-middleware": "^3.0.3",
         "jest": "^29.7.0",
-        "netlify-cli": "^17.36.4",
+        "netlify-cli": "^17.37.2",
         "rehype": "^13.0.2",
         "rehype-highlight": "^7.0.0",
         "rehype-stringify": "^10.0.1",
