@@ -5173,15 +5173,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=59aaf3&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/3afe575129c1ea1d7c3511db60d426062381de01346c395b154813b195f6bc6be45596033eca8f7a2724c6fd6d609ad852978cd21b64becd7ddc0872cadc2ab4
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=8b76cd&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/ee15d80ddff4c227d6de5fadbd8744c48469d6236a81325931db3a8946cb4d0862d8b7766d866877b2dd3256f77168cf757f26eba5632db56f5604763f4bdf12
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -6708,12 +6708,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mapbox-gl@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "@types/mapbox-gl@npm:3.4.0"
+"@types/mapbox-gl@npm:^3.4.1":
+  version: 3.4.1
+  resolution: "@types/mapbox-gl@npm:3.4.1"
   dependencies:
     "@types/geojson": "npm:*"
-  checksum: 10/0813c55b81f5b5bf95f18cca1ef56bd9c89cb3370b44115af96fb21b2ba3418e891e63eb2efd09273b4faf3ad72e54fe6d60b810a050fe7f5673d5d10bdc271d
+  checksum: 10/74838ffc8ffcd370b93f65e7cd02bd2c6338da44b05e99042a58aa927043f10c465b9d59271b621d3a14f6d9d2c535ed1c41ff05a8f1766dd5911b4cbe71145d
   languageName: node
   linkType: hard
 
@@ -23909,7 +23909,7 @@ __metadata:
     "@types/geojson": "npm:^7946.0.14"
     "@types/jest": "npm:^29.5.13"
     "@types/katex": "npm:^0.16.7"
-    "@types/mapbox-gl": "npm:^3.4.0"
+    "@types/mapbox-gl": "npm:^3.4.1"
     "@types/mdx": "npm:^2.0.13"
     "@types/node": "npm:22.6.0"
     "@types/prop-types": "npm:^15.7.13"

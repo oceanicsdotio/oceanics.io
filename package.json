@@ -50,7 +50,7 @@
         "@types/geojson": "^7946.0.14",
         "@types/jest": "^29.5.13",
         "@types/katex": "^0.16.7",
-        "@types/mapbox-gl": "^3.4.0",
+        "@types/mapbox-gl": "^3.4.1",
         "@types/mdx": "^2.0.13",
         "@types/node": "22.6.0",
         "@types/prop-types": "^15.7.13",
