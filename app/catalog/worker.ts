@@ -18,10 +18,42 @@ async function startup(message: MessageEvent){
   const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity, getLinked, updateEntity } = await import("@oceanics/app");
   // Provide better error messaging on web assembly panic
   panic_hook();
+
+  async function getCollectionAndTransform(query: {
+    limit: number
+    offset: number
+  }) {
+    const result = await getCollection(access_token, query);
+    const count = Math.min(result.value.length, query.limit);
+    const moreExist = count && query.limit < result.value.length;
+    const scrollTo = { top: 0, behavior: "smooth" };
+    let message = `✓ Found ${count} nodes`;
+    let nextPage;
+    let redirect = false;
+    if (moreExist) {
+      const newOffset = query.limit + query.offset;
+      nextPage = new URLSearchParams(`?offset=${newOffset}&limit=${query.limit}`);
+    } 
+    if (!count) {
+      message += ", redirecting...";
+      redirect = true;
+    }
+    return {
+      collection: result.value.slice(0, query.limit),
+      message,
+      page: {
+        next: nextPage,
+        previous: undefined
+      },
+      scrollTo,
+      redirect
+    }
+  }
+
   return {
     handlers: {
       getIndex: getIndex.bind(undefined, access_token),
-      getCollection: getCollection.bind(undefined, access_token),
+      getCollection: getCollectionAndTransform,
       getLinked: getLinked.bind(undefined, access_token),
       getEntity: getEntity.bind(undefined, access_token),
       updateEntity: updateEntity.bind(undefined, access_token),
