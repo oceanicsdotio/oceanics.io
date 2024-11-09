@@ -11,6 +11,7 @@ import {
   NumberInput,
   TextSelectInput,
   type Initial,
+  type FormArgs,
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 
@@ -34,13 +35,7 @@ export function LocationsForm({
   onSubmit,
   formRef,
   disabled,
-}: {
-  action: string;
-  initial: Initial<LocationsType>;
-  onSubmit: any;
-  formRef: any;
-  disabled: boolean;
-}) {
+}: FormArgs<LocationsType>) {
   /**
    * Form data is synced with user input
    */
@@ -213,15 +208,15 @@ export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, page } = useGetCollection(schema.title);
+  const { collection, message, page } = useGetCollection<Initial<LocationsType>>(schema.title);
   /**
    * Client Component
    */
   return (
     <div>
       <p>{message}</p>
-      {collection.map((each: Initial<LocationsType>) => (
-        <NamedNode name={each.name} uuid={each.uuid} nav="map">
+      {collection.map((each) => (
+        <NamedNode key={each.uuid} name={each.name} uuid={each.uuid} nav="map">
           <div>
             <p>description: {each.description ?? "n/a"}</p>
             <p>encoding type: {each.encodingType ?? "n/a"}</p>

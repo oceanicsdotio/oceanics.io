@@ -350,7 +350,7 @@ impl InteractiveDataStream {
                 reference += 1;
             }
             result.push_back(Observations {
-                uuid: None,
+                uuid: String::from(""),
                 phenomenon_time,
                 result: self.observations[reference].result,
                 result_time: None,
@@ -394,7 +394,7 @@ impl InteractiveDataStream {
                     + (phenomenon_time - self.observations[previous].phenomenon_time) * dydt;
             }
             observations.push_back(Observations {
-                uuid: None,
+                uuid: String::from(""),
                 phenomenon_time,
                 result,
                 result_time: None,
