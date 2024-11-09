@@ -5173,15 +5173,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=ebf7a3&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/7d160c01a5d0dae250a49d955985cb62f23368d97b6a85a925bdb26e4fd540b159c597953c6ec07131e6f75ad31be4deb1bd760c966188213317569ca7954e2a
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=df783b&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/720a44f3dd776329046ba0fb8af8616b2fc6fac7d45706d0575b08a56c4bddc951c5176452ed9798eb70339e154b4039ad013a8b134737c39a860677cf010bc5
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=5c3c00&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/f6eb90d05c923bf1d7b803d719693db62eb1c52e020a43238d22dec92432c167e5ff0203c5359040b041dc5f8a56947089111018b7f484aa5e49d03e133bca8a
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=450bad&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/52e7b773fd5a694a14ee8ce73652d33757b867842ddbadd950d09c22c5adc61f132c20aa9d55b8e58393bbbcbbb04337b3e95576adc8adf57356128a8d202784
   languageName: node
   linkType: hard
 
@@ -9797,24 +9797,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:0.7.1":
-  version: 0.7.1
-  resolution: "cookie@npm:0.7.1"
-  checksum: 10/aec6a6aa0781761bf55d60447d6be08861d381136a0fe94aa084fddd4f0300faa2b064df490c6798adfa1ebaef9e0af9b08a189c823e0811b8b313b3d9a03380
-  languageName: node
-  linkType: hard
-
-"cookie@npm:0.7.2":
-  version: 0.7.2
-  resolution: "cookie@npm:0.7.2"
-  checksum: 10/24b286c556420d4ba4e9bc09120c9d3db7d28ace2bd0f8ccee82422ce42322f73c8312441271e5eefafbead725980e5996cc02766dbb89a90ac7f5636ede608f
-  languageName: node
-  linkType: hard
-
-"cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "cookie@npm:0.6.0"
-  checksum: 10/c1f8f2ea7d443b9331680598b0ae4e6af18a618c37606d1bbdc75bec8361cce09fe93e727059a673f2ba24467131a9fb5a4eec76bb1b149c1b3e1ccb268dc583
+"cookie@npm:>=0.7.0":
+  version: 1.0.1
+  resolution: "cookie@npm:1.0.1"
+  checksum: 10/4b24d4fad5ba94ab76d74a8fc33ae1dcdb5dc02013e03e9577b26f019d9dfe396ffb9b3711ba1726bcfa1b93c33d117db0f31e187838aed7753dee1abc691688
   languageName: node
   linkType: hard
 
