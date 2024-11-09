@@ -1,19 +1,17 @@
 "use client";
 import React, { useRef } from "react";
 import {
+  type FormArgs,
+  Initial,
   NamedNode,
   Paging,
   TextInput,
   useGetCollection,
-  type Initial,
 } from "@catalog/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
 import type { DataStreams } from "@oceanics/app";
-/**
- * Properties from OpenAPI schema
- */
 const schema = openapi.components.schemas.DataStreams;
 const properties = schema.properties;
 /**
@@ -26,13 +24,7 @@ export function Form({
   onSubmit,
   formRef,
   disabled,
-}: {
-  action: string;
-  initial: Initial<DataStreams>;
-  onSubmit: any;
-  formRef: any;
-  disabled: boolean;
-}) {
+}: FormArgs<DataStreams>) {
   /**
    * Form data is synced with user input
    */
@@ -114,7 +106,6 @@ export function Form({
         }
         defaultValue={initial.unitOfMeasurement?.definition}
       ></TextInput>
-
       <label className={style.label} htmlFor={"observationType"}>
         <code>observationType</code>
       </label>
@@ -151,12 +142,12 @@ export default function ({}) {
    * Retrieve node data using Web Worker. Redirect if there are
    * no nodes of the given type.
    */
-  const { message, collection, page } = useGetCollection(schema.title);
+  const { message, collection, page } = useGetCollection<Initial<DataStreams>>(schema.title);
   /**
    * Client Component
    */
   return (
-    <div>
+    <>
       <p>{message}</p>
       {collection.map((dataStream) => {
         return (
@@ -183,6 +174,6 @@ export default function ({}) {
         );
       })}
       <Paging {...page} />
-    </div>
+    </>
   );
 }
