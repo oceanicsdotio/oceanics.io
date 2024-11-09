@@ -5,8 +5,9 @@ import {
   NamedNode,
   Paging,
   useGetCollection,
-  type Initial,
-  TextInput
+  type FormArgs,
+  TextInput,
+  Initial,
 } from "@catalog/client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -25,13 +26,7 @@ export function Form({
   onSubmit,
   formRef,
   disabled,
-}: {
-  action: string;
-  initial: Initial<FeaturesOfInterest>;
-  onSubmit: any;
-  formRef: any;
-  disabled: boolean;
-}) {
+}: FormArgs<FeaturesOfInterest>) {
   /**
    * Form data is synced with user input
    */
@@ -109,14 +104,16 @@ export default function ({}) {
    * Retrieve node data using Web Worker. Redirect if there are
    * no nodes of the given type.
    */
-  const { message, collection, page } = useGetCollection(schema.title);
+  const { message, collection, page } = useGetCollection<
+    Initial<FeaturesOfInterest>
+  >(schema.title);
   /**
    * Client Component
    */
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, ...rest }: Omit<FeaturesOfInterest, "free">) => {
+      {collection.map(({ uuid, ...rest }) => {
         return (
           <NamedNode key={uuid} uuid={uuid} name={rest.name}>
             <p>description: {rest.description ?? "n/a"}</p>
