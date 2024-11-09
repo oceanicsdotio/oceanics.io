@@ -204,17 +204,29 @@ impl Links {
     /// us but results in better performance at the function and
     /// application layer.
     pub fn query(&self, left: &Node, right: &Node, offset: &u32, limit: &u32) -> Cypher {
-        let query = format!(
-            "MATCH {}{}{} WHERE NOT {}:User ORDER BY {}.uuid OFFSET {} LIMIT {} RETURN apoc.convert.toJson({{count: count({}), value: collect(properties({}))}})",
-            left,
-            self,
-            right,
-            right.symbol,
-            right.symbol,
-            offset,
-            limit,
-            right.symbol,
-            right.symbol
+        let r = &right.symbol;
+        let query = format!("
+            MATCH {left}{self}{right} 
+            WHERE NOT {r}:User 
+            ORDER BY {r}.uuid OFFSET {offset} LIMIT {limit}+1
+            WITH collect(properties({r})) AS nodes,
+                 count({r}) AS n_nodes,
+                 {limit} AS lim,
+                 {offset} AS off
+            WITH nodes,
+                 n_nodes,
+                 CASE WHEN n_nodes > lim THEN '?limit='+lim+'&offset='+(off+lim) ELSE NULL as next,
+                 CASE WHEN off > 0 THEN '?limit='+lim+'&offset='+apoc.coll.min(off-lim, 0) ELSE NULL as previous,
+                 nodes[0..apoc.coll.min([n_nodes, lim])] as value
+            RETURN apoc.convert.toJson({{
+                count: n_nodes, 
+                value: value,
+                page: {{
+                    next: next,
+                    previous: previous,
+                    current: 
+                }}
+            }})"
         );
         Cypher::new(query, "READ".to_string())
     }
