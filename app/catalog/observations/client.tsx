@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import { NamedNode, Paging, useGetCollection, TextInput, NumberInput, type Initial } from "../client";
+import { NamedNode, Paging, useGetCollection, TextInput, NumberInput, type Initial, FormArgs } from "../client";
 const components = specification.components;
 const { title, properties } = components.schemas.Observations;
 import style from "@catalog/page.module.css";
@@ -16,13 +16,7 @@ export function Form({
   onSubmit,
   formRef,
   disabled,
-}: {
-  action: string
-  initial: Initial<Observations>
-  onSubmit: any
-  formRef: any
-  disabled: boolean
-}) {
+}: FormArgs<Observations>) {
   /**
    * Form data is synced with user input
    */
@@ -127,14 +121,14 @@ export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, page } = useGetCollection(title);
+  const { collection, message, page } = useGetCollection<Initial<Observations>>(title);
   /**
    * Client Component
    */
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid }: Initial<Observations>) => {
+      {collection.map(({ uuid }) => {
         return (
           <NamedNode key={uuid} uuid={uuid as any} name={undefined}></NamedNode>
         );
