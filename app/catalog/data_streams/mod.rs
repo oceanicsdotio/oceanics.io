@@ -17,8 +17,8 @@ pub struct UnitOfMeasurement {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DataStreams {
-    pub uuid: Option<String>,
-    pub name: Option<String>,
+    pub uuid: String,
+    pub name: String,
     pub description: Option<String>,
     #[wasm_bindgen(js_name = unitOfMeasurement)]
     pub unit_of_measurement: Option<UnitOfMeasurement>,

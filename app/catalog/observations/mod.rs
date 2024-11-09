@@ -16,7 +16,7 @@ pub struct TimeInterval {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Observations {
-    pub uuid: Option<String>,
+    pub uuid: String,
     #[wasm_bindgen(js_name=phenomenonTime)]
     pub phenomenon_time: f64,
     pub result: f64,
