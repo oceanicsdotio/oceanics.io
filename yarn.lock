@@ -6728,12 +6728,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mapbox-gl@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "@types/mapbox-gl@npm:3.4.0"
+"@types/mapbox-gl@npm:^3.4.1":
+  version: 3.4.1
+  resolution: "@types/mapbox-gl@npm:3.4.1"
   dependencies:
     "@types/geojson": "npm:*"
-  checksum: 10/0813c55b81f5b5bf95f18cca1ef56bd9c89cb3370b44115af96fb21b2ba3418e891e63eb2efd09273b4faf3ad72e54fe6d60b810a050fe7f5673d5d10bdc271d
+  checksum: 10/74838ffc8ffcd370b93f65e7cd02bd2c6338da44b05e99042a58aa927043f10c465b9d59271b621d3a14f6d9d2c535ed1c41ff05a8f1766dd5911b4cbe71145d
   languageName: node
   linkType: hard
 
@@ -23964,7 +23964,7 @@ __metadata:
     "@types/geojson": "npm:^7946.0.14"
     "@types/jest": "npm:^29.5.13"
     "@types/katex": "npm:^0.16.7"
-    "@types/mapbox-gl": "npm:^3.4.0"
+    "@types/mapbox-gl": "npm:^3.4.1"
     "@types/mdx": "npm:^2.0.13"
     "@types/node": "npm:22.6.0"
     "@types/prop-types": "npm:^15.7.13"
