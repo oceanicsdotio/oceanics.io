@@ -5173,15 +5173,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=ebf7a3&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/7d160c01a5d0dae250a49d955985cb62f23368d97b6a85a925bdb26e4fd540b159c597953c6ec07131e6f75ad31be4deb1bd760c966188213317569ca7954e2a
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=5c3c00&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/f6eb90d05c923bf1d7b803d719693db62eb1c52e020a43238d22dec92432c167e5ff0203c5359040b041dc5f8a56947089111018b7f484aa5e49d03e133bca8a
   languageName: node
   linkType: hard
 

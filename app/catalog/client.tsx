@@ -327,7 +327,7 @@ function useCollection(
     onGetEntity,
     onGetLinked,
     getCollection,
-    getIndex
+    getIndex,
     page: {
       next,
       previous,
