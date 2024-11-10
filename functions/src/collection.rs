@@ -48,25 +48,26 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
     let user = Node::user_from_string(user);
     let offset = event.query.offset(0);
     let limit = event.query.limit(100);
-    let node = Node::from_label(&event.query.left.unwrap());
+    let label = &event.query.left.unwrap();
+    let node = Node::from_label(label);
     let link = Links::wildcard();
     let l = &node.symbol;
     let query = format!("
-        MATCH {user}{link}{l} 
+        MATCH {user}{link}{node} 
         WHERE NOT {l}:User 
         ORDER BY {l}.uuid OFFSET {offset} LIMIT {limit}+1
         WITH collect(properties({l})) AS nodes,
             count({l}) AS n_nodes,
             {limit} AS lim,
-            {offset} AS off
-        WITH nodes,
-            n_nodes,
-            CASE WHEN n_nodes > lim THEN '?limit='+lim+'&offset='+(off+lim) ELSE NULL END as next,
-            CASE WHEN off > 0 THEN '?limit='+lim+'&offset='+apoc.coll.max([off-lim, 0]) ELSE NULL END as previous,
+            {offset} AS off,
+            '&left={label}' AS append
+        WITH apoc.coll.min([n_nodes, lim]) AS count,
+            CASE WHEN n_nodes > lim THEN '?limit='+lim+'&offset='+(off+lim)+append ELSE NULL END as next,
+            CASE WHEN off > 0 THEN '?limit='+lim+'&offset='+apoc.coll.max([off-lim, 0])+append ELSE NULL END as previous,
             nodes[0..apoc.coll.min([n_nodes, lim])] as value,
             toInteger(floor(off / lim)) + 1 AS current
         RETURN apoc.convert.toJson({{
-            count: n_nodes, 
+            count: count, 
             value: value,
             page: {{
                 next: next,

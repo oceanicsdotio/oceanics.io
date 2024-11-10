@@ -46,9 +46,9 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
     let limit = event.query.limit(100);
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
     let mut right = Node::from_label(&event.query.right.as_ref().unwrap());
-    right.symbol = "b".to_string();
+    let r = "b";
+    right.symbol = r.to_string();
     let links = Links::create();
-    let r = &right.symbol;
     let u = &user.symbol;
     let query = format!("
         MATCH {user}

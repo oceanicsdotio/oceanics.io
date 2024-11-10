@@ -27,7 +27,7 @@ nodeTypes = Object.entries(types);
 /**
  * Use canonical test user information to get a Javascript Web Token.
  */
-export const fetchToken = async () => {
+const fetchToken = async () => {
   const username = process.env.SERVICE_ACCOUNT_USERNAME;
   const password = process.env.SERVICE_ACCOUNT_PASSWORD;
   const response = await fetch(`${IDENTITY}/token`, {
@@ -253,9 +253,11 @@ describe("idempotent", function () {
         expect(typeof count).toBe("number");
         let offset = 0;
         let collected = [];
-        let lookAhead = true
-        while (lookAhead) {
-          const response = await fetch(`${COLLECTION}?left=${nodeType}&offset=${offset}&limit=${PAGE_SIZE + 1}`, {
+        let nextPage = `?left=${nodeType}&offset=${offset}&limit=${PAGE_SIZE}`
+        let previous = null;
+        while (nextPage) {
+          const url = `${COLLECTION}${nextPage}`;
+          const response = await fetch(url, {
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`
@@ -265,11 +267,15 @@ describe("idempotent", function () {
           const data: any = await response.json();
           const actual = data["@iot.count"]
           expect(typeof actual).toBe("number");
-          expect(actual).toBeGreaterThanOrEqual(0);
-          expect(data["value"].length).toEqual(actual);
-          collected.push(...data["value"].slice(0, PAGE_SIZE))
-          offset += PAGE_SIZE
-          lookAhead = actual === PAGE_SIZE + 1;
+          expect(actual).toBeGreaterThanOrEqual(1);
+          const nodes = data["value"];
+          expect(nodes.length).toEqual(actual);
+          expect(typeof data.page.current).toBe("number");
+          if (data.page.current > 1) {
+            expect(data.page.previous.length).toBeGreaterThan(0)
+          }
+          collected.push(...nodes);
+          nextPage = data.page.next??null;
         }
         expect(collected.length).toEqual(count);
       });

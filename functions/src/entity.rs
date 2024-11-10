@@ -49,17 +49,17 @@ pub async fn get(
     handler_event: HandlerEvent,
 ) -> JsValue {
     let user = Node::user_from_string(user);
-    let left = Node::from_uuid(
+    let node = Node::from_uuid(
         &handler_event.query.left.unwrap(),
         &handler_event.query.left_uuid.unwrap(),
     );
     let links = Links::create();
-    let l = &left.symbol;
+    let l = &node.symbol;
     let query = format!("
-        MATCH {user}{links}{l} 
+        MATCH {user}{links}{node} 
         WHERE NOT {l}:User
         WITH collect(properties({l})) AS value,
-                count({l}) AS count
+            count({l}) AS count
         RETURN apoc.convert.toJson({{
             count: count, 
             value: value
