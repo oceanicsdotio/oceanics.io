@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { HistoricalLocations } from "@oceanics/app";
-import { type FormArgs, NamedNode, Paging, useGetCollection, type Initial } from "@catalog/client";
+import { type FormArgs, type Initial, Collection } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
@@ -71,29 +71,20 @@ export function Form({
       </form>
   );
 }
+function AdditionalProperties(rest: Initial<HistoricalLocations>) {
+  return(<>
+    <p>time: {rest.time}</p>
+  </>)
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function Page({}) {
-  /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection } = useGetCollection<Initial<HistoricalLocations>>(schema.title);
-  /**
-   * Client Component
-   */
+export default function () {
   return (
-    <>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...rest }) => {
-        return (
-          <NamedNode key={uuid} uuid={uuid}>
-            <p>time: {rest.time}</p>
-          </NamedNode>
-        );
-      })}
-    </>
+    <Collection<Initial<HistoricalLocations>>
+      title={schema.title}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

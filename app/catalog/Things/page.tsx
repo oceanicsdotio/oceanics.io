@@ -1,8 +1,10 @@
 import React from "react";
 import { Metadata } from "next";
 import { CollectionPage, formatMetadata } from "@catalog/page";
-import Client from "@catalog/things/client";
 import OpenAPI from "@app/../specification.json";
+import { Collection } from "../client";
+import { AdditionalProperties } from "./client";
+import { type Things } from "@oceanics/app";
 /**
  * Static content from OpenAPI specification
  */
@@ -16,12 +18,13 @@ export const metadata: Metadata = formatMetadata("Read", schema);
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Server component enforces `use client` boundary.
-   */
   return (
     <CollectionPage schema={schema}>
-      <Client />
+      <Collection<Things>
+        title={schema.title}
+        nav={"view"}
+        AdditionalProperties={AdditionalProperties as any}
+      />
     </CollectionPage>
   );
 }

@@ -67,19 +67,29 @@ export function CollectionPage({
     .toLowerCase();
   return (
     <>
-      <details>
-        <summary>About This Collection</summary>
-        <Markdown>{schema.description}</Markdown>
-      </details>
-      <details open={showActions}>
-        <summary>Actions</summary>
-        <p>
-          You can <Link href={`/catalog/${segment}/create/`}>create</Link>{" "}
-          <code>{schema.title}</code>, and link them to {links}.
-        </p>
-      </details>
-      <hr />
-      <Suspense>{children}</Suspense>
+      {"/"}
+      <Link
+        className={styles.link}
+        href={`/catalog/${segment}`}
+        prefetch={false}
+      >
+        {schema.title}
+      </Link>
+      <div className={styles.content}>
+        <details>
+          <summary>About This Collection</summary>
+          <Markdown>{schema.description}</Markdown>
+        </details>
+        <details open={showActions}>
+          <summary>Actions</summary>
+          <p>
+            You can <Link href={`/catalog/${segment}/create/`}>create</Link>{" "}
+            <code>{schema.title}</code>, and link them to {links}.
+          </p>
+        </details>
+        <hr />
+        <Suspense>{children}</Suspense>
+      </div>
     </>
   );
 }

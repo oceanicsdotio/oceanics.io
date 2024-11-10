@@ -2,12 +2,10 @@
 import specification from "@app/../specification.json";
 import type { FeaturesOfInterest } from "@oceanics/app";
 import {
-  NamedNode,
-  Paging,
-  useGetCollection,
   type FormArgs,
   TextInput,
   Initial,
+  Collection,
 } from "@catalog/client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -95,33 +93,22 @@ export function Form({
     </form>
   );
 }
+function AdditionalProperties(rest: Initial<FeaturesOfInterest>) {
+  return(<>
+    <p>description: {rest.description ?? "n/a"}</p>
+    <p>encoding type: {rest.encodingType ?? "n/a"}</p>
+    <p>feature: {rest.feature ?? "n/a"}</p>
+  </>)
+}
 /**
  * Display an index of all or some subset of the
  * available Features of Interest in the database.
  */
-export default function ({}) {
-  /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection } = useGetCollection<
-    Initial<FeaturesOfInterest>
-  >(schema.title);
-  /**
-   * Client Component
-   */
+export default function () {
   return (
-    <>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...rest }) => {
-        return (
-          <NamedNode key={uuid} uuid={uuid} name={rest.name}>
-            <p>description: {rest.description ?? "n/a"}</p>
-            <p>encoding type: {rest.encodingType ?? "n/a"}</p>
-            <p>feature: {rest.feature ?? "n/a"}</p>
-          </NamedNode>
-        );
-      })}
-    </>
+    <Collection<Initial<FeaturesOfInterest>>
+      title={schema.title}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

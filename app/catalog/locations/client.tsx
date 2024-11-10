@@ -4,14 +4,12 @@ import type { Locations as LocationsType } from "@oceanics/app";
 import React, { useRef, useEffect, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
-  NamedNode,
-  Paging,
-  useGetCollection,
   TextInput,
   NumberInput,
   TextSelectInput,
   type Initial,
   type FormArgs,
+  Collection,
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 
@@ -200,29 +198,22 @@ export function LocationsForm({
     </form>
   );
 }
+function AdditionalProperties(each: Initial<LocationsType>) {
+  return (<>
+    <p>description: {each.description ?? "n/a"}</p>
+    <p>encoding type: {each.encodingType ?? "n/a"}</p>
+  </>)
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function ({}) {
-  /**
-   * Retrieve node data use Web Worker.
-   */
-  const { collection, message } = useGetCollection<Initial<LocationsType>>(schema.title);
-  /**
-   * Client Component
-   */
   return (
-    <div>
-      <p>{message}</p>
-      {collection.map((each) => (
-        <NamedNode key={each.uuid} name={each.name} uuid={each.uuid} nav="map">
-          <div>
-            <p>description: {each.description ?? "n/a"}</p>
-            <p>encoding type: {each.encodingType ?? "n/a"}</p>
-          </div>
-        </NamedNode>
-      ))}
-    </div>
+    <Collection<Initial<LocationsType>>
+      title={schema.title}
+      nav={"map"}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

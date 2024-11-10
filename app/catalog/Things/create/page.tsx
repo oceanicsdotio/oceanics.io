@@ -1,8 +1,10 @@
 import React from "react";
 import OpenAPI from "@app/../specification.json";
-import Client from "./client";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 import { type Metadata } from "next";
+import { Form } from "../client";
+import { Create } from "@catalog/client";
+import { type Things } from "@oceanics/app";
 const action = "Create";
 /**
  * OpenAPI schema information used in the interface.
@@ -17,12 +19,9 @@ export const metadata: Metadata = formatMetadata(action, schema);
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Server component enforces `use client` boundary.
-   */
   return (
     <CollectionPage schema={schema} showActions={false}>
-      <Client />
+      <Create<Things> Form={Form} title={schema.title}/>
     </CollectionPage>
   );
 }

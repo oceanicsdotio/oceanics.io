@@ -2,9 +2,8 @@
 import React from "react";
 import openapi from "@app/../specification.json";
 import { Form } from "../client";
-import { Initial, useCreate } from "@catalog/client";
-import type {HistoricalLocations} from "@oceanics/app"
-const action = "Create";
+import { Create } from "@catalog/client";
+import { type HistoricalLocations } from "@oceanics/app";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -14,11 +13,7 @@ const schema = openapi.components.schemas.HistoricalLocations;
  * available nodes in the database.
  */
 export default function ({}) {
-  const { message, form } = useCreate<Initial<HistoricalLocations>>(schema.title);
   return (
-    <>
-      <p>{message}</p>
-      <Form action={action} {...form as any}/>
-    </>
+    <Create<HistoricalLocations> Form={Form} title={schema.title}/>
   );
 }

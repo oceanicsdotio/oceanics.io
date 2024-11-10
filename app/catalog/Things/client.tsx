@@ -5,15 +5,13 @@ import type { Things } from "@oceanics/app";
 import {
   TextInput,
   Initial,
-  ClientCollection,
   FormArgs
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification
  */
-const schema = OpenAPI.components.schemas.Things;
-const properties = schema.properties;
+const properties = OpenAPI.components.schemas.Things.properties;
 /**
  * Display an index of all or some subset of the
  * available nodes in the database. Shared between
@@ -104,24 +102,11 @@ export function Form({
     </form>
   );
 }
-function AdditionalProperties(thing: Initial<Things>) {
+export function AdditionalProperties(thing: Initial<Things>) {
   return (
     <>
       <p>description: {thing.description ?? "n/a"}</p>
       <p>properties: {thing.properties ?? "n/a"}</p>
     </>
-  );
-}
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export default function () {
-  return (
-    <ClientCollection<Initial<Things>>
-      title={schema.title}
-      nav={"view"}
-      AdditionalProperties={AdditionalProperties as any}
-    />
   );
 }

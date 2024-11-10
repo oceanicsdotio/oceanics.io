@@ -5,8 +5,7 @@ import React, {
   useState,
   useCallback,
   type MutableRefObject,
-  type ReactNode,
-  type FormEventHandler
+  type FormEventHandler,
 } from "react";
 import Markdown from "react-markdown";
 import style from "@catalog/page.module.css";
@@ -110,9 +109,11 @@ function useClient<T extends { uuid: string }>() {
    * Node or index data, if any.
    */
   const [collection, setCollection] = useState<T[]>([]);
-  const [page, setPage] = useState<
-    { next?: string; previous?: string; current: number }
-  >({
+  const [page, setPage] = useState<{
+    next?: string;
+    previous?: string;
+    current: number;
+  }>({
     current: 1,
   });
   const [index, setIndex] = useState<
@@ -148,7 +149,7 @@ function useClient<T extends { uuid: string }>() {
         case ACTIONS.getCollection:
           window.scrollTo({ top: 0, behavior: "smooth" });
           setCollection(data.value);
-          setPage(data.page)
+          setPage(data.page);
           return;
         case ACTIONS.getLinked:
         case ACTIONS.getEntity:
@@ -181,7 +182,7 @@ function useClient<T extends { uuid: string }>() {
     index,
     message,
     worker,
-    page
+    page,
   };
 }
 
@@ -202,8 +203,23 @@ function useClient<T extends { uuid: string }>() {
 //     window.scrollTo({ top: 0, behavior: "smooth" });
 //   };
 // }
-
-export function useCreate<T extends { uuid: string }>(title: string) {
+type IMutate<T> = { title: string; Form: React.FunctionComponent<FormArgs<T>> };
+type NodeLike = {uuid: string};
+export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
+  const action = "Update"
+  const { message, form, onDelete } = useUpdate<T>(title);
+  return (
+    <>
+      <p>{message}</p>
+      <Form action={action} {...form} />
+      <button className={style.submit} onClick={onDelete}>
+        Delete
+      </button>
+    </>
+  );
+}
+export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
+  const action = "Create";
   /**
    * Form handle, used to reset inputs on successful submission,
    * as reported through the worker message.
@@ -226,19 +242,21 @@ export function useCreate<T extends { uuid: string }>(title: string) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-  const [initial, setInitial] = useState<{ uuid: string }>({
+  const [initial] = useState<{ uuid: string }>({
     uuid: uuid7(),
   });
-  return {
-    form: {
-      formRef,
-      initial,
-      disabled: worker.disabled,
-      onSubmit: onSubmit,
-    },
-    setInitial,
-    message,
-  };
+  return (
+    <>
+      <p>{message}</p>
+      <Form
+        action={action}
+        formRef={formRef}
+        initial={initial as T}
+        disabled={worker.disabled}
+        onSubmit={onSubmit}
+      />
+    </>
+  );
 }
 export interface NodeForm {
   disabled: boolean;
@@ -347,32 +365,14 @@ export function useGetCollection<T extends { uuid: string }>(title: string) {
   return {
     collection,
     message,
-    page
+    page,
   };
-}
-
-export function Paging(page: {
-  previous?: string;
-  next?: string;
-  current: number;
-}) {
-  return (
-    <p>
-      <a style={{ color: "lightblue" }} href={page.previous}>
-        {"Back"}
-      </a>
-      <span>{` | Page ${page.current} | `}</span>
-      <a style={{ color: "lightblue" }} href={page.next}>
-        {"Next"}
-      </a>
-    </p>
-  );
 }
 /**
  * Wraps collection retrieval and paging. Need to provide
  * a concrete type annotation.
  */
-export function ClientCollection<T extends { uuid: string }>({
+export function Collection<T extends { uuid: string; name?: string }>({
   title,
   nav,
   AdditionalProperties,
@@ -381,24 +381,48 @@ export function ClientCollection<T extends { uuid: string }>({
   nav?: string;
   AdditionalProperties: React.FunctionComponent;
 }) {
+  const query = useSearchParams();
+  const { message, collection, worker, page } = useClient<Initial<T>>();
+  useEffect(() => {
+    if (worker.disabled) return;
+    const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
+    const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
+    worker.post({
+      type: ACTIONS.getCollection,
+      data: {
+        query: {
+          left: title,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        },
+      },
+    });
+  }, [worker.disabled]);
   /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection, page } = useGetCollection<T>(title);
-  /**
-   * Client Component
+   * Client Component is always wrapped, and can be a fragment.
    */
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, name, ...rest }: any) => {
-        return (
-          <NamedNode key={uuid} uuid={uuid} nav={nav} name={name}>
-            <AdditionalProperties {...rest} />
-          </NamedNode>
-        );
-      })}
+      {collection.map(({ uuid, name, ...rest }) => (
+        <details key={uuid}>
+          <summary>
+            <Link href={`edit?uuid=${uuid}`} prefetch={false}>
+              {name ?? uuid}
+            </Link>
+            {nav && (
+              <>
+                {" [ "}
+                <Link href={`${nav}?uuid=${uuid}`} prefetch={false}>
+                  {nav}
+                </Link>
+                {" ]"}
+              </>
+            )}
+          </summary>
+          <AdditionalProperties {...(rest as any)} />
+        </details>
+      ))}
       <p>
         <a style={{ color: "lightblue" }} href={page.previous}>
           {"Back"}
@@ -409,42 +433,6 @@ export function ClientCollection<T extends { uuid: string }>({
         </a>
       </p>
     </>
-  );
-}
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export function NamedNode({
-  name,
-  children,
-  uuid,
-  nav = null,
-}: {
-  name?: string;
-  children?: ReactNode;
-  uuid: string;
-  nav?: string | null;
-}) {
-  const url = `edit?uuid=${uuid}`;
-  return (
-    <details>
-      <summary>
-        <Link href={url} prefetch={false}>
-          {name ?? uuid}
-        </Link>
-        {nav && (
-          <>
-            {" [ "}
-            <Link href={`${nav}?uuid=${uuid}`} prefetch={false}>
-              {nav}
-            </Link>
-            {" ]"}
-          </>
-        )}
-      </summary>
-      {children}
-    </details>
   );
 }
 /**

@@ -5,7 +5,7 @@ import type { ObservedProperties } from "@oceanics/app";
 import {
   FormArgs,
   Initial,
-  ClientCollection,
+  Collection,
 } from "../client";
 import style from "@catalog/page.module.css";
 import { TextInput } from "@catalog/client";
@@ -97,7 +97,7 @@ function AdditionalProperties(rest: Initial<ObservedProperties>) {
  */
 export default function () {
   return (
-    <ClientCollection<Initial<ObservedProperties>>
+    <Collection<Initial<ObservedProperties>>
       title={schema.title}
       AdditionalProperties={AdditionalProperties as any}
     />

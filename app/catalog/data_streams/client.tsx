@@ -1,12 +1,10 @@
 "use client";
 import React, { useRef } from "react";
 import {
+  Collection,
   type FormArgs,
   Initial,
-  NamedNode,
-  Paging,
   TextInput,
-  useGetCollection,
 } from "@catalog/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
@@ -131,48 +129,30 @@ export function Form({
     </form>
   );
 }
-/**
- * Display an index of all or some subset of the
- * available nodes in the database. This is used
- * wherever you need to fetch and render all
- * or a subset of `DataStreams`.
- */
-export default function ({}) {
-  /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection } = useGetCollection<Initial<DataStreams>>(schema.title);
-  /**
-   * Client Component
-   */
+function AdditionalProperties(rest: Initial<DataStreams>) {
   return (
     <>
-      <p>{message}</p>
-      {collection.map((dataStream) => {
-        return (
-          <NamedNode
-            key={dataStream.uuid}
-            uuid={dataStream.uuid}
-            name={dataStream.name}
-            nav={"view"}
-          >
-            <p>unit of measurement:</p>
-            <p style={{ textIndent: "2em" }}>{`name: ${
-              dataStream.unitOfMeasurement?.name ?? "n/a"
-            }`}</p>
-            <p style={{ textIndent: "2em" }}>{`symbol: ${
-              dataStream.unitOfMeasurement?.symbol ?? "n/a"
-            }`}</p>
-            <p style={{ textIndent: "2em" }}>{`definition: ${
-              dataStream.unitOfMeasurement?.definition ?? "n/a"
-            }`}</p>
-            <p>observation type: {dataStream.observationType ?? "n/a"}</p>
-            <p>phenomenon time: unknown</p>
-            <p>result time: unknown</p>
-          </NamedNode>
-        );
-      })}
+      <p>unit of measurement:</p>
+      <p style={{ textIndent: "2em" }}>{`name: ${
+        rest.unitOfMeasurement?.name ?? "n/a"
+      }`}</p>
+      <p style={{ textIndent: "2em" }}>{`symbol: ${
+        rest.unitOfMeasurement?.symbol ?? "n/a"
+      }`}</p>
+      <p style={{ textIndent: "2em" }}>{`definition: ${
+        rest.unitOfMeasurement?.definition ?? "n/a"
+      }`}</p>
+      <p>observation type: {rest.observationType ?? "n/a"}</p>
+      <p>phenomenon time: unknown</p>
+      <p>result time: unknown</p>
     </>
+  );
+}
+export default function () {
+  return (
+    <Collection<Initial<DataStreams>>
+      title={schema.title}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

@@ -2,8 +2,8 @@
 import React from "react";
 import openapi from "@app/../specification.json";
 import { Form } from "../client";
-import { useCreate } from "@catalog/client";
-const action = "Create";
+import { type ObservedProperties } from "@oceanics/app";
+import { Create } from "@catalog/client";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -13,11 +13,7 @@ const schema = openapi.components.schemas.ObservedProperties;
  * available nodes in the database.
  */
 export default function ({}) {
-  const { message, form } = useCreate(schema.title);
   return (
-    <>
-      <p>{message}</p>
-      <Form action={action} {...form} />
-    </>
+    <Create<ObservedProperties> Form={Form} title={schema.title}/>
   );
 }

@@ -44,6 +44,13 @@ async function startup(message: MessageEvent) {
       success: result
     }
   }
+  async function createAndPostMessage(query: any, body: string) {
+    const result = await createEntity(access_token, query, body);
+    postStatus(`Created 1`);
+    return {
+      success: result
+    }
+  }
   return {
     handlers: {
       getIndex: getIndexAndPostMessage,
@@ -51,7 +58,7 @@ async function startup(message: MessageEvent) {
       getLinked: getLinked.bind(undefined, access_token),
       getEntity: getEntity.bind(undefined, access_token),
       updateEntity: updateEntity.bind(undefined, access_token),
-      createEntity: createEntity.bind(undefined, access_token),
+      createEntity: createAndPostMessage,
       deleteEntity: deleteEntityAndPostMessage
     }
   }

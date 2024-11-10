@@ -1,7 +1,7 @@
 "use client";
 import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
-import { NamedNode, Paging, useGetCollection, type Initial } from "../client";
+import { Collection, type Initial } from "../client";
 
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -112,29 +112,20 @@ export function Form({
     </form>
   );
 }
+function AdditionalProperties(sensor: Initial<Sensors>) {
+  return (<>
+    <p>description: {sensor.description}</p>
+  </>)
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function ({}) {
-  /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection } = useGetCollection(schema.title);
-  /**
-   * Client Component
-   */
   return (
-    <>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...sensor }: Initial<Sensors>) => {
-        return (
-          <NamedNode key={uuid} name={sensor.name} uuid={uuid}>
-            <p>description: {sensor.description}</p>
-          </NamedNode>
-        );
-      })}
-    </>
+    <Collection<Initial<Sensors>>
+      title={schema.title}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

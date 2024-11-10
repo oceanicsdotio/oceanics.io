@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import { NamedNode, Paging, useGetCollection, TextInput, NumberInput, type Initial, FormArgs } from "../client";
+import { TextInput, NumberInput, type Initial, FormArgs, Collection } from "../client";
 const components = specification.components;
 const { title, properties } = components.schemas.Observations;
 import style from "@catalog/page.module.css";
@@ -118,21 +118,10 @@ export function Form({
  * available nodes in the database.
  */
 export default function ({}) {
-  /**
-   * Retrieve node data use Web Worker.
-   */
-  const { collection, message } = useGetCollection<Initial<Observations>>(title);
-  /**
-   * Client Component
-   */
   return (
-    <>
-      <p>{message}</p>
-      {collection.map(({ uuid }) => {
-        return (
-          <NamedNode key={uuid} uuid={uuid as any} name={undefined}></NamedNode>
-        );
-      })}
-    </>
+    <Collection<Initial<Observations>>
+      title={title}
+      AdditionalProperties={()=><></>}
+    />
   );
 }

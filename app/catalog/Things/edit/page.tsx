@@ -1,9 +1,10 @@
 import React from "react";
 import OpenAPI from "@app/../specification.json";
-import Client from "./client";
 import { type Metadata } from "next";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 const action = "Update";
+import { Edit } from "@catalog/client";
+import { Form } from "../client";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -19,7 +20,7 @@ export const metadata: Metadata = formatMetadata(action, schema);
 export default function Page({}) {
   return (
     <CollectionPage schema={schema} showActions={false}>
-      <Client />
+      <Edit Form={Form} title={schema.title} />
     </CollectionPage>
   );
 }
