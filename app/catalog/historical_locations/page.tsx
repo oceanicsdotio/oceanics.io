@@ -1,5 +1,5 @@
 import React from "react";
-import { AdditionalProperties } from "@app/catalog/historical_locations/client";
+import { AdditionalProperties } from "./client";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";

@@ -1,12 +1,17 @@
 import React from "react";
-import Client from "./client";
-import type { Metadata } from "next";
-import openapi from "@app/../specification.json";
+import OpenAPI from "@app/../specification.json";
 import { CollectionPage, formatMetadata } from "@catalog/page";
-const schema = openapi.components.schemas.FeaturesOfInterest;
-const action = "Create"
+import { type Metadata } from "next";
+import { Form } from "../client";
+import { Create } from "@catalog/client";
+import { type FeaturesOfInterest } from "@oceanics/app";
+const action = "Create";
 /**
- * Page browser metadata
+ * OpenAPI schema information used in the interface.
+ */
+const schema = OpenAPI.components.schemas.FeaturesOfInterest;
+/**
+ * Browser and crawler metadata.
  */
 export const metadata: Metadata = formatMetadata(action, schema);
 /**
@@ -14,12 +19,9 @@ export const metadata: Metadata = formatMetadata(action, schema);
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Server Component
-   */
   return (
     <CollectionPage schema={schema} showActions={false}>
-      <Client/>
+      <Create<FeaturesOfInterest> Form={Form} title={schema.title}/>
     </CollectionPage>
   );
 }

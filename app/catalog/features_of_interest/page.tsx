@@ -1,8 +1,10 @@
 import React from "react";
 import openapi from "@app/../specification.json";
-import Client from "@app/catalog/features_of_interest/client";
+import { AdditionalProperties } from "./client";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 import type { Metadata } from "next";
+import { FeaturesOfInterest } from "@oceanics/app";
+import { Collection } from "../client";
 const schema = openapi.components.schemas.FeaturesOfInterest;
 export const metadata: Metadata = formatMetadata("Read", schema);
 /**
@@ -12,7 +14,10 @@ export const metadata: Metadata = formatMetadata("Read", schema);
 export default function Page({}) {
   return (
     <CollectionPage schema={schema}>
-      <Client/>
+      <Collection<FeaturesOfInterest>
+        title={schema.title}
+        AdditionalProperties={AdditionalProperties as any}
+      />
     </CollectionPage>
   );
 }

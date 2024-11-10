@@ -93,22 +93,11 @@ export function Form({
     </form>
   );
 }
-function AdditionalProperties(rest: Initial<FeaturesOfInterest>) {
+export function AdditionalProperties(rest: Initial<FeaturesOfInterest>) {
   return(<>
     <p>description: {rest.description ?? "n/a"}</p>
     <p>encoding type: {rest.encodingType ?? "n/a"}</p>
     <p>feature: {rest.feature ?? "n/a"}</p>
   </>)
 }
-/**
- * Display an index of all or some subset of the
- * available Features of Interest in the database.
- */
-export default function () {
-  return (
-    <Collection<Initial<FeaturesOfInterest>>
-      title={schema.title}
-      AdditionalProperties={AdditionalProperties as any}
-    />
-  );
-}
+
