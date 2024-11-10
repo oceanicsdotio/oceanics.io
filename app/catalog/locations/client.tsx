@@ -27,7 +27,7 @@ const schema = specification.components.schemas.Locations;
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function LocationsForm({
+export function Form({
   action,
   initial,
   onSubmit,
@@ -198,22 +198,9 @@ export function LocationsForm({
     </form>
   );
 }
-function AdditionalProperties(each: Initial<LocationsType>) {
+export function AdditionalProperties(each: Initial<LocationsType>) {
   return (<>
     <p>description: {each.description ?? "n/a"}</p>
     <p>encoding type: {each.encodingType ?? "n/a"}</p>
   </>)
-}
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export default function ({}) {
-  return (
-    <Collection<Initial<LocationsType>>
-      title={schema.title}
-      nav={"map"}
-      AdditionalProperties={AdditionalProperties as any}
-    />
-  );
 }

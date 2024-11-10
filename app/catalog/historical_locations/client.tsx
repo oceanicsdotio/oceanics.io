@@ -71,20 +71,8 @@ export function Form({
       </form>
   );
 }
-function AdditionalProperties(rest: Initial<HistoricalLocations>) {
+export function AdditionalProperties(rest: Initial<HistoricalLocations>) {
   return(<>
     <p>time: {rest.time}</p>
   </>)
-}
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export default function () {
-  return (
-    <Collection<Initial<HistoricalLocations>>
-      title={schema.title}
-      AdditionalProperties={AdditionalProperties as any}
-    />
-  );
 }

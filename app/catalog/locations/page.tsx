@@ -1,8 +1,10 @@
 import openapi from "@app/../specification.json";
 import React from "react";
-import Client from "@catalog/locations/client";
+import { AdditionalProperties } from "./client";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 import { Metadata } from "next";
+import { Collection } from "../client";
+import { Locations } from "@oceanics/app";
 const schema = openapi.components.schemas.DataStreams;
 export const metadata: Metadata = formatMetadata("Read", schema);
 /**
@@ -12,7 +14,11 @@ export const metadata: Metadata = formatMetadata("Read", schema);
 export default function Page({}) {
   return (
     <CollectionPage schema={schema}>
-        <Client></Client>
+      <Collection<Locations>
+        title={schema.title}
+        nav={"map"}
+        AdditionalProperties={AdditionalProperties as any}
+      />
     </CollectionPage>
   );
 }

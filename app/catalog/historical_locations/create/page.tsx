@@ -1,24 +1,27 @@
 import React from "react";
-import Client from "./client";
-import type { Metadata } from "next";
-import openapi from "@app/../specification.json";
+import OpenAPI from "@app/../specification.json";
 import { CollectionPage, formatMetadata } from "@catalog/page";
-const schema = openapi.components.schemas.HistoricalLocations;
+import { type Metadata } from "next";
+import { Form } from "../client";
+import { Create } from "@catalog/client";
+import { type HistoricalLocations } from "@oceanics/app";
+const action = "Create";
 /**
- * Page browser metadata
+ * OpenAPI schema information used in the interface.
  */
-export const metadata: Metadata = formatMetadata("Create", schema);
+const schema = OpenAPI.components.schemas.HistoricalLocations;
+/**
+ * Browser and crawler metadata.
+ */
+export const metadata: Metadata = formatMetadata(action, schema);
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Server Component
-   */
   return (
     <CollectionPage schema={schema} showActions={false}>
-      <Client/>
+      <Create<HistoricalLocations> Form={Form} title={schema.title}/>
     </CollectionPage>
   );
 }
