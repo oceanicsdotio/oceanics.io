@@ -1,12 +1,17 @@
 import React from "react";
-import type { Metadata } from "next";
-import Client from "@catalog/sensors/edit/client";
-import openapi from "@app/../specification.json";
-import { CollectionPage, formatMetadata } from "@app/catalog/page";
-const schema = openapi.components.schemas.Sensors;
-const action = "Create"
+import OpenAPI from "@app/../specification.json";
+import { CollectionPage, formatMetadata } from "@catalog/page";
+import { type Metadata } from "next";
+import { Form } from "../client";
+import { Edit } from "@catalog/client";
+import { type Sensors } from "@oceanics/app";
+const action = "Update";
 /**
- * Page browser metadata
+ * OpenAPI schema information used in the interface.
+ */
+const schema = OpenAPI.components.schemas.Sensors;
+/**
+ * Browser and crawler metadata.
  */
 export const metadata: Metadata = formatMetadata(action, schema);
 /**
@@ -14,12 +19,9 @@ export const metadata: Metadata = formatMetadata(action, schema);
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Client Component
-   */
   return (
     <CollectionPage schema={schema} showActions={false}>
-      <Client/>
+      <Edit<Sensors> Form={Form} title={schema.title}/>
     </CollectionPage>
   );
 }

@@ -375,11 +375,11 @@ export function useGetCollection<T extends { uuid: string }>(title: string) {
 export function Collection<T extends { uuid: string; name?: string }>({
   title,
   nav,
-  AdditionalProperties,
+  AdditionalProperties=null,
 }: {
   title: string;
   nav?: string;
-  AdditionalProperties: React.FunctionComponent;
+  AdditionalProperties?: React.FunctionComponent|null;
 }) {
   const query = useSearchParams();
   const { message, collection, worker, page } = useClient<Initial<T>>();
@@ -420,7 +420,7 @@ export function Collection<T extends { uuid: string; name?: string }>({
               </>
             )}
           </summary>
-          <AdditionalProperties {...(rest as any)} />
+          {AdditionalProperties && <AdditionalProperties {...(rest as any)} />}
         </details>
       ))}
       <p>

@@ -113,15 +113,3 @@ export function Form({
       </form>
   );
 }
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export default function ({}) {
-  return (
-    <Collection<Initial<Observations>>
-      title={title}
-      AdditionalProperties={()=><></>}
-    />
-  );
-}

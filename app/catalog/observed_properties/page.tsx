@@ -1,8 +1,10 @@
 import React from "react";
 import openapi from "@app/../specification.json";
-import ClientComponent from "./client";
+import { AdditionalProperties } from "./client";
 import type { Metadata } from "next";
 import { CollectionPage, formatMetadata } from "@catalog/page";
+import { Collection } from "@catalog/client";
+import { type ObservedProperties } from "@oceanics/app";
 /**
  * Get schema metadata from the OpenAPI specification.
  */
@@ -18,7 +20,10 @@ export const metadata: Metadata = formatMetadata("Read", schema);
 export default function Page({}) {
   return (
     <CollectionPage schema={schema}>
-        <ClientComponent/>
+      <Collection<ObservedProperties>
+        title={schema.title}
+        AdditionalProperties={AdditionalProperties as any}
+      />
     </CollectionPage>
   );
 }

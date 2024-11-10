@@ -1,8 +1,9 @@
 import React from "react";
-import ClientComponent from "@catalog/observations/client";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
+import { Collection } from "../client";
+import { Observations } from "@oceanics/app";
 const schema = openapi.components.schemas.Observations;
 /**
  * Page browser metadata
@@ -13,12 +14,11 @@ export const metadata: Metadata = formatMetadata("Read", schema);
  * available nodes in the database.
  */
 export default function Page({}) {
-  /**
-   * Server Component
-   */
   return (
     <CollectionPage schema={schema}>
-        <ClientComponent/>
+      <Collection<Observations>
+        title={schema.title}
+      />
     </CollectionPage>
   );
 }
