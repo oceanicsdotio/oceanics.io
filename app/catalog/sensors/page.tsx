@@ -1,8 +1,10 @@
 import React from "react";
 import openapi from "@app/../specification.json";
-import Client from "@app/catalog/sensors/client";
+import { AdditionalProperties } from "@app/catalog/sensors/client";
 import type { Metadata } from "next";
 import { CollectionPage, formatMetadata } from "@catalog/page";
+import { Collection } from "../client";
+import { type Sensors } from "@oceanics/app";
 /**
  * OpenAPI metadata.
  */
@@ -21,7 +23,10 @@ export default function Page({}) {
    */
   return (
     <CollectionPage schema={schema}>
-        <Client></Client>
+      <Collection<Sensors>
+        title={schema.title}
+        AdditionalProperties={AdditionalProperties as any}
+      />
     </CollectionPage>
   );
 }

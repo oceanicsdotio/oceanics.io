@@ -78,6 +78,7 @@ async function listen(message: MessageEvent) {
       });
       return
     }
+    postStatus(`Ready`);
   }
   const { handlers: { [message.data.type]: handler = null } } = CACHE as WorkerCache;
   if (!handler) {

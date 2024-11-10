@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import Link from "next/link";
 import { Metadata } from "next";
 import styles from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 import openapi from "@app/../specification.json";
 import Client from "@catalog/client";
 /**
@@ -69,13 +70,13 @@ export function CollectionPage({
     <>
       {"/"}
       <Link
-        className={styles.link}
+        className={layout.link}
         href={`/catalog/${segment}`}
         prefetch={false}
       >
         {schema.title}
       </Link>
-      <div className={styles.content}>
+      <div className={layout.content}>
         <details>
           <summary>About This Collection</summary>
           <Markdown>{schema.description}</Markdown>
