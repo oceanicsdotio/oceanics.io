@@ -4,10 +4,8 @@ import specification from "@app/../specification.json";
 import type { ObservedProperties } from "@oceanics/app";
 import {
   FormArgs,
-  NamedNode,
-  Paging,
-  useGetCollection,
   Initial,
+  ClientCollection,
 } from "../client";
 import style from "@catalog/page.module.css";
 import { TextInput } from "@catalog/client";
@@ -46,9 +44,6 @@ export function Form({
       definition: definition.current?.value || undefined,
     };
   };
-  /**
-   * Client Component
-   */
   return (
     <form
       className={style.form}
@@ -89,32 +84,22 @@ export function Form({
     </form>
   );
 }
-
+function AdditionalProperties(rest: Initial<ObservedProperties>) {
+  return (
+    <>
+      <p>description: {rest.description}</p>
+    </>
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export default function ({}) {
-  /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection } = useGetCollection<
-    Initial<ObservedProperties>
-  >(schema.title);
-  /**
-   * Client Component
-   */
+export default function () {
   return (
-    <>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...rest }) => {
-        return (
-          <NamedNode key={uuid} name={rest.name} uuid={uuid}>
-            <p>description: {rest.description}</p>
-          </NamedNode>
-        );
-      })}
-    </>
+    <ClientCollection<Initial<ObservedProperties>>
+      title={schema.title}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

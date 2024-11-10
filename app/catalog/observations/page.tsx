@@ -1,6 +1,6 @@
 import React from "react";
 import ClientComponent from "@catalog/observations/client";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
 const schema = openapi.components.schemas.Observations;
@@ -17,8 +17,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionPage schema={schema}>
         <ClientComponent/>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

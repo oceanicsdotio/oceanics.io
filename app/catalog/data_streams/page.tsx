@@ -1,5 +1,5 @@
 import React from "react";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 import Client from "@catalog/data_streams/client";
 import openapi from "@app/../specification.json";
 const schema = openapi.components.schemas.DataStreams;
@@ -11,8 +11,8 @@ export const metadata = formatMetadata(action, schema);
  */
 export default function Page({}) {
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionPage schema={schema}>
       <Client />
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

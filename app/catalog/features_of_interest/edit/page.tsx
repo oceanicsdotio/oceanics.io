@@ -2,7 +2,7 @@ import React from "react";
 import specification from "@app/../specification.json";
 import Client from "./client";
 import type { Metadata } from "next";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 /**
  * OpenAPI schema information used in the interface.
  */
@@ -21,9 +21,9 @@ export default function Page({}) {
    */
   return (
     <>
-    <CollectionTemplate schema={schema} showActions={false}>
+    <CollectionPage schema={schema} showActions={false}>
       <Client/>
-    </CollectionTemplate>
+    </CollectionPage>
   </>
   );
 }

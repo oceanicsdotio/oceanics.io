@@ -1,7 +1,7 @@
 import React from "react";
 import OpenAPI from "@app/../specification.json";
 import Client from "./client";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 import { type Metadata } from "next";
 const action = "Create";
 /**
@@ -21,8 +21,8 @@ export default function Page({}) {
    * Server component enforces `use client` boundary.
    */
   return (
-    <CollectionTemplate schema={schema} showActions={false}>
+    <CollectionPage schema={schema} showActions={false}>
       <Client />
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

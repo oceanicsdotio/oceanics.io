@@ -2,7 +2,7 @@ import React from "react";
 import openapi from "@app/../specification.json";
 import ClientComponent from "./client";
 import type { Metadata } from "next";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 /**
  * Get schema metadata from the OpenAPI specification.
  */
@@ -17,8 +17,8 @@ export const metadata: Metadata = formatMetadata("Read", schema);
  */
 export default function Page({}) {
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionPage schema={schema}>
         <ClientComponent/>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

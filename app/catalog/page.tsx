@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   title: `${openapi.info.title} | Catalog`,
   description: "SensorThings Catalog.",
 };
-
+/**
+ * Common format for all types
+ */
 export function formatMetadata(
   action: string,
   schema: { title: string; description: string }
@@ -23,35 +25,13 @@ export function formatMetadata(
   };
 }
 /**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
  * Parse OpenAPI schema properties and extract the
  * allowed types of nodes for linking. These are suffixed
  * with `@iot.navigation`.
  */
-export function getLinkedCollections(properties: any) {
-  const related = Object.keys(properties)
-    .filter((key: string) => key.includes("@"))
-    .map((key) => key.split("@")[0]);
-  const links = related.map((name: string, index: number) => {
-    let prepend = "";
-    if (index === related.length - 1 && index > 0) {
-      prepend = " and ";
-    } else if (index > 0) {
-      prepend = ", ";
-    }
-    return (
-      <span key={`linked-${index}`}>
-        {prepend}
-        <code>{name}</code>
-      </span>
-    );
-  });
-  return links;
-}
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export function CollectionTemplate({
+export function CollectionPage({
   schema,
   children,
   showActions = false,
@@ -64,8 +44,27 @@ export function CollectionTemplate({
   };
   showActions?: boolean;
 }) {
-  const links = getLinkedCollections(schema.properties);
-  const segment = schema.title.split(/\.?(?=[A-Z])/).join("_").toLowerCase()
+  const links = Object.keys(schema.properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key, index, related) => {
+      let name = key.split("@")[0];
+      let prepend = "";
+      if (index === related.length - 1 && index > 0) {
+        prepend = " and ";
+      } else if (index > 0) {
+        prepend = ", ";
+      }
+      return (
+        <span key={`linked-${index}`}>
+          {prepend}
+          <code>{name}</code>
+        </span>
+      );
+    });
+  const segment = schema.title
+    .split(/\.?(?=[A-Z])/)
+    .join("_")
+    .toLowerCase();
   return (
     <>
       <details>
@@ -75,11 +74,11 @@ export function CollectionTemplate({
       <details open={showActions}>
         <summary>Actions</summary>
         <p>
-          You can <Link href={`/catalog/${segment}/create/`}>create</Link> <code>{schema.title}</code>
-          , and link them to {links}.
+          You can <Link href={`/catalog/${segment}/create/`}>create</Link>{" "}
+          <code>{schema.title}</code>, and link them to {links}.
         </p>
       </details>
-      <hr/>
+      <hr />
       <Suspense>{children}</Suspense>
     </>
   );
@@ -89,25 +88,20 @@ export function CollectionTemplate({
  * simulation backend, and uses it to construct an interface.
  */
 export default function Page({}) {
-  /**
-   * Server component enforces `use client` boundary.
-   */
   return (
     <div className={styles.catalog}>
       <details open={true}>
-        <summary>
-          About This Catalog
-        </summary>
+        <summary>About This Catalog</summary>
         <Markdown>{openapi.info.description}</Markdown>
         <p>
-        If code is more your style, try our{" "}
-        <Link href="/openapi/" prefetch={false}>
-          {" "}
-          OpenAPI documentation for integration developers.
-        </Link>
-      </p>
+          If code is more your style, try our{" "}
+          <Link href="/openapi/" prefetch={false}>
+            {" "}
+            OpenAPI documentation for integration developers.
+          </Link>
+        </p>
       </details>
-      <hr/>
+      <hr />
       <Client />
     </div>
   );

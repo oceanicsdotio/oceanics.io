@@ -2,7 +2,7 @@ import React from "react";
 import Client from "./client";
 import type { Metadata } from "next";
 import openapi from "@app/../specification.json";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 const schema = openapi.components.schemas.Locations;
 /**
  * Browser metadata
@@ -17,8 +17,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate schema={schema} showActions={false}>
+    <CollectionPage schema={schema} showActions={false}>
       <Client/>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

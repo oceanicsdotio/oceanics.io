@@ -2,7 +2,7 @@ import React from "react";
 import openapi from "@app/../specification.json";
 import Client from "@app/catalog/sensors/client";
 import type { Metadata } from "next";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 /**
  * OpenAPI metadata.
  */
@@ -20,8 +20,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionPage schema={schema}>
         <Client></Client>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

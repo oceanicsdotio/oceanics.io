@@ -1,7 +1,7 @@
 import React from "react";
 import openapi from "@app/../specification.json";
 import Client from "@app/catalog/features_of_interest/client";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 import type { Metadata } from "next";
 const schema = openapi.components.schemas.FeaturesOfInterest;
 export const metadata: Metadata = formatMetadata("Read", schema);
@@ -11,8 +11,8 @@ export const metadata: Metadata = formatMetadata("Read", schema);
  */
 export default function Page({}) {
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionPage schema={schema}>
       <Client/>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { CollectionTemplate, formatMetadata } from "@catalog/page";
+import { CollectionPage, formatMetadata } from "@catalog/page";
 import Client from "./client";
 import { Metadata } from "next";
 import openapi from "@app/../specification.json";
@@ -18,8 +18,8 @@ export default function Page({}) {
    * Static Component
    */
   return (
-    <CollectionTemplate schema={schema}>
+    <CollectionPage schema={schema}>
         <Client></Client>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }

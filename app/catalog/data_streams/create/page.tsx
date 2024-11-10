@@ -2,7 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import Client from "./client";
 import openapi from "@app/../specification.json";
-import { CollectionTemplate, formatMetadata } from "@app/catalog/page";
+import { CollectionPage, formatMetadata } from "@app/catalog/page";
 const schema = openapi.components.schemas.DataStreams;
 const action = "Create";
 /**
@@ -18,8 +18,8 @@ export default function Page({}) {
    * Server Component
    */
   return (
-    <CollectionTemplate schema={schema} showActions={false}>
+    <CollectionPage schema={schema} showActions={false}>
       <Client/>
-    </CollectionTemplate>
+    </CollectionPage>
   );
 }
