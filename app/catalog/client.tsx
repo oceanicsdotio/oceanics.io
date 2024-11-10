@@ -6,6 +6,7 @@ import React, {
   useCallback,
   type MutableRefObject,
   type FormEventHandler,
+  useMemo,
 } from "react";
 import Markdown from "react-markdown";
 import style from "@catalog/page.module.css";
@@ -99,8 +100,7 @@ function useWorker(messageHandler: any) {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-function useClient<T extends { uuid: string }>() {
-  const { push } = useRouter();
+function useClient<T extends NodeLike>() {
   /**
    * Status message to understand what is going on in the background.
    */
@@ -109,6 +109,7 @@ function useClient<T extends { uuid: string }>() {
    * Node or index data, if any.
    */
   const [collection, setCollection] = useState<T[]>([]);
+  const [linked, setLinked] = useState<any[]>([]);
   const [page, setPage] = useState<{
     next?: string;
     previous?: string;
@@ -152,6 +153,9 @@ function useClient<T extends { uuid: string }>() {
           setPage(data.page);
           return;
         case ACTIONS.getLinked:
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setLinked(data.value);
+          return;
         case ACTIONS.getEntity:
           window.scrollTo({ top: 0, behavior: "smooth" });
           setCollection(data.value);
@@ -183,89 +187,14 @@ function useClient<T extends { uuid: string }>() {
     message,
     worker,
     page,
+    linked
   };
 }
 
-// export function useLinked() {
-//   const {} = useClient({});
-//   const onGetLinked: FormEventHandler = (event) => {
-//     event.preventDefault();
-//     worker.post({
-//       type: ACTIONS.getLinked,
-//       data: {
-//         query: {
-//           left: query.left,
-//           uuid: query.uuid,
-//           right: query.right,
-//         },
-//       },
-//     });
-//     window.scrollTo({ top: 0, behavior: "smooth" });
-//   };
-// }
 type IMutate<T> = { title: string; Form: React.FunctionComponent<FormArgs<T>> };
-type NodeLike = {uuid: string};
+type NodeLike = {uuid: string, name?: string};
 export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
   const action = "Update"
-  const { message, form, onDelete } = useUpdate<T>(title);
-  return (
-    <>
-      <p>{message}</p>
-      <Form action={action} {...form} />
-      <button className={style.submit} onClick={onDelete}>
-        Delete
-      </button>
-    </>
-  );
-}
-export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
-  const action = "Create";
-  /**
-   * Form handle, used to reset inputs on successful submission,
-   * as reported through the worker message.
-   */
-  const formRef = useRef<HTMLFormElement | null>(null);
-
-  const { message, worker } = useClient<T>();
-
-  const onSubmit =
-    (callback: any): FormEventHandler =>
-    (event) => {
-      event.preventDefault();
-      worker.post({
-        type: ACTIONS.createEntity,
-        data: {
-          query: { left: title },
-          body: JSON.stringify(callback()),
-        },
-      });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-  const [initial] = useState<{ uuid: string }>({
-    uuid: uuid7(),
-  });
-  return (
-    <>
-      <p>{message}</p>
-      <Form
-        action={action}
-        formRef={formRef}
-        initial={initial as T}
-        disabled={worker.disabled}
-        onSubmit={onSubmit}
-      />
-    </>
-  );
-}
-export interface NodeForm {
-  disabled: boolean;
-  formRef: MutableRefObject<HTMLFormElement>;
-  onSubmit: () => {};
-  initial: { uuid: string };
-}
-
-export function useUpdate<T extends { uuid: string }>(title: string) {
   const query = useSearchParams();
   const uuid = query.get("uuid") ?? "";
   /**
@@ -327,16 +256,56 @@ export function useUpdate<T extends { uuid: string }>(title: string) {
     const [node] = collection;
     setInitial(node);
   }, [collection]);
-  return {
-    message,
-    form: {
-      disabled: worker.disabled,
-      formRef,
-      onSubmit,
-      initial,
-    },
-    onDelete,
-  };
+  return (
+    <>
+      <p>{message}</p>
+      <Form 
+        action={action}
+        formRef={formRef}
+        initial={initial as T}
+        disabled={worker.disabled}
+        onSubmit={onSubmit}
+      />
+      <button className={style.submit} onClick={onDelete}>
+        Delete
+      </button>
+    </>
+  );
+}
+export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
+  const action = "Create";
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const { message, worker } = useClient<T>();
+
+  const onSubmit =
+    (callback: any): FormEventHandler =>
+    (event) => {
+      event.preventDefault();
+      worker.post({
+        type: ACTIONS.createEntity,
+        data: {
+          query: { left: title },
+          body: JSON.stringify(callback()),
+        },
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+  const [initial] = useState<{ uuid: string }>({
+    uuid: uuid7(),
+  });
+  return (
+    <>
+      <p>{message}</p>
+      <Form
+        action={action}
+        formRef={formRef}
+        initial={initial as T}
+        disabled={worker.disabled}
+        onSubmit={onSubmit}
+      />
+    </>
+  );
 }
 /**
  * Shared by collection index pages. Wraps the useCollection hook,
@@ -344,7 +313,7 @@ export function useUpdate<T extends { uuid: string }>(title: string) {
  *
  * Redirect to Create page if there are no existing nodes to view.
  */
-export function useGetCollection<T extends { uuid: string }>(title: string) {
+export function useGetCollection<T extends NodeLike>(title: string) {
   const query = useSearchParams();
   const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
   const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
@@ -372,7 +341,7 @@ export function useGetCollection<T extends { uuid: string }>(title: string) {
  * Wraps collection retrieval and paging. Need to provide
  * a concrete type annotation.
  */
-export function Collection<T extends { uuid: string; name?: string }>({
+export function Collection<T extends NodeLike>({
   title,
   nav,
   AdditionalProperties=null,
@@ -382,7 +351,7 @@ export function Collection<T extends { uuid: string; name?: string }>({
   AdditionalProperties?: React.FunctionComponent|null;
 }) {
   const query = useSearchParams();
-  const { message, collection, worker, page } = useClient<Initial<T>>();
+  const { message, collection, worker, page } = useClient<T>();
   useEffect(() => {
     if (worker.disabled) return;
     const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
@@ -439,53 +408,91 @@ export function Collection<T extends { uuid: string; name?: string }>({
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Linking(schema: {
-  properties: any;
+export function Linked<T extends NodeLike>(schema: {
+  properties: Object;
   title: string;
   description: string;
 }) {
   const options = Object.keys(schema.properties)
     .filter((key: string) => key.includes("@"))
     .map((key) => key.split("@")[0]);
+
   const query = useSearchParams();
   const right = query.get("right");
   const left_uuid = query.get("uuid");
-  const pathname = usePathname();
   const { push } = useRouter();
-  /**
-   * Form data is synced with user input
-   */
+  
+  const {message, collection, worker, linked} = useClient<T>();
+  useEffect(()=>{
+    if (worker.disabled) return;
+    worker.post({
+      type: ACTIONS.getCollection,
+      data: {
+        query: {
+          left: schema.title,
+          limit: 100,
+          offset: 0
+        },
+      },
+    });
+    if (!right || !left_uuid) return;
+    console.log("GET LINKED")
+    worker.post({
+      type: ACTIONS.getLinked,
+      data: {
+        query: {
+          left: schema.title,
+          left_uuid: left_uuid,
+          right: right,
+          limit: 100,
+          offset: 0
+        },
+      },
+    });
+  }, [worker.disabled])
   const neighborType = useRef<HTMLSelectElement | null>(null);
+  const leftUuid = useRef<HTMLSelectElement | null>(null);
+  const onSubmit = useCallback<FormEventHandler<HTMLFormElement>>((event) => {
+    event.preventDefault();
+    if (!neighborType.current || !leftUuid.current) return;
+    const search = new URLSearchParams(query);
+    search.set("right", neighborType.current.value);
+    search.set("uuid", leftUuid.current.value);
+    push(`?${search.toString()}`);
+  }, [])
   return (
     <>
+      <p>{message}</p>
       <form
         className={style.form}
-        onSubmit={() => {
-          if (!neighborType.current) return;
-          const search = new URLSearchParams(query);
-          search.set("right", neighborType.current.value);
-          push(`${pathname}?${search.toString()}`);
-        }}
+        onSubmit={onSubmit}
       >
         <TextSelectInput
-          name={"neighborType"}
+          name={"uuid"}
+          inputRef={leftUuid}
+          description={"The root node"}
+          options={(collection||(left_uuid?[{uuid:left_uuid}]:[])).map((each)=>each.uuid)}
+          defaultValue={left_uuid||undefined}
+        />
+        <TextSelectInput
+          name={"right"}
           inputRef={neighborType}
           description={"The type of neighboring node to connect to"}
           options={options}
-          defaultValue={query.get("right")?.toString()}
+          defaultValue={right||options[0]}
         />
-        <button className={style.submit}>Load</button>
+        <button className={style.submit}>Refresh</button>
       </form>
-      {/* <div>
-        {collection.map(({ uuid, ...rest }) => {
+      <div>
+        {linked.map(({ uuid, ...rest }) => {
           const _right = (right??"").split(/\.?(?=[A-Z])/).join("_").toLowerCase();
           return (
             <p key={uuid}>
-              <a href={`/catalog/${_right}/edit?uuid=${uuid}&right=${schema.title}`}>{rest.name ?? uuid}</a>
+              <a href={`/catalog/${_right}/linked?uuid=${uuid}&right=${schema.title}`}>{rest.name ?? uuid}</a>
             </p>
           );
         })}
-      </div> */}
+      </div>
     </>
   );
 }

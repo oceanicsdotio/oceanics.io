@@ -22,35 +22,6 @@ export default function Page() {
         nurture <strong>autonomy</strong>, <strong>prosperity</strong>, and{" "}
         <strong>accountability</strong> in the blue economy.
       </p>
-      <p>
-        <Link href="/about/apocryphal-ocean">Apocryphal Ocean</Link>
-      </p>
-      <p>
-        <Link href="/about/aquaculture-workforce">
-          Maine Aquaculture Workforce
-        </Link>
-      </p>
-      <p>
-        <Link href="/about/blue-accountability">Blue Accountability</Link>
-      </p>
-      <p>
-        <Link href="/about/helmholtz-lobsters">Helmholtz Lobsters</Link>
-      </p>
-      <p>
-        <Link href="/about/marine-operators-software-rubric">
-          Marine Operators Software Rubric
-        </Link>
-      </p>
-      <p>
-        <Link href="/about/observer-lottery">
-          Observer Library
-        </Link>
-      </p>
-      <p>
-        <Link href="/about/predictive-aquaculture-siting">
-          Predictive Aquaculture Siting
-        </Link>
-      </p>
       <h2>
         You can <strong>hire us</strong>.
       </h2>
@@ -83,6 +54,38 @@ export default function Page() {
           . We will not share your contact information.
         </p>
       </Subscribe>
+      <h2>
+        Some more information
+      </h2>
+      <p>
+        <Link href="/about/apocryphal-ocean">Apocryphal Ocean</Link>
+      </p>
+      <p>
+        <Link href="/about/aquaculture-workforce">
+          Maine Aquaculture Workforce
+        </Link>
+      </p>
+      <p>
+        <Link href="/about/blue-accountability">Blue Accountability</Link>
+      </p>
+      <p>
+        <Link href="/about/helmholtz-lobsters">Helmholtz Lobsters</Link>
+      </p>
+      <p>
+        <Link href="/about/marine-operators-software-rubric">
+          Marine Operators Software Rubric
+        </Link>
+      </p>
+      <p>
+        <Link href="/about/observer-lottery">
+          Observer Library
+        </Link>
+      </p>
+      <p>
+        <Link href="/about/predictive-aquaculture-siting">
+          Predictive Aquaculture Siting
+        </Link>
+      </p>
     </div>
   );
 }

@@ -84,8 +84,15 @@ export function CollectionPage({
         <details open={showActions}>
           <summary>Actions</summary>
           <p>
-            You can <Link href={`/catalog/${segment}/create/`}>create</Link>{" "}
-            <code>{schema.title}</code>, and link them to {links}.
+            You can{" "}
+            <Link href={`/catalog/${segment}/create/`} prefetch={false}>
+              create
+            </Link>{" "}
+            <code>{schema.title}</code>, and{" "}
+            <Link href={`/catalog/${segment}/linked/`} prefetch={false}>
+              link
+            </Link>{" "}
+            them to {links}.
           </p>
         </details>
         <hr />

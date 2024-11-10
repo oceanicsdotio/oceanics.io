@@ -1,6 +1,7 @@
+use std::cmp::max;
+
 use crate::{
-    Cypher, Links, Node, SerializedQueryResult,
-    DataResponse, ErrorResponse, HandlerContext, HandlerEvent, OptionsResponse, Path
+    log, Cypher, DataResponse, ErrorResponse, HandlerContext, HandlerEvent, Links, Node, OptionsResponse, Path, SerializedQueryResult
 };
 use wasm_bindgen::prelude::*;
 /// Called from JS inside the generated handler function. Any errors
@@ -42,8 +43,11 @@ pub async fn linked(
 /// and doesn't fit into the API pattern.
 async fn get(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
     let user = Node::user_from_string(user);
-    let offset = event.query.offset(0);
-    let limit = event.query.limit(100);
+    let off = event.query.offset(0);
+    let lim = event.query.limit(100);
+    let current = (off / lim) + 1;
+    let prev = max(0, off-lim);
+    let next = off + lim;
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
     let mut right = Node::from_label(&event.query.right.as_ref().unwrap());
     let r = "b";
@@ -53,27 +57,25 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
     let query = format!("
         MATCH {user}
         MATCH ({u}){links}{left}--{right}-[ :Create ]-({u})
-        ORDER BY {r}.uuid OFFSET {offset} LIMIT {limit}+1
+        ORDER BY {r}.uuid OFFSET {off} LIMIT {lim}+1
         WITH collect(properties({r})) AS nodes,
-            count({r}) AS n_nodes,
-            {limit} AS lim,
-            {offset} AS off
+            count({r}) AS n_nodes
         WITH nodes,
             n_nodes,
-            CASE WHEN n_nodes > lim THEN '?limit='+lim+'&offset='+(off+lim) ELSE NULL END as next,
-            CASE WHEN off > 0 THEN '?limit='+lim+'&offset='+apoc.coll.max([off-lim, 0]) ELSE NULL END as previous,
-            nodes[0..apoc.coll.min([n_nodes, lim])] as value,
-            toInteger(floor(off / lim)) + 1 AS current
+            CASE WHEN n_nodes > {lim} THEN '?limit={lim}&offset={next}) ELSE NULL END as next,
+            CASE WHEN {off} > 0 THEN '?limit={lim}&offset={prev}' ELSE NULL END as previous,
+            nodes[0..apoc.coll.min([n_nodes, {lim}])] as value
         RETURN apoc.convert.toJson({{
             count: n_nodes, 
             value: value,
             page: {{
                 next: next,
                 previous: previous,
-                current: current
+                current: {current}
             }}
         }})
     ");
+    log(query.clone());
     let cypher = Cypher::new(query, "READ".to_string());
     let raw = cypher.run(url, access_key).await;
     let body = SerializedQueryResult::from_value(raw);
