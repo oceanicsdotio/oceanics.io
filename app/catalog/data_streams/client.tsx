@@ -1,7 +1,6 @@
 "use client";
 import React, { useRef } from "react";
 import {
-  Collection,
   type FormArgs,
   Initial,
   TextInput,
@@ -129,7 +128,7 @@ export function Form({
     </form>
   );
 }
-function AdditionalProperties(rest: Initial<DataStreams>) {
+export function AdditionalProperties(rest: Initial<DataStreams>) {
   return (
     <>
       <p>unit of measurement:</p>
@@ -146,13 +145,5 @@ function AdditionalProperties(rest: Initial<DataStreams>) {
       <p>phenomenon time: unknown</p>
       <p>result time: unknown</p>
     </>
-  );
-}
-export default function () {
-  return (
-    <Collection<Initial<DataStreams>>
-      title={schema.title}
-      AdditionalProperties={AdditionalProperties as any}
-    />
   );
 }

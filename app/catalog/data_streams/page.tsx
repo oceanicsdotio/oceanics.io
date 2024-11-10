@@ -1,7 +1,9 @@
 import React from "react";
 import { CollectionPage, formatMetadata } from "@catalog/page";
-import Client from "@catalog/data_streams/client";
+import { AdditionalProperties } from "./client";
 import openapi from "@app/../specification.json";
+import { type DataStreams } from "@oceanics/app";
+import { Collection } from "../client";
 const schema = openapi.components.schemas.DataStreams;
 const action = "Read";
 export const metadata = formatMetadata(action, schema);
@@ -12,7 +14,10 @@ export const metadata = formatMetadata(action, schema);
 export default function Page({}) {
   return (
     <CollectionPage schema={schema}>
-      <Client />
+      <Collection<DataStreams>
+        title={schema.title}
+        AdditionalProperties={AdditionalProperties as any}
+      />
     </CollectionPage>
   );
 }
