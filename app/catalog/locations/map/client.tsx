@@ -9,7 +9,8 @@ import React, {
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { useGetCollection } from "@catalog/client";
+import { Initial, useGetCollection } from "@catalog/client";
+import { type Locations as LocationsType} from "@oceanics/app";
 
 const DEFAULTS = {
   zoom: 10,
@@ -77,7 +78,7 @@ export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message } = useGetCollection(schema.title);
+  const { collection, message } = useGetCollection<Initial<LocationsType>>(schema.title);
   /**
    * MapBox container reference.
    */
@@ -181,7 +182,7 @@ export default function ({}) {
     const features = collection.map(({ location }) => {
       return {
         type: "Feature",
-        geometry: JSON.parse(location),
+        geometry: JSON.parse(location as any),
         properties: {},
       };
     });

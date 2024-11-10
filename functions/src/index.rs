@@ -1,10 +1,9 @@
 use crate::{
-    cypher::{Links, Node, QueryResult, SerializedQueryResult},
-    openapi::{DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
+    Cypher, Links, Node, SerializedQueryResult,
+    DataResponse, ErrorResponse, HandlerContext, HandlerEvent, OptionsResponse, Path, QueryResult, NoContentResponse
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
-
 /// The Labels query returns a record format
 /// that we need to be able to parse, and then
 /// transform.
@@ -13,12 +12,10 @@ pub struct Record {
     #[serde(rename = "_fields")]
     pub fields: Vec<String>,
 }
-
 #[derive(Deserialize)]
 struct UniqueConstraintBody {
     label: String
 }
-
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
@@ -55,8 +52,42 @@ pub async fn index(
 /// Retrieve pre-formatted JSON of the index, counts, and api route to access
 /// the collection. May include more information in the future, but this
 /// is te bare minimum to render a frontend index.
+/// Uses the label index to get approximate node counts.
+/// Perform the conversion to structured data within the 
+/// query since we know there are limited number of
+/// collections.
+/// 
+/// When there are no existing nodes in the index, the
+/// cache doesn't always return an entry for the `stats()`
+/// call, so we also have to look up which nodes have had
+/// a uniqueness constraint on `uuid`
 async fn get(url: &String, access_key: &String) -> JsValue {
-    let cypher = Node::get_label_counts();
+    let query = String::from("
+        CALL apoc.schema.nodes() YIELD type, label, properties
+        WHERE type = 'UNIQUENESS' AND 'uuid' IN properties
+        WITH collect(label) AS indexed
+        CALL apoc.meta.stats() YIELD labels
+        WITH apoc.map.removeKey(labels, 'User') AS filtered, indexed
+        UNWIND apoc.coll.toSet(keys(filtered)+indexed) as key ORDER BY key
+        WITH 
+            key, 
+            apoc.map.get(filtered, key, 0) AS count, 
+            apoc.text.split(key, '\\.?(?=[A-Z])') AS words
+        WITH 
+            key, 
+            count, 
+            words,
+            CASE WHEN count > 0 THEN '' ELSE '/create' END AS append
+        WITH {
+            name: key, 
+            count: count, 
+            url: '/api/' + key,
+            content: apoc.text.join(words, ' '),
+            href: '/catalog/' + lower(apoc.text.join(words, '_')) + append
+        } as item
+        RETURN apoc.convert.toJson(collect(item))
+    ");
+    let cypher = Cypher::new(query, "READ".to_string());
     let raw = cypher.run(&url, &access_key).await;
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
@@ -65,8 +96,12 @@ async fn get(url: &String, access_key: &String) -> JsValue {
 /// Could be abused?
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let constraint = serde_json::from_str::<UniqueConstraintBody>(&event.body.unwrap()).unwrap();
-    let node = Node::from_label(&constraint.label);
-    let cypher = node.unique_constraint("uuid".to_string());
+    let label = constraint.label;
+    let key = "uuid";
+    let query = format!(
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{label}) REQUIRE n.{key} IS UNIQUE",
+    );
+    let cypher = Cypher::new(query, "WRITE".to_string());
     let data = cypher.run(url, access_key).await;
     let _: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();
     NoContentResponse::new()
@@ -77,9 +112,14 @@ async fn delete(
     access_key: &String,
     user: String
 ) -> JsValue {
-    let right = Node::new(None, "n".to_string(), None);
-    let left = Node::user_from_string(user);
-    let cypher = Links::new(Some("Create".to_string()), None).delete_child(&left, &right);
+    let left = Node::new(None, "n".to_string(), None);
+    let user = Node::user_from_string(user);
+    let links = Links::create();
+    let r = &left.symbol;
+    let query = format!("
+        MATCH {user}{links}{left} DETACH DELETE {r}
+    ");
+    let cypher = Cypher::new(query, "WRITE".to_string());
     let data = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();
     if result.summary.counters.stats.nodes_deleted >= 1 {

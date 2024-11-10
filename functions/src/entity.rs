@@ -1,7 +1,6 @@
 use crate::{
-    cypher::{Links, Node, QueryResult, SerializedQueryResult}, log, openapi::{
+    Cypher, Links, Node, QueryResult, SerializedQueryResult,
         DataResponse, ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path
-    }
 };
 use wasm_bindgen::prelude::*;
 /// Called from JS inside the generated handler function. Any errors
@@ -54,12 +53,19 @@ pub async fn get(
         &handler_event.query.left.unwrap(),
         &handler_event.query.left_uuid.unwrap(),
     );
-    let cypher = Links::wildcard().query(
-        &user,
-        &left,
-        &0,
-        &1
-    );
+    let links = Links::create();
+    let l = &left.symbol;
+    let query = format!("
+        MATCH {user}{links}{l} 
+        WHERE NOT {l}:User
+        WITH collect(properties({l})) AS value,
+                count({l}) AS count
+        RETURN apoc.convert.toJson({{
+            count: count, 
+            value: value
+        }})
+    ");
+    let cypher = Cypher::new(query, "READ".to_string());
     let raw = cypher.run(url, access_key).await;
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
@@ -77,10 +83,15 @@ pub async fn delete(
         &handler_event.query.left.unwrap(),
         &handler_event.query.left_uuid.unwrap(),
     );
-    let cypher = Links::wildcard().delete_child(&user, &left);
+    let links = Links::create();
+    let r = &left.symbol;
+    let query = format!("
+        MATCH {user}{links}{left} DETACH DELETE {r}
+    ");
+    let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(&url, &access_key).await;
-    let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
-    if result.summary.counters.stats.nodes_deleted == 1 {
+    let result = serde_wasm_bindgen::from_value::<QueryResult>(raw);
+    if result.is_ok_and(|result| result.summary.counters.stats.nodes_deleted == 1) {
         NoContentResponse::new()
     } else {
         ErrorResponse::server_error(None)
@@ -94,7 +105,13 @@ async fn put(url: &String, access_key: &String, user: String, event: HandlerEven
     let updates = Node::new(event.body, "n".to_string(), Some(label.clone()));
     let uuid = query.left_uuid.as_ref().unwrap();
     let node = Node::from_uuid(&label, &uuid);
-    let cypher = Links::create().mutate_child(&user, &node, &updates);
+    let links = Links::create();
+    let l = &node.symbol;
+    let pattern = updates.pattern();
+    let query = format!(
+        "MATCH {user}{links}{node} SET {l} += {{ {pattern} }}"
+    );
+    let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(&url, &access_key).await;
     let result = serde_wasm_bindgen::from_value::<QueryResult>(raw);
     if result.is_ok() {

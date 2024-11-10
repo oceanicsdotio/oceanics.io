@@ -142,7 +142,7 @@ export default function ({}) {
    * Retrieve node data using Web Worker. Redirect if there are
    * no nodes of the given type.
    */
-  const { message, collection, page } = useGetCollection<Initial<DataStreams>>(schema.title);
+  const { message, collection } = useGetCollection<Initial<DataStreams>>(schema.title);
   /**
    * Client Component
    */
@@ -173,7 +173,6 @@ export default function ({}) {
           </NamedNode>
         );
       })}
-      <Paging {...page} />
     </>
   );
 }

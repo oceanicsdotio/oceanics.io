@@ -121,7 +121,7 @@ export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, page } = useGetCollection<Initial<Observations>>(title);
+  const { collection, message } = useGetCollection<Initial<Observations>>(title);
   /**
    * Client Component
    */
@@ -133,7 +133,6 @@ export default function ({}) {
           <NamedNode key={uuid} uuid={uuid as any} name={undefined}></NamedNode>
         );
       })}
-      <Paging {...page}/>
     </>
   );
 }

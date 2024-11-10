@@ -80,7 +80,7 @@ export default function Page({}) {
    * Retrieve node data using Web Worker. Redirect if there are
    * no nodes of the given type.
    */
-  const { message, collection, page } = useGetCollection<Initial<HistoricalLocations>>(schema.title);
+  const { message, collection } = useGetCollection<Initial<HistoricalLocations>>(schema.title);
   /**
    * Client Component
    */
@@ -94,7 +94,6 @@ export default function Page({}) {
           </NamedNode>
         );
       })}
-      <Paging {...page}/>
     </>
   );
 }

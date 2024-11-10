@@ -1,6 +1,6 @@
 use crate::{
-    cypher::{Links, Node, QueryResult},
-    openapi::{ErrorResponse, HandlerContext, HandlerEvent, NoContentResponse, OptionsResponse, Path}
+    Cypher, ErrorResponse, HandlerContext, HandlerEvent, Links, NoContentResponse, Node,
+    OptionsResponse, Path, QueryResult,
 };
 use wasm_bindgen::prelude::*;
 /// Called from JS inside the generated handler function. Any errors
@@ -18,7 +18,7 @@ pub async fn topology(
     let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
     let user = match context.client_context.user {
         None => None,
-        Some(user) => Some(user.email)
+        Some(user) => Some(user.email),
     };
     match Path::validate(specified, &event, &user) {
         Some(error) => return error,
@@ -36,8 +36,13 @@ pub async fn topology(
 /// Will drop link to all
 async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
-    let right = Node::from_uuid(&event.query.right.unwrap(), &event.query.right_uuid.unwrap());
-    let cypher = Links::wildcard().drop(&left, &right);
+    let right = Node::from_uuid(
+        &event.query.right.unwrap(),
+        &event.query.right_uuid.unwrap(),
+    );
+    let links = Links::wildcard();
+    let query = format!("MATCH {left}{links}{right} DELETE r");
+    let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
     if result.summary.counters.stats.relationships_deleted == 1 {
@@ -49,9 +54,17 @@ async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsVal
 /// Create a relationship between a root node and some other nodes.
 async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
-    let mut right = Node::from_uuid(&event.query.right.unwrap(), &event.query.right_uuid.unwrap());
+    let mut right = Node::from_uuid(
+        &event.query.right.unwrap(),
+        &event.query.right_uuid.unwrap(),
+    );
     right.symbol = "b".to_string();
-    let cypher = Links::new(Some("Join".to_string()), None).join(&left, &right);
+    let links = Links::new(Some("Join".to_string()), None);
+    let query = format!(
+        "MATCH {}, {} MERGE ({}){}({})",
+        left, right, left.symbol, links, right.symbol
+    );
+    let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(raw).unwrap();
     if result.summary.counters.stats.relationships_created == 1 {

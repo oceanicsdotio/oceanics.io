@@ -82,7 +82,7 @@ export default function({}) {
    * Current data source. Only supports streaming one
    * at a time for now.
    */
-  const [source, setSource] = useState<DataStreams | null>(null);
+  const [source, setSource] = useState<Initial<DataStreams> | null>(null);
   /**
    * User controlled playback
    */
@@ -138,7 +138,7 @@ export default function({}) {
   }, [wasm, source]);
   useEffect(()=>{
     if (!collection.length) return
-    setSource(collection[0]);
+    setSource(collection[0] as any);
   },[collection])
   /**
    * UI Restart Controller

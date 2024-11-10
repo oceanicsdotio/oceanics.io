@@ -1,10 +1,13 @@
 "use client";
-import React, {
-  useRef,
-} from "react";
+import React, { useRef } from "react";
 import OpenAPI from "@app/../specification.json";
 import type { Things } from "@oceanics/app";
-import { NamedNode, TextInput, useGetCollection, Initial, Paging } from "@catalog/client";
+import {
+  TextInput,
+  Initial,
+  ClientCollection,
+  FormArgs
+} from "@catalog/client";
 import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification
@@ -22,13 +25,7 @@ export function Form({
   onSubmit,
   formRef,
   disabled,
-}: {
-  action: string
-  initial: Initial<Things>
-  onSubmit: any
-  formRef: any
-  disabled: boolean
-}) {
+}: FormArgs<Things>) {
   /**
    * User must input uuid, it will not be generated within
    * the system. Currently duplicate UUID silently fails.
@@ -107,31 +104,24 @@ export function Form({
     </form>
   );
 }
+function AdditionalProperties(thing: Initial<Things>) {
+  return (
+    <>
+      <p>description: {thing.description ?? "n/a"}</p>
+      <p>properties: {thing.properties ?? "n/a"}</p>
+    </>
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
 export default function () {
-  /**
-   * Retrieve node data using Web Worker. Redirect if there are
-   * no nodes of the given type.
-   */
-  const { message, collection, page } = useGetCollection(schema.title);
-  /**
-   * Client Component.
-   */
   return (
-    <>
-      <p>{message}</p>
-      {collection.map(({ uuid, ...thing }: Initial<Things>) => {
-        return (
-          <NamedNode key={uuid} name={thing.name} uuid={uuid} nav={"view"}>
-            <p>description: {thing.description ?? "n/a"}</p>
-            <p>properties: {thing.properties ?? "n/a"}</p>
-          </NamedNode>
-        );
-      })}
-      <Paging {...page}/>
-    </>
+    <ClientCollection<Initial<Things>>
+      title={schema.title}
+      nav={"view"}
+      AdditionalProperties={AdditionalProperties as any}
+    />
   );
 }

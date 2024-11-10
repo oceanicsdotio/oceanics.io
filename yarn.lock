@@ -5180,8 +5180,8 @@ __metadata:
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=450bad&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/52e7b773fd5a694a14ee8ce73652d33757b867842ddbadd950d09c22c5adc61f132c20aa9d55b8e58393bbbcbbb04337b3e95576adc8adf57356128a8d202784
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=842dc7&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/f92902ef207736ab9ba5357e2530be48deedfa4db9d9ab0a684a1bcc7316b1902bdd9666c62f1eb31bf35c5164a422f28ac5c3b2c4b54041fe186a2db27cb2fc
   languageName: node
   linkType: hard
 

@@ -208,7 +208,7 @@ export default function ({}) {
   /**
    * Retrieve node data use Web Worker.
    */
-  const { collection, message, page } = useGetCollection<Initial<LocationsType>>(schema.title);
+  const { collection, message } = useGetCollection<Initial<LocationsType>>(schema.title);
   /**
    * Client Component
    */
@@ -223,7 +223,6 @@ export default function ({}) {
           </div>
         </NamedNode>
       ))}
-      <Paging {...page} />
     </div>
   );
 }

@@ -1,13 +1,20 @@
-type ModuleType = typeof import("@oceanics/app");
 type WorkerCache = {
   handlers: { [key: string]: Function },
 };
 let CACHE: WorkerCache | null = null;
+let postStatus = (message: string) => {
+  self.postMessage({
+    type: "status",
+    data: {
+      message
+    }
+  })
+}
 /**
  * Only perform startup routine once
  */
-async function startup(message: MessageEvent){
-  const { data: {user} } = message.data;
+async function startup(message: MessageEvent) {
+  const { data: { user } } = message.data;
   if (typeof user === "undefined") {
     throw Error(`worker missing user data: ${JSON.stringify(message)}`)
   }
@@ -18,53 +25,34 @@ async function startup(message: MessageEvent){
   const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity, getLinked, updateEntity } = await import("@oceanics/app");
   // Provide better error messaging on web assembly panic
   panic_hook();
-
-  async function getCollectionAndTransform(query: {
-    limit: number
-    offset: number
-  }) {
+  async function getCollectionAndTransform(query: any) {
     const result = await getCollection(access_token, query);
-    const count = Math.min(result.value.length, query.limit);
-    const moreExist = count && query.limit < result.value.length;
-    const scrollTo = { top: 0, behavior: "smooth" };
-    let message = `✓ Found ${count} nodes`;
-    let nextPage;
-    let redirect = false;
-    if (moreExist) {
-      const newOffset = query.limit + query.offset;
-      nextPage = new URLSearchParams(`?offset=${newOffset}&limit=${query.limit}`);
-    } 
-    if (!count) {
-      message += ", redirecting...";
-      redirect = true;
-    }
+    postStatus(`Found ${result.value.length}`);
+    if (!result.page.next) result.page.next = undefined
+    if (!result.page.previous) result.page.previous = undefined
+    return {...result}
+  }
+  async function getIndexAndPostMessage() {
+    const result = await getIndex(access_token);
+    postStatus(`Found ${result.length}`);
+    return result
+  }
+  async function deleteEntityAndPostMessage(query: any) {
+    const result = await deleteEntity(access_token, query);
+    postStatus(`Deleted 1`);
     return {
-      collection: result.value.slice(0, query.limit),
-      message,
-      page: {
-        next: nextPage,
-        previous: undefined
-      },
-      scrollTo,
-      redirect
+      success: result
     }
   }
-
   return {
     handlers: {
-      getIndex: getIndex.bind(undefined, access_token),
+      getIndex: getIndexAndPostMessage,
       getCollection: getCollectionAndTransform,
       getLinked: getLinked.bind(undefined, access_token),
       getEntity: getEntity.bind(undefined, access_token),
       updateEntity: updateEntity.bind(undefined, access_token),
       createEntity: createEntity.bind(undefined, access_token),
-      deleteEntity: async (query: any) => {
-        const result = await deleteEntity(access_token, query)
-        return {
-          success: result,
-          uuid: query.left_uuid
-        }
-      }
+      deleteEntity: deleteEntityAndPostMessage
     }
   }
 }
@@ -93,10 +81,10 @@ async function listen(message: MessageEvent) {
     return
   }
   try {
-    const data = await handler(message.data.data.query, message.data.data.body);
+    const result = await handler(message.data.data.query, message.data.data.body);
     self.postMessage({
       type: message.data.type,
-      data
+      data: result
     });
   } catch (error: any) {
     self.postMessage({
@@ -109,173 +97,3 @@ async function listen(message: MessageEvent) {
  * Respond to messages
  */
 self.addEventListener("message", listen);
-
-
-interface RowAccumulation {
-    previous: number[];
-    word: string;
-    symbol: string;
-}
-
-const calculateRow = ({previous, word, symbol}: RowAccumulation): number[] => {
-
-    const row = [previous[0] + 1];
-    for (let jj = 1; jj < word.length + 1; jj++) {
-        row.push(Math.min(
-            row[jj-1] + 1, // insert, 
-            previous[jj] + 1, // delete, 
-            previous[jj-1] + Number(word[jj-1] !== symbol) // replace
-        ));
-    }
-    return row;
-}
-
-interface ISearch {
-    words: string[];
-    pattern: string;
-    maxCost: number;
-}
-
-/**
- * Simple iterative search loops through all words and preserves
- * a record of those which satisfy the maximum mutations
- * 
- * Calculates the similarity of two patterns, usually words
- * for the purpose of auto-correct or spell checking
- * 
- * @param {*} param0 
- */
-const search = ({
-    words, 
-    pattern, 
-    maxCost,
-}: ISearch) => {
-
-    const costCompare = [...Array(pattern.length + 1).keys()];
-    const inner = (previous: number[], symbol: string) => 
-        calculateRow({
-            previous, 
-            symbol,
-            word: pattern
-        })
-
-    const outer = (result: [string, number][], word: string) => {
-        const cost: number = [...word].reduce(inner, costCompare).pop() as number;
-        if (cost <= maxCost) result.push([word, cost]);
-        return result;
-    }
-
-    return words.reduce(outer, []);
-}
-
-interface INode {
-    children?: {[key: string]: INode};
-    weight?: number;
-    word?: boolean;
-}
-
-interface ITrie {
-    words?: string[];
-    root?: INode;
-    initialWeight?: number;
-    encode?: (arg: number)=>number
-}
-
-/**
- * Insert a pattern into a Trie-like data structure.
- * 
- * In this case, we assume the struct is an object, containing
- * self-similar nested objects.
- * 
- * Depth first serach in reverse. 
- * 
- * @param {*} param0 
- */
-export const trie = ({
-    words=[], 
-    root={},
-    encode=(weight)=>weight+1,
-    initialWeight=1
-}: ITrie) => {
-
-    const inner = (node: INode) => (key: string) => {
-        if (typeof node.children === "undefined") {
-            node.children = {}
-        }
-        if (!(key in node.children)) node.children[key] = {};
-        
-        // Descend one level and encode traversal of path
-        node = node.children[key];
-        if (typeof node.weight === "undefined" || !node.weight) {
-            node.weight = initialWeight;
-        } else {
-            node.weight = encode(node.weight);
-        }
-    }
-    
-    const reducer = (root: INode, pattern: string) => {
-        const node = root;
-        [...pattern].forEach(inner(node));
-        node.word = true;
-        return root;
-    }
-
-    return words.reduce(reducer, root);
-}
-
-interface IRecurse {
-    node: INode;
-    pattern: string;
-    maxCost: number;
-    symbol?: string;
-    previous: number[];
-}
-
-/**
- * Recursive descend through a Trie object.
- * 
- * If the previous row is not supplied, assume that it is the entry point
- * and assigned the default first row.
- * 
- * @param {*} param0 
- */
-export function recurse({
-    node, 
-    pattern, 
-    maxCost,
-    symbol="",
-    previous,
-}: IRecurse): string[] {
-    // on entry (no symbol), init previous value to pass down
-    //@ts-ignore
-    const row: number[] = symbol ? 
-        calculateRow({
-            previous, 
-            word: pattern, 
-            symbol
-        }) : 
-        Array(Array(pattern.length + 1).keys());
-
-    // cost of this word
-    const isWord = "word" in node && node.word;
-    const self = isWord && row[row.length-1] <= maxCost ? [[symbol, row[row.length-1]]] : []
-
-    // don't descend if we've reached our thresholds
-    if (Math.min(...row) <= maxCost && typeof node.children === "object") {
-        //@ts-ignore
-        return self
-    } else {
-        const mapNodes = ([symbol, node]: [string, INode]) => {
-            const [suffix, cost] = recurse({
-                node,
-                pattern,
-                maxCost,
-                symbol,
-                previous: row
-            });
-            return [symbol+suffix, cost]
-        }
-        //@ts-ignore
-        return self + Object.entries(node.children??{}).map(mapNodes)
-    }
-}
