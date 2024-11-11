@@ -16,6 +16,7 @@ code {
   border: 1px solid lightblue;
   border-radius: 3px;
   padding: 3px;
+  box-shadow: 2px 2px 1px 0px darkviolet;
 }
 
 main {
@@ -41,4 +42,8 @@ footer {
 
 a {
   color: orange;
+}
+
+summary {
+  cursor: pointer;
 }

@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { HistoricalLocations } from "@oceanics/app";
-import { type FormArgs, type Initial, Collection } from "@catalog/client";
+import { type FormArgs, type Initial, Collection, NumberInput } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
 import Markdown from "react-markdown";
@@ -53,20 +53,17 @@ export function Form({
           defaultValue={initial.uuid}
           readOnly={true}
         ></TextInput>
-        <label className={style.label} htmlFor={"time"}>
-          <code>time</code>
-          <span>{" (required)"}</span>
-        </label>
-        <input
-          className={style.input}
-          id={"time"}
-          type={"number"}
+        <NumberInput
           name={"time"}
-          ref={time}
+          inputRef={time}
+          required
+          description={properties.time.description}
         />
-        <Markdown>{properties.time.description}</Markdown>
         <button className={style.submit} disabled={disabled}>
           {action}
+        </button>
+        <button className={style.submit} type="reset">
+          Reset
         </button>
       </form>
   );

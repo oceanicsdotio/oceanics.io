@@ -90,6 +90,9 @@ export function Form({
       <button className={style.submit} disabled={disabled}>
         {action}
       </button>
+      <button className={style.submit} type="reset">
+        Reset
+      </button>
     </form>
   );
 }

@@ -35,7 +35,7 @@ export function formatMetadata(
 export function CollectionPage({
   schema,
   children,
-  showActions = false,
+  showActions = true,
 }: {
   children: ReactNode;
   schema: {
@@ -77,7 +77,7 @@ export function CollectionPage({
         {schema.title}
       </Link>
       <div className={layout.content}>
-        <details>
+        <details open={true}>
           <summary>About This Collection</summary>
           <Markdown>{schema.description}</Markdown>
         </details>

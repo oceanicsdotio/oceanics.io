@@ -4,18 +4,15 @@
   margin: 0;
   padding: 0;
 }
-
 .locations {
   width: auto;
   margin: 0;
   padding: 0;
 }
-
 .mapbox {
   min-height: 500px;
   border: 1px solid lightblue;
 }
-
 .stream {
   margin: 0;
   padding: 0;
@@ -24,11 +21,9 @@
   border-radius: 10px;
   border: 1px solid lightblue;
 }
-
 .canvas {
   width: 100%;
 }
-
 .input {
   padding: 1rem;
   font-size: larger;
@@ -36,24 +31,21 @@
   margin: 1rem 0;
   width: auto;
 }
-
 .input:focus {
   outline: none;
   box-shadow: 0 0 0 3px orange;
 }
-
 .submit {
-  padding: 1rem;
+  padding: 0.5rem;
   font-size: larger;
   border-radius: 0.5rem;
-  margin: 1rem auto 1rem 0;
-  min-width: 300px;
-  color: orange;
+  margin: 0.75rem auto 0.75rem 0;
+  min-width: 200px;
+  color: lightblue;
   background-color: black;
-  border: none;
-  box-shadow: 3px 3px 2px 0px black;
+  border: 1px solid lightblue;
+  box-shadow: 3px 3px 2px 0px darkviolet;
 }
-
 .submit:disabled {
   color: gray;
   background-color: lightgray;
@@ -81,4 +73,6 @@
   font-size: inherit;
   border-radius: 5px;
 }
-
+.add_props {
+  margin-left: 1rem;
+}

@@ -1,7 +1,7 @@
 "use client";
 import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
-import { type Initial } from "../client";
+import { TextSelectInput, type Initial } from "../client";
 
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -79,25 +79,14 @@ export function Form({
         description={properties.description.description}
         defaultValue={initial.description}
       ></TextInput>
-      <label className={style.label} htmlFor={"encodingType"}>
-        <code>encodingType</code>
-      </label>
-      <select
-        className={style.input}
-        id={"encodingType"}
+      <TextSelectInput
         name={"encodingType"}
-        ref={encodingType}
+        inputRef={encodingType}
         defaultValue={properties.encodingType.default}
+        options={properties.encodingType.enum}
+        description={properties.encodingType.description}
       >
-        {properties.encodingType.enum.map((value: string) => {
-          return (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          );
-        })}
-      </select>
-      <Markdown>{properties.encodingType.description}</Markdown>
+      </TextSelectInput>
       <TextInput
         name={"metadata"}
         inputRef={metadata}

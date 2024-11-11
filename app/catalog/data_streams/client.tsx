@@ -4,6 +4,7 @@ import {
   type FormArgs,
   Initial,
   TextInput,
+  TextSelectInput,
 } from "@catalog/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
@@ -103,27 +104,18 @@ export function Form({
         }
         defaultValue={initial.unitOfMeasurement?.definition}
       ></TextInput>
-      <label className={style.label} htmlFor={"observationType"}>
-        <code>observationType</code>
-      </label>
-      <select
-        className={style.input}
-        id={"observationType"}
+      <TextSelectInput
         name={"observationType"}
-        ref={observationType}
+        description={properties.observationType.description}
+        inputRef={observationType}
         defaultValue={"OM_Measurement"}
-      >
-        {properties.observationType.enum.map((value: string) => {
-          return (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          );
-        })}
-      </select>
-      <Markdown>{properties.observationType.description}</Markdown>
+        options={properties.observationType.enum}
+      ></TextSelectInput>
       <button className={style.submit} disabled={disabled}>
         {action}
+      </button>
+      <button className={style.submit} type="reset">
+        Reset
       </button>
     </form>
   );

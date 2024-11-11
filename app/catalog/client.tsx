@@ -339,7 +339,15 @@ export function useGetCollection<T extends NodeLike>(title: string) {
 }
 /**
  * Wraps collection retrieval and paging. Need to provide
- * a concrete type annotation.
+ * a concrete type annotation, but at least expects uuid
+ * and an optional name in the result data.
+ * 
+ * Expects offset and limit to be in the query for paging,
+ * but will revert to the defaults described in OpenAPI
+ * spec.
+ * 
+ * First one in array is shown with its summary details
+ * open.
  */
 export function Collection<T extends NodeLike>({
   title,
@@ -367,14 +375,11 @@ export function Collection<T extends NodeLike>({
       },
     });
   }, [worker.disabled]);
-  /**
-   * Client Component is always wrapped, and can be a fragment.
-   */
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, name, ...rest }) => (
-        <details key={uuid}>
+      {collection.map(({ uuid, name, ...rest }, index) => (
+        <details key={uuid} name="exclusive" open={index===0}>
           <summary>
             <Link href={`edit?uuid=${uuid}`} prefetch={false}>
               {name ?? uuid}
@@ -389,7 +394,7 @@ export function Collection<T extends NodeLike>({
               </>
             )}
           </summary>
-          {AdditionalProperties && <AdditionalProperties {...(rest as any)} />}
+          {AdditionalProperties && <div className={style.add_props} ><AdditionalProperties {...(rest as any)} /></div>}
         </details>
       ))}
       <p>
@@ -512,10 +517,10 @@ function InputMetadata({
   return (
     <>
       <label htmlFor={name}>
-        <details>
+        <details open={false}>
           <summary>
             <code>{name}</code>
-            <span>{required ? " (required)" : ""}</span>
+            {required && <span>{" (required)"}</span>}
           </summary>
           <Markdown>{description}</Markdown>
         </details>
@@ -582,7 +587,7 @@ export function TextInput({
         id={name}
         type={"text"}
         name={name}
-        placeholder="..."
+        placeholder={"..."}
         ref={inputRef}
         required={required}
         readOnly={readOnly}
@@ -640,8 +645,8 @@ export default function ({}) {
   return (
     <>
       <p>{message}</p>
-      {index.map(({ "@iot.count": count, content, href, description }) => (
-        <details key={href}>
+      {index.map(({ "@iot.count": count, content, href, description }, ind) => (
+        <details key={href} name="exclusive" open={ind===0}>
           <summary>
             <Link href={href} prefetch={false}>
               {content}
