@@ -23,7 +23,7 @@
         "@oceanics/app": "file:app/lib",
         "@oceanics/functions": "file:functions/lib",
         "@xmldom/xmldom": "0.9.5",
-        "jose": "^5.9.3",
+        "jose": "^5.9.6",
         "js-yaml": "^4.1.0",
         "katex": "^0.16.11",
         "mapbox-gl": "^3.7.0",
