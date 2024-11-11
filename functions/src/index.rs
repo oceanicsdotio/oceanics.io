@@ -115,10 +115,9 @@ async fn delete(
     let left = Node::new(None, "n".to_string(), None);
     let user = Node::user_from_string(user);
     let links = Links::create();
-    let r = &left.symbol;
     let query = format!("
-        MATCH {user}{links}{left} DETACH DELETE {r}
-    ");
+        MATCH {user}{links}{left} DETACH DELETE {}
+    ", left.symbol);
     let cypher = Cypher::new(query, "WRITE".to_string());
     let data = cypher.run(url, access_key).await;
     let result: QueryResult = serde_wasm_bindgen::from_value(data).unwrap();

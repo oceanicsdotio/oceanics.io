@@ -8,12 +8,10 @@ const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
 const logger_token = process.env.LOGTAIL_SOURCE_TOKEN ?? "";
 // OpenAPI specification
 const spec = specification.paths["/{entity}"];
-// Reusable logging reference
-let log: Node | null = null;
 // Collection-based REST operations
 export const handler: Handler = async function (event, context) {
     const start = performance.now();
-    if (!log) log = new Node(logger_token);
+    const log = new Node(logger_token);
     const result = collection(
         url,
         access_key,

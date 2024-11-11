@@ -1,8 +1,10 @@
+use std::cmp::max;
+// use std::time::Instant;
 use crate::{
-    Cypher, DataResponse, ErrorResponse, HandlerContext, HandlerEvent, Links, NoContentResponse,
-    Node, OptionsResponse, Path, QueryResult, SerializedQueryResult,
+    Cypher, DataResponse, ErrorResponse, HandlerContext, HandlerEvent, Links, NoContentResponse, Node, OptionsResponse, Path, QueryResult, SerializedQueryResult
 };
 use wasm_bindgen::prelude::*;
+
 /// Called from JS inside the generated handler function. Any errors
 /// should be caught, and return an error response.
 #[wasm_bindgen]
@@ -27,14 +29,15 @@ pub async fn collection(
     if event.query.left.is_none() {
         return ErrorResponse::bad_request("Missing node label");
     }
-    // Known to be exist here
+    // Known to exist here
     let user = user.unwrap();
-    match &event.http_method[..] {
+    let result = match &event.http_method[..] {
         "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE"]),
         "GET" => get(&url, &access_key, user, event).await,
         "POST" => post(&url, &access_key, user, event).await,
         _ => ErrorResponse::not_implemented(),
-    }
+    };
+    result
 }
 /// Get all entities with the supplied label. The data have already been
 /// serialized to a json string that includes the count and objects.
@@ -46,33 +49,32 @@ pub async fn collection(
 /// - paging parameters that translate to offset & limit cypher values
 async fn get(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
     let user = Node::user_from_string(user);
-    let offset = event.query.offset(0);
-    let limit = event.query.limit(100);
+    let off = event.query.offset(0);
+    let lim = event.query.limit(100);
     let label = &event.query.left.unwrap();
     let node = Node::from_label(label);
     let link = Links::wildcard();
     let l = &node.symbol;
+    let current = (off / lim) + 1;
+    let prev = max(0, off as i32 - lim as i32);
+    let next = off + lim;
     let query = format!("
         MATCH {user}{link}{node} 
         WHERE NOT {l}:User 
-        ORDER BY {l}.uuid OFFSET {offset} LIMIT {limit}+1
+        ORDER BY {l}.uuid OFFSET {off} LIMIT {lim}+1
         WITH collect(properties({l})) AS nodes,
-            count({l}) AS n_nodes,
-            {limit} AS lim,
-            {offset} AS off,
-            '&left={label}' AS append
-        WITH apoc.coll.min([n_nodes, lim]) AS count,
-            CASE WHEN n_nodes > lim THEN '?limit='+lim+'&offset='+(off+lim)+append ELSE NULL END as next,
-            CASE WHEN off > 0 THEN '?limit='+lim+'&offset='+apoc.coll.max([off-lim, 0])+append ELSE NULL END as previous,
-            nodes[0..apoc.coll.min([n_nodes, lim])] as value,
-            toInteger(floor(off / lim)) + 1 AS current
+            count({l}) AS n_nodes
+        WITH apoc.coll.min([n_nodes, {lim}]) AS count,
+            CASE WHEN n_nodes > {lim} THEN '?limit={lim}&offset={next}' ELSE NULL END as next,
+            CASE WHEN {off} > 0 THEN '?limit={lim}&offset={prev}' ELSE NULL END as previous,
+            nodes[0..apoc.coll.min([n_nodes, {lim}])] as value
         RETURN apoc.convert.toJson({{
             count: count, 
             value: value,
             page: {{
                 next: next,
                 previous: previous,
-                current: current
+                current: {current}
             }}
         }})
     ");

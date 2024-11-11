@@ -420,7 +420,7 @@ export function Linked<T extends NodeLike>(schema: {
   const query = useSearchParams();
   const right = query.get("right");
   const left_uuid = query.get("uuid");
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
   
   const {message, collection, worker, linked} = useClient<T>();
   useEffect(()=>{
@@ -459,6 +459,7 @@ export function Linked<T extends NodeLike>(schema: {
     search.set("right", neighborType.current.value);
     search.set("uuid", leftUuid.current.value);
     push(`?${search.toString()}`);
+    refresh();
   }, [])
   return (
     <>

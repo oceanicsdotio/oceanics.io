@@ -11,9 +11,6 @@ use serde_json::{json, Value};
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(message: String);
-
-    #[wasm_bindgen(js_namespace = JSON)]
-    fn stringify(value: JsValue) -> String;
 }
 /// Bind neo4j drivers so we can call them
 /// from the WASM side

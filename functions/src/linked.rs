@@ -46,7 +46,7 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
     let off = event.query.offset(0);
     let lim = event.query.limit(100);
     let current = (off / lim) + 1;
-    let prev = max(0, off-lim);
+    let prev = max(0, off as i32 - lim as i32);
     let next = off + lim;
     let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
     let mut right = Node::from_label(&event.query.right.as_ref().unwrap());
@@ -62,7 +62,7 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
             count({r}) AS n_nodes
         WITH nodes,
             n_nodes,
-            CASE WHEN n_nodes > {lim} THEN '?limit={lim}&offset={next}) ELSE NULL END as next,
+            CASE WHEN n_nodes > {lim} THEN '?limit={lim}&offset={next}' ELSE NULL END as next,
             CASE WHEN {off} > 0 THEN '?limit={lim}&offset={prev}' ELSE NULL END as previous,
             nodes[0..apoc.coll.min([n_nodes, {lim}])] as value
         RETURN apoc.convert.toJson({{
@@ -75,7 +75,6 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
             }}
         }})
     ");
-    log(query.clone());
     let cypher = Cypher::new(query, "READ".to_string());
     let raw = cypher.run(url, access_key).await;
     let body = SerializedQueryResult::from_value(raw);
