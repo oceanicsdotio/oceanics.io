@@ -9,8 +9,10 @@ import React, {
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { Initial, useGetCollection } from "@catalog/client";
-import { type Locations as LocationsType} from "@oceanics/app";
+import { useGetCollection } from "@catalog/client";
+import { type Locations as LocationsType } from "@oceanics/app";
+import { useSearchParams } from "next/navigation";
+const schema = specification.components.schemas.Locations;
 
 const DEFAULTS = {
   zoom: 10,
@@ -66,19 +68,9 @@ const DEFAULTS = {
     ],
   },
 };
-/**
- * OpenAPI schema information used in the interface.
- */
-const schema = specification.components.schemas.Locations;
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
+
 export default function ({}) {
-  /**
-   * Retrieve node data use Web Worker.
-   */
-  const { collection, message } = useGetCollection<Initial<LocationsType>>(schema.title);
+  const query = useSearchParams();
   /**
    * MapBox container reference.
    */
@@ -87,6 +79,33 @@ export default function ({}) {
    * MapBoxGL Map instance saved to React state.
    */
   const [map, setMap] = useState<Map | null>(null);
+  /**
+   * Retrieve node data use Web Worker.
+   */
+  const { collection, message, worker } = useGetCollection<LocationsType>(
+    schema.title
+  );
+  useEffect(() => {
+    if (worker.disabled || !map) return;
+    let handle = worker.ref.current;
+    const mapListener = ({ data: { data, type } }: MessageEvent) => {
+      if (!(type === "layer")) return;
+      map.addLayer(data, "cities");
+    };
+    handle?.addEventListener("message", mapListener);
+    worker.post({
+      type: "getFileSystem",
+      data: {
+        query: {
+          url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
+        },
+      },
+    });
+    return () => {
+      handle?.removeEventListener("message", mapListener);
+    };
+  }, [worker.disabled, map]);
+
   /**
    * Map is in idle state
    */
@@ -161,7 +180,7 @@ export default function ({}) {
           "circle-color": "orange",
         },
       });
-      map.panTo([location.coords.longitude, location.coords.latitude]);
+      // map.panTo([location.coords.longitude, location.coords.latitude]);
     };
     navigator.geolocation.getCurrentPosition(
       onGetPosition,
@@ -178,14 +197,17 @@ export default function ({}) {
 
   useEffect(() => {
     if (!collection || !ready || !map) return;
-    console.log(collection);
-    const features = collection.map(({ location }) => {
+    const selected = query.get("uuid");
+    const features = collection.map(({ location, ...rest }) => {
       return {
         type: "Feature",
         geometry: JSON.parse(location as any),
-        properties: {},
+        properties: {
+          ...rest
+        },
       };
     });
+    const matching = features.filter((feature)=>feature.properties.uuid===selected);
     const layerId = "query-result";
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
@@ -209,10 +231,11 @@ export default function ({}) {
         "circle-stroke-color": "orange",
       },
     });
+    if (matching.length===1) {
+      map.panTo(matching[0].geometry.coordinates)
+    }
+    
   }, [collection, ready, map]);
-  /**
-   * Client Component
-   */
   return (
     <div>
       <p>{message}</p>

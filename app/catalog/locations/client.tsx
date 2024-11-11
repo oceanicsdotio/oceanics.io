@@ -8,8 +8,7 @@ import {
   NumberInput,
   TextSelectInput,
   type Initial,
-  type FormArgs,
-  Collection,
+  type FormArgs
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 

@@ -335,6 +335,7 @@ export function useGetCollection<T extends NodeLike>(title: string) {
     collection,
     message,
     page,
+    worker
   };
 }
 /**
