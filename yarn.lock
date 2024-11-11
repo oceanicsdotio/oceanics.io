@@ -5173,15 +5173,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=6a0815&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/db642fd717ff510d115021406f922b2be660ab6f353f1948d9d10995305ff18e742efc05433d9f8f6012d96ecc3bdf7ddc3898b4fb11064a40625ecd2a5bda80
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=3162db&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/b48af4a0188e73fb0059454239664e18e1b87d3576e58dea843b572bdf1dbdced6243f4649d3114f64e0881142c5a1392c37c6fc825d92f96695149f0288344c
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -7633,10 +7633,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:0.9.4":
-  version: 0.9.4
-  resolution: "@xmldom/xmldom@npm:0.9.4"
-  checksum: 10/59558699092509a6a8f2e291b669364c5967ca33a2ed4829febbd256943f50c1f61f26571bdd2a75856645d9698e598bc4f7b53f2c8544d7cdcecb7f9ac1bec5
+"@xmldom/xmldom@npm:0.9.5":
+  version: 0.9.5
+  resolution: "@xmldom/xmldom@npm:0.9.5"
+  checksum: 10/d58a2f33a3cbdc73d0f7063d6b8c11a47d321bf861d3287cab1002aaa3a8e35290842e7cf1916e609add594dd66b63f13724369f9ccc3cdc938a317f1c369484
   languageName: node
   linkType: hard
 
@@ -23961,7 +23961,7 @@ __metadata:
     "@types/xmldom": "npm:^0.1.34"
     "@typescript-eslint/eslint-plugin": "npm:^8.10.0"
     "@typescript-eslint/parser": "npm:^8.12.2"
-    "@xmldom/xmldom": "npm:0.9.4"
+    "@xmldom/xmldom": "npm:0.9.5"
     babel-jest: "npm:^29.7.0"
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.14.0"
