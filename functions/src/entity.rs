@@ -56,7 +56,7 @@ pub async fn get(
     let links = Links::create();
     let l = &node.symbol;
     let query = format!("
-        MATCH {user}{links}{node} 
+        OPTIONAL MATCH {user}{links}{node} 
         WHERE NOT {l}:User
         WITH collect(properties({l})) AS value,
             count({l}) AS count
