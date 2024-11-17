@@ -111,7 +111,6 @@ export default function Subscribe({ children, sitekey, verify }: ISubscribe) {
         Subscribe
       </button>
       <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>
-        {/* @ts-expect-error Server Component */}
         <ReCAPTCHA ref={ref} sitekey={sitekey} onChange={setResponse} />
       </Suspense>
     </form>
