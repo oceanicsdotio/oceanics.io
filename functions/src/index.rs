@@ -67,7 +67,7 @@ async fn get(url: &String, access_key: &String) -> JsValue {
         WHERE type = 'UNIQUENESS' AND 'uuid' IN properties
         WITH collect(label) AS indexed
         CALL apoc.meta.stats() YIELD labels
-        WITH apoc.map.removeKey(labels, 'User') AS filtered, indexed
+        WITH apoc.map.removeKeys(labels, ['User', 'Listed', 'Open']) AS filtered, indexed
         UNWIND apoc.coll.toSet(keys(filtered)+indexed) as key ORDER BY key
         WITH 
             key, 
