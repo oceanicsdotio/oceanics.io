@@ -1,7 +1,7 @@
 use std::cmp::max;
 
 use crate::{
-    log, Cypher, DataResponse, ErrorResponse, HandlerContext, HandlerEvent, Links, Node, OptionsResponse, Path, SerializedQueryResult
+    Cypher, DataResponse, ErrorResponse, HandlerContext, HandlerEvent, Links, Node, OptionsResponse, Path, SerializedQueryResult
 };
 use wasm_bindgen::prelude::*;
 /// Called from JS inside the generated handler function. Any errors
