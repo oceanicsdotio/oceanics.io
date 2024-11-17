@@ -3,6 +3,7 @@
   publish = "out"
   command = "yarn next build"
   functions = "functions/src"
+  edge_functions = "functions/edge"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -27,4 +28,6 @@
     "neo4j-driver",
     "@logtail/js"
   ]
-
+[[edge_functions]]
+  path = "/.netlify/functions/collection"
+  function = "validate"
