@@ -14,7 +14,8 @@ let postStatus = (message: string) => {
 /**
  * Retrieve remote file metadata and format it as a
  * serializable message.
- *  Make HTTP request to S3 service for metadata about available
+ * 
+ * Make HTTP request to S3 service for metadata about available
  * assets.
  *
  * Use `xmldom.DOMParser` to parse S3 metadata as JSON file descriptors,
