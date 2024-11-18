@@ -1,18 +1,20 @@
 use crate::{
-    Cypher, ErrorResponse, HandlerContext, Links, NoContentResponse, Node,
-    OptionsResponse, QueryResult,
+    Cypher, ErrorResponse, EventRouting, Links, NoContentResponse, Node, QueryResult,
+    HandlerContext
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct HandlerEvent {
+pub struct Post {
     pub body: Option<String>,
-    #[serde(rename = "queryStringParameters")]
-    pub query: QueryStringParameters,
-    pub http_method: String,
+    pub query_string_parameters: QueryStringParameters
 }
-
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Delete {
+    pub query_string_parameters: QueryStringParameters
+}
 #[derive(Deserialize)]
 pub struct QueryStringParameters {
     pub left: String,
@@ -30,23 +32,25 @@ pub async fn topology(
     context: JsValue,
 ) -> JsValue {
     console_error_panic_hook::set_once();
-    let event: HandlerEvent = serde_wasm_bindgen::from_value(event).unwrap();
-    // let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
-    match &event.http_method[..] {
-        "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "POST", "DELETE"]),
-        "POST" => post(&url, &access_key, event).await,
-        "DELETE" => delete(&url, &access_key, event).await,
-        _ => ErrorResponse::not_implemented(),
+    let routing: EventRouting = serde_wasm_bindgen::from_value(event.clone()).unwrap();
+    let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
+    match (&routing.http_method[..], context.client_context.user) {
+        ("POST", Some(_)) => post(&url, &access_key, event).await,
+        ("DELETE", Some(_)) => delete(&url, &access_key, event).await,
+        (_, Some(_)) => ErrorResponse::not_implemented(),
+        (_, None) => ErrorResponse::unauthorized()
     }
 }
 /// Delete connecting relationships using a root node
 /// as the reference. Does not delete the root node itself.
 /// Will drop link to all
-async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
-    let left = Node::from_uuid(&event.query.left, &event.query.left_uuid);
+async fn delete(url: &String, access_key: &String, event: JsValue) -> JsValue {
+    let event: Delete = serde_wasm_bindgen::from_value(event).unwrap();
+    let query = event.query_string_parameters;
+    let left = Node::from_uuid(&query.left, &query.left_uuid);
     let right = Node::from_uuid(
-        &event.query.right,
-        &event.query.right_uuid,
+        &query.right,
+        &query.right_uuid,
     );
     let links = Links::wildcard();
     let query = format!("
@@ -63,18 +67,20 @@ async fn delete(url: &String, access_key: &String, event: HandlerEvent) -> JsVal
     }
 }
 /// Create a relationship between a root node and some other nodes.
-async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
-    let left = Node::from_uuid(&event.query.left, &event.query.left_uuid);
+async fn post(url: &String, access_key: &String, event: JsValue) -> JsValue {
+    let event: Post = serde_wasm_bindgen::from_value(event).unwrap();
+    let query = event.query_string_parameters;
+    let left = Node::from_uuid(&query.left, &query.left_uuid);
     let mut right = Node::from_uuid(
-        &event.query.right,
-        &event.query.right_uuid,
+        &query.right,
+        &query.right_uuid,
     );
     right.symbol = "b".to_string();
     let links = Links::new(Some("Join".to_string()), None);
     let query = format!(
         "MATCH {}, {}
         MERGE ({}){}({})",
-        event.query.left, event.query.right, left.symbol, links, right.symbol
+        query.left, query.right, left.symbol, links, right.symbol
     );
     let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(url, access_key).await;

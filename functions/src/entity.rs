@@ -1,43 +1,32 @@
 use crate::{
     Cypher, DataResponse, ErrorResponse, HandlerContext, Links, NoContentResponse, Node,
-    OptionsResponse, QueryResult, SerializedQueryResult,
+    QueryResult, SerializedQueryResult, EventRouting
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HandlerEvent {
-    pub body: Option<String>,
-    #[serde(rename = "queryStringParameters")]
-    pub query: QueryStringParameters,
-    pub http_method: String,
-}
-
-#[derive(Deserialize)]
 pub struct QueryStringParameters {
     pub left: String,
     pub left_uuid: String,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Get {
+    pub query_string_parameters: QueryStringParameters
 }
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
 pub async fn entity(url: String, access_key: String, event: JsValue, context: JsValue) -> JsValue {
     console_error_panic_hook::set_once();
-    let event: HandlerEvent = serde_wasm_bindgen::from_value(event).unwrap();
+    let routing = serde_wasm_bindgen::from_value::<EventRouting>(event.clone()).unwrap();
     let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
-    let user = match context.client_context.user {
-        None => None,
-        Some(user) => Some(user.email),
-    };
-    if user.is_none() {
-        return ErrorResponse::unauthorized();
-    }
-    match &event.http_method[..] {
-        "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE", "PUT"]),
-        "GET" => get(&url, &access_key, user.unwrap(), event).await,
-        "DELETE" => delete(&url, &access_key, user.unwrap(), event).await,
-        "PUT" => put(&url, &access_key, user.unwrap(), event).await,
-        _ => ErrorResponse::not_implemented(),
+    match (&routing.http_method[..], context.client_context.user) {
+        ("GET", Some(user)) => get(&url, &access_key, &user.email, event).await,
+        ("DELETE", Some(user)) => delete(&url, &access_key, &user.email, event).await,
+        ("PUT", Some(user)) => put(&url, &access_key, &user.email, event).await,
+        (_, Some(_)) => ErrorResponse::not_implemented(),
+        (_, None) => ErrorResponse::unauthorized()
     }
 }
 /// Retrieve a single node conforming to a pattern and linked
@@ -47,17 +36,18 @@ pub async fn entity(url: String, access_key: String, event: JsValue, context: Js
 pub async fn get(
     url: &String,
     access_key: &String,
-    user: String,
-    handler_event: HandlerEvent,
+    user: &String,
+    event: JsValue,
 ) -> JsValue {
-    let user = Node::user_from_string(user);
-    let node = Node::from_uuid(&handler_event.query.left, &handler_event.query.left_uuid);
+    let event = serde_wasm_bindgen::from_value::<Get>(event).unwrap();
+    let query = event.query_string_parameters;
+    let node = Node::from_uuid(&query.left, &query.left_uuid);
     let links = Links::create();
-    let l = &node.symbol;
-    let query = format!(
-        "OPTIONAL MATCH {user}{links}{node}
-        WITH collect(properties({l})) AS value,
-            count({l}) AS count
+    let query = format!("
+        MATCH (u:User {{email: '{user}'}}) WITH u
+        MATCH (u){links}{node}
+        WITH collect(properties(n)) AS value,
+            count(n) AS count
         RETURN apoc.convert.toJson({{
             count: count, 
             value: value
@@ -68,19 +58,26 @@ pub async fn get(
     let body = SerializedQueryResult::from_value(raw);
     DataResponse::new(body)
 }
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Delete {
+    pub query_string_parameters: QueryStringParameters
+}
 /// Delete a node pattern owned by the authenticated
 /// user.
 pub async fn delete(
     url: &String,
     access_key: &String,
-    user: String,
-    handler_event: HandlerEvent,
+    user: &String,
+    event: JsValue,
 ) -> JsValue {
+    let event = serde_wasm_bindgen::from_value::<Delete>(event).unwrap();
+    let query = event.query_string_parameters;
     let query = format!(
         "MATCH (u:User {{email: '{user}'}}) WITH u
-        MATCH (u)-[r:Create]-(n:{} {{uuid: '{}'}})
+        MATCH (u)-[:Create]-(n:{} {{uuid: '{}'}})
         DETACH DELETE n",
-        handler_event.query.left, handler_event.query.left_uuid
+        query.left, query.left_uuid
     );
     let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(&url, &access_key).await;
@@ -91,17 +88,24 @@ pub async fn delete(
         ErrorResponse::server_error(None)
     }
 }
-
-async fn put(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
-    let label = event.query.left.clone();
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Put {
+    pub body: Option<String>,
+    pub query_string_parameters: QueryStringParameters
+}
+async fn put(url: &String, access_key: &String, user: &String, event: JsValue) -> JsValue {
+    let event = serde_wasm_bindgen::from_value::<Put>(event).unwrap();
+    let query = event.query_string_parameters;
+    let label = query.left.clone();
     let updates = Node::new(event.body, "n".to_string(), Some(label.clone()));
     let pattern = updates.pattern();
     let query = format!(
         "MATCH (u:User {{email: '{user}'}}) WITH u
         MATCH (u)-[:Create]-(n:{} {{uuid:'{}'}})
         SET n += {{ {pattern} }}",
-        event.query.left,
-        event.query.left_uuid
+        query.left,
+        query.left_uuid
     );
     let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(&url, &access_key).await;

@@ -9,7 +9,7 @@ const logger_token = process.env.LOGTAIL_SOURCE_TOKEN ?? "";
 export const handler: Handler = async function (event, context) {
     const start = performance.now();
     const log = new Node(logger_token);
-    const result = collection(
+    const result = await collection(
         url,
         access_key,
         event,

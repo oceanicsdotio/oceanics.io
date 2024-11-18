@@ -33,6 +33,17 @@ function err_response(message: string, status_code: number, details: string) {
   }
 }
 
+function opt_response(options: string[]) {
+  const lower = ["options", ...options] as string[];
+  const allow = lower.map((each: string)=>each.toUpperCase()).sort();
+  return {
+    headers: {
+      "allow": allow.join(",")
+    },
+    status_code: 204
+  }
+}
+
 export default async (request: Request, context: Context) => {
   const url = new URL(request.url);
   const query = url.searchParams;
@@ -45,7 +56,6 @@ export default async (request: Request, context: Context) => {
   const path = specification.paths[key];
   const pathSpec = path[method.toLowerCase()];
   const [security] = pathSpec.security;
-  let errors: string[] = []
   if (left && !allowed.has(left)) {
     return err_response("Not Found", 404, "Unknown Label")
   }
@@ -55,23 +65,18 @@ export default async (request: Request, context: Context) => {
   if (typeof pathSpec === "undefined") {
     return err_response("Invalid HTTP method", 405, "Not specified")
   }
+  if (method === "OPTIONS") {
+    opt_response(Object.keys(path))
+  }
   if (method === "POST" && !request.body) {
     return err_response("Bad request", 405, "Missing post body")
-  }
-  if (method === "OPTIONS" && no_auth_header) {
-    return err_response("Unauthorized", 403, "Unauthorized")
   }
   if (typeof security === "undefined") {
     return err_response("Unauthorized", 403, "Missing security definition")
   }
   if ("BearerAuth" in security && no_auth_header) {
-    return err_response("Unauthorized", 403, "Unauthorized")
+    return err_response("Unauthorized", 403, "Missing authorization header")
   }
-  console.log({
-    errors,
-    url
-  })
-  // Get the page content
   return context.next();
 };
 

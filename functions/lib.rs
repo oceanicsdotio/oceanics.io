@@ -5,7 +5,11 @@ extern crate console_error_panic_hook;
 use std::{collections::HashMap, convert::From, fmt};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EventRouting {
+    pub http_method: String,
+}
 /// Standard library bindings
 #[wasm_bindgen]
 extern "C" {
@@ -360,57 +364,26 @@ impl fmt::Display for Node {
         write!(f, "( {}{}{} )", self.symbol, label, pattern)
     }
 }
-
-
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub email: String,
 }
-
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientContext {
     pub user: Option<User>,
 }
-
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HandlerContext {
     pub client_context: ClientContext
 }
-
-#[derive(Serialize)]
-pub struct OptionsHeaders {
-    pub allow: String,
-}
-
-#[derive(Serialize)]
-pub struct OptionsResponse {
-    #[serde(rename="statusCode")]
-    pub status_code: u64,
-    pub headers: OptionsHeaders
-}
-
-impl OptionsResponse {
-    /// Format options response as JSON
-    pub fn new(defined: Vec<&str>) -> JsValue {
-        let response = Self{
-            headers: OptionsHeaders{
-                allow: defined.join(",")
-            },
-            status_code: 204
-        };
-        serde_wasm_bindgen::to_value(&response).unwrap()
-    }
-}
-
 #[derive(Serialize)]
 pub struct NoContentResponse {
     #[serde(rename="statusCode")]
     pub status_code: u64,
 }
-
 impl NoContentResponse {
     pub fn new() -> JsValue {
         let response = Self{

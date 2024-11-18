@@ -1,23 +1,29 @@
 use std::cmp::max;
-// use std::time::Instant;
 use crate::{
-    Cypher, DataResponse, ErrorResponse, Links, NoContentResponse, Node, OptionsResponse, QueryResult, SerializedQueryResult, HandlerContext
+    Cypher, DataResponse, ErrorResponse, Links, NoContentResponse, Node, QueryResult, SerializedQueryResult, HandlerContext, EventRouting
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 #[derive(Deserialize)]
-pub struct QueryStringParameters {
+struct PostQuery {
+    pub left: String
+}
+#[derive(Deserialize)]
+struct GetQuery {
     pub left: String,
-    pub offset: Option<String>,
-    pub limit: Option<String>
+    pub offset: String,
+    pub limit: String
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct HandlerEvent {
-    pub body: Option<String>,
-    #[serde(rename = "queryStringParameters")]
-    pub query: QueryStringParameters,
-    pub http_method: String,
+struct Post {
+    pub body: String,
+    pub query_string_parameters: PostQuery
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Get {
+    pub query_string_parameters: GetQuery
 }
 /// Called from JS inside the generated handler function. Any errors
 /// should be caught, and return an error response.
@@ -29,14 +35,14 @@ pub async fn collection(
     context: JsValue,
 ) -> JsValue {
     console_error_panic_hook::set_once();
-    let event: HandlerEvent = serde_wasm_bindgen::from_value(event).unwrap();
+    let routing = serde_wasm_bindgen::from_value::<EventRouting>(event.clone()).unwrap();
     let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
-    let user = context.client_context.user.unwrap();
-    let result = match &event.http_method[..] {
-        "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET", "DELETE"]),
-        "GET" => get(&url, &access_key, user.email, event).await,
-        "POST" => post(&url, &access_key, user.email, event).await,
-        _ => ErrorResponse::not_implemented(),
+    let user = context.client_context.user;
+    let result = match (&routing.http_method[..], user) {
+        ("GET", Some(user)) => get(&url, &access_key, &user.email, event).await,
+        ("POST", Some(user)) => post(&url, &access_key, &user.email, event).await,
+        (_, Some(_)) => ErrorResponse::not_implemented(),
+        (_, None) => ErrorResponse::unauthorized()
     };
     result
 }
@@ -51,10 +57,12 @@ pub async fn collection(
 /// Query parameters include:
 /// - root node type
 /// - paging parameters that translate to offset & limit cypher values
-async fn get(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
-    let off = event.query.offset.unwrap().parse::<u32>().unwrap();
-    let lim = event.query.limit.unwrap().parse::<u32>().unwrap();
-    let label = &event.query.left;
+async fn get(url: &String, access_key: &String, user: &String, event: JsValue) -> JsValue {
+    let event  = serde_wasm_bindgen::from_value::<Get>(event).unwrap();
+    let query = event.query_string_parameters;
+    let off = query.offset.parse::<u32>().unwrap();
+    let lim = query.limit.parse::<u32>().unwrap();
+    let label = &query.left;
     // Can be precomputed outside DB, rather than parsing
     // and inject into the response or generating in FE.
     let mut previous = String::from("NULL");
@@ -68,13 +76,11 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
     let query = format!("
         MATCH (u:User {{email: '{user}'}}) 
         CALL (u) {{
-            OPTIONAL MATCH (n:{label}&Listed)
-            WITH apoc.map.setEntry(properties(n), 'listed', true) AS n 
-            RETURN n
+            MATCH (n:{label}&Listed)
+            RETURN apoc.map.setKey(properties(n), 'listed', true) AS n
             UNION
-            OPTIONAL MATCH (u)-[:Create]-(n:{label}&!Listed)
-            WITH properties(n) AS n
-            RETURN n
+            MATCH (u)-[:Create]-(n:{label}&!Listed)
+            RETURN properties(n) AS n
         }}
         ORDER BY n.uuid OFFSET {off} LIMIT {lim}+1
         WITH collect(n) AS nodes,
@@ -105,8 +111,10 @@ async fn get(url: &String, access_key: &String, user: String, event: HandlerEven
 ///
 /// Query parameters include:
 /// - root node type
-async fn post(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
-    let node = Node::new(event.body, "n".to_string(), Some(event.query.left));
+async fn post(url: &String, access_key: &String, user: &String, event: JsValue) -> JsValue {
+    let event  = serde_wasm_bindgen::from_value::<Post>(event).unwrap();
+    let label = Some(event.query_string_parameters.left);
+    let node = Node::new(Some(event.body), "n".to_string(), label);
     let links = Links::create();
     let query = format!("
         MATCH (u:User {{email: '{user}'}})

@@ -1,22 +1,13 @@
 use crate::{
-    Cypher, Links, Node, SerializedQueryResult,
-    DataResponse, ErrorResponse, HandlerContext, OptionsResponse, QueryResult, NoContentResponse
+    Cypher, Links, Node, SerializedQueryResult, EventRouting,
+    DataResponse, ErrorResponse, HandlerContext, QueryResult, NoContentResponse
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct HandlerEvent {
-    pub body: Option<String>,
-    #[serde(rename = "queryStringParameters")]
-    pub query: QueryStringParameters,
-    pub http_method: String,
-}
-
-#[derive(Deserialize)]
-pub struct QueryStringParameters {
-    pub offset: Option<String>,
-    pub limit: Option<String>
+pub struct Post {
+    pub body: String
 }
 /// The Labels query returns a record format
 /// that we need to be able to parse, and then
@@ -40,22 +31,15 @@ pub async fn index(
     context: JsValue,
 ) -> JsValue {
     console_error_panic_hook::set_once();
-    let event: HandlerEvent = serde_wasm_bindgen::from_value(event).unwrap();
+    let routing = serde_wasm_bindgen::from_value::<EventRouting>(event.clone()).unwrap();
     let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
-    let user = match context.client_context.user {
-        None => None,
-        Some(user) => Some(user.email),
-    };
-    match &event.http_method[..] {
-        "OPTIONS" => OptionsResponse::new(vec![
-            "OPTIONS",
-            "GET",
-            "DELETE"
-        ]),
-        "GET" => get(&url, &access_key).await,
-        "POST" => post(&url, &access_key, event).await,
-        "DELETE" => delete(&url, &access_key, user.unwrap()).await,
-        _ => ErrorResponse::not_implemented()
+    let user = context.client_context.user;
+    match (&routing.http_method[..], user) {
+        ("GET", Some(_)) => get(&url, &access_key).await,
+        ("POST", Some(_)) => post(&url, &access_key, event).await,
+        ("DELETE", Some(user)) => delete(&url, &access_key, &user.email).await,
+        (_, Some(_)) => ErrorResponse::not_implemented(),
+        (_, None) => ErrorResponse::unauthorized()
     }
 }
 /// Retrieve pre-formatted JSON of the index, counts, and api route to access
@@ -103,12 +87,12 @@ async fn get(url: &String, access_key: &String) -> JsValue {
 }
 /// Kind of a hack to allow external creation of uniqueness constraints.
 /// Could be abused?
-async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue {
-    let constraint = serde_json::from_str::<UniqueConstraintBody>(&event.body.unwrap()).unwrap();
+async fn post(url: &String, access_key: &String, event: JsValue) -> JsValue {
+    let event = serde_wasm_bindgen::from_value::<Post>(event).unwrap();
+    let constraint = serde_json::from_str::<UniqueConstraintBody>(&event.body).unwrap();
     let label = constraint.label;
-    let key = "uuid";
     let query = format!(
-        "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{label}) REQUIRE n.{key} IS UNIQUE",
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{label}) REQUIRE n.uuid IS UNIQUE",
     );
     let cypher = Cypher::new(query, "WRITE".to_string());
     let data = cypher.run(url, access_key).await;
@@ -119,13 +103,12 @@ async fn post(url: &String, access_key: &String, event: HandlerEvent) -> JsValue
 async fn delete(    
     url: &String,
     access_key: &String,
-    user: String
+    user: &String
 ) -> JsValue {
     let left = Node::new(None, "n".to_string(), None);
-    let user = Node::user_from_string(user);
     let links = Links::create();
     let query = format!("
-        MATCH {user}{links}{left} DETACH DELETE {}
+        MATCH (:User {{ email: '{user}'}}){links}{left} DETACH DELETE {}
     ", left.symbol);
     let cypher = Cypher::new(query, "WRITE".to_string());
     let data = cypher.run(url, access_key).await;
