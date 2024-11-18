@@ -4,18 +4,33 @@ import type { Sensors } from "@oceanics/app";
 import { TextSelectInput, type Initial, Collection } from "../client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
-import { TextInput } from "@catalog/client";
+import { TextInput, Create, Edit as EditGeneric } from "@catalog/client";
 
 
 const schema = specification.components.schemas.Sensors;
 const properties = schema.properties;
-
+export function New({}) {
+  return (
+    <Create<Sensors>
+      Form={Form}
+      title={schema.title}
+    ></Create>
+  )
+}
 export function Data() {
   return <Collection<Sensors> 
     title={schema.title}
     AdditionalProperties={AdditionalProperties as any}
   />;
 }
+export function Edit({}) {
+  return (
+    <EditGeneric<Sensors>
+      Form={Form}
+      title={schema.title}
+    ></EditGeneric>
+  )
+} 
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

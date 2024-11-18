@@ -9,7 +9,9 @@ import {
   TextSelectInput,
   Collection,
   type Initial,
-  type FormArgs
+  type FormArgs,
+  Create,
+  Edit as EditGeneric
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 
@@ -30,6 +32,22 @@ export function Data() {
     AdditionalProperties={AdditionalProperties as any}
   />;
 }
+export function New({}) {
+  return (
+    <Create<LocationsType>
+      Form={Form}
+      title={schema.title}
+    ></Create>
+  )
+}
+export function Edit({}) {
+  return (
+    <EditGeneric<LocationsType>
+      Form={Form}
+      title={schema.title}
+    ></EditGeneric>
+  )
+} 
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

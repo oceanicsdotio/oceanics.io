@@ -2,14 +2,25 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import { TextInput, NumberInput, FormArgs, Collection } from "../client";
+import {
+  TextInput,
+  NumberInput,
+  FormArgs,
+  Collection,
+  Create,
+  Edit as EditGeneric,
+} from "../client";
 const components = specification.components;
 const { title, properties } = components.schemas.Observations;
 import style from "@catalog/page.module.css";
 export function Data() {
-  return <Collection<Observations> 
-    title={title}
-  />;
+  return <Collection<Observations> title={title} />;
+}
+export function New({}) {
+  return <Create<Observations> Form={Form} title={title}></Create>;
+}
+export function Edit({}) {
+  return <EditGeneric<Observations> Form={Form} title={title}></EditGeneric>;
 }
 /**
  * Display an index of all or some subset of the
@@ -45,79 +56,79 @@ export function Form({
       resultTime: resultTime.current?.value || undefined,
       resultQuality: resultQuality.current?.value || undefined,
       validTime: [
-        validTimeStart.current?.value || undefined, 
-        validTimeEnd.current?.value || undefined
+        validTimeStart.current?.value || undefined,
+        validTimeEnd.current?.value || undefined,
       ],
-      parameters: parameters.current?.value || undefined
+      parameters: parameters.current?.value || undefined,
     };
   };
   /**
    * Client Component
    */
   return (
-      <form
-        className={style.form}
-        onSubmit={onSubmit(onSubmitCallback)}
-        ref={formRef}
-      >
-        <TextInput
-          name={"uuid"}
-          inputRef={uuid}
-          required
-          description={properties.uuid.description}
-          defaultValue={initial.uuid}
-          readOnly
-        ></TextInput>
-        <NumberInput
-          name={"phenomenonTime"}
-          inputRef={phenomenonTime}
-          required
-          description={properties.phenomenonTime.description}
-          defaultValue={initial.phenomenonTime}
-        ></NumberInput>
-        <NumberInput
-          name={"result"}
-          inputRef={result}
-          required
-          description={properties.result.description}
-          defaultValue={initial.result}
-        ></NumberInput>
-        <NumberInput
-          name={"resultTime"}
-          inputRef={resultTime}
-          description={properties.resultTime.description}
-          defaultValue={initial.resultTime}
-        ></NumberInput>
-        <TextInput
-          name={"resultQuality"}
-          inputRef={resultQuality}
-          description={properties.resultQuality.description}
-          defaultValue={initial.resultQuality}
-        ></TextInput>
-        <TextInput
-          name={"validTimeStart"}
-          inputRef={validTimeStart}
-          description={properties.validTime.description}
-          defaultValue={initial.validTime?.start.toString()}
-        ></TextInput>
-        <TextInput
-          name={"validTimeEnd"}
-          inputRef={validTimeEnd}
-          description={properties.validTime.description}
-          defaultValue={initial.validTime?.end.toString()}
-        ></TextInput>
-        <TextInput
-          name={"parameters"}
-          inputRef={parameters}
-          description={properties.parameters.description}
-          defaultValue={initial.parameters}
-        ></TextInput>
-        <button className={style.submit} disabled={disabled}>
-          {action}
-        </button>
-        <button className={style.submit} type="reset">
-          Reset
-        </button>
-      </form>
+    <form
+      className={style.form}
+      onSubmit={onSubmit(onSubmitCallback)}
+      ref={formRef}
+    >
+      <TextInput
+        name={"uuid"}
+        inputRef={uuid}
+        required
+        description={properties.uuid.description}
+        defaultValue={initial.uuid}
+        readOnly
+      ></TextInput>
+      <NumberInput
+        name={"phenomenonTime"}
+        inputRef={phenomenonTime}
+        required
+        description={properties.phenomenonTime.description}
+        defaultValue={initial.phenomenonTime}
+      ></NumberInput>
+      <NumberInput
+        name={"result"}
+        inputRef={result}
+        required
+        description={properties.result.description}
+        defaultValue={initial.result}
+      ></NumberInput>
+      <NumberInput
+        name={"resultTime"}
+        inputRef={resultTime}
+        description={properties.resultTime.description}
+        defaultValue={initial.resultTime}
+      ></NumberInput>
+      <TextInput
+        name={"resultQuality"}
+        inputRef={resultQuality}
+        description={properties.resultQuality.description}
+        defaultValue={initial.resultQuality}
+      ></TextInput>
+      <TextInput
+        name={"validTimeStart"}
+        inputRef={validTimeStart}
+        description={properties.validTime.description}
+        defaultValue={initial.validTime?.start.toString()}
+      ></TextInput>
+      <TextInput
+        name={"validTimeEnd"}
+        inputRef={validTimeEnd}
+        description={properties.validTime.description}
+        defaultValue={initial.validTime?.end.toString()}
+      ></TextInput>
+      <TextInput
+        name={"parameters"}
+        inputRef={parameters}
+        description={properties.parameters.description}
+        defaultValue={initial.parameters}
+      ></TextInput>
+      <button className={style.submit} disabled={disabled}>
+        {action}
+      </button>
+      <button className={style.submit} type="reset">
+        Reset
+      </button>
+    </form>
   );
 }

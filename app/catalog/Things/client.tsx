@@ -6,7 +6,9 @@ import {
   TextInput,
   type Initial,
   type FormArgs,
-  Collection
+  Collection,
+  Create,
+  Edit as EditGeneric
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 /**
@@ -23,6 +25,22 @@ export function Data({}) {
     />
   );
 }
+export function New({}) {
+  return (
+    <Create<Things>
+      Form={Form}
+      title={schema.title}
+    ></Create>
+  )
+}
+export function Edit({}) {
+  return (
+    <EditGeneric<Things>
+      Form={Form}
+      title={schema.title}
+    ></EditGeneric>
+  )
+} 
 /**
  * Display an index of all or some subset of the
  * available nodes in the database. Shared between

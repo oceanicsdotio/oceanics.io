@@ -2,10 +2,10 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { HistoricalLocations } from "@oceanics/app";
-import { type FormArgs, type Initial, Collection, NumberInput } from "@catalog/client";
+import { type FormArgs, type Initial, Collection, Create, NumberInput } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
-import { TextInput } from "@catalog/client";
+import { TextInput, Edit as EditGeneric } from "@catalog/client";
 
 const schema = specification.components.schemas.HistoricalLocations;
 const properties = schema.properties;
@@ -15,6 +15,22 @@ export function Data() {
     AdditionalProperties={AdditionalProperties as any}
   />;
 }
+export function New({}) {
+  return (
+    <Create<HistoricalLocations>
+      Form={Form}
+      title={schema.title}
+    ></Create>
+  )
+}
+export function Edit({}) {
+  return (
+    <EditGeneric<HistoricalLocations>
+      Form={Form}
+      title={schema.title}
+    ></EditGeneric>
+  )
+} 
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

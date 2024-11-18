@@ -5,10 +5,11 @@ import type { ObservedProperties } from "@oceanics/app";
 import {
   type FormArgs,
   type Initial,
-  Collection
+  Collection,
+  Create
 } from "../client";
 import style from "@catalog/page.module.css";
-import { TextInput } from "@catalog/client";
+import { TextInput, Edit as EditGeneric } from "@catalog/client";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
@@ -20,6 +21,22 @@ export function Data() {
     AdditionalProperties={AdditionalProperties as any}
   />;
 }
+export function New({}) {
+  return (
+    <Create<ObservedProperties>
+      Form={Form}
+      title={schema.title}
+    ></Create>
+  )
+}
+export function Edit({}) {
+  return (
+    <EditGeneric<ObservedProperties>
+      Form={Form}
+      title={schema.title}
+    ></EditGeneric>
+  )
+} 
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
