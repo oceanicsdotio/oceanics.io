@@ -1,9 +1,23 @@
 use crate::{
     Cypher, Links, Node, SerializedQueryResult,
-    DataResponse, ErrorResponse, HandlerContext, HandlerEvent, OptionsResponse, Path, QueryResult, NoContentResponse
+    DataResponse, ErrorResponse, HandlerContext, OptionsResponse, QueryResult, NoContentResponse
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HandlerEvent {
+    pub body: Option<String>,
+    #[serde(rename = "queryStringParameters")]
+    pub query: QueryStringParameters,
+    pub http_method: String,
+}
+
+#[derive(Deserialize)]
+pub struct QueryStringParameters {
+    pub offset: Option<String>,
+    pub limit: Option<String>
+}
 /// The Labels query returns a record format
 /// that we need to be able to parse, and then
 /// transform.
@@ -22,7 +36,6 @@ struct UniqueConstraintBody {
 pub async fn index(
     url: String,
     access_key: String,
-    specified: JsValue,
     event: JsValue,
     context: JsValue,
 ) -> JsValue {
@@ -31,12 +44,8 @@ pub async fn index(
     let context: HandlerContext = serde_wasm_bindgen::from_value(context).unwrap();
     let user = match context.client_context.user {
         None => None,
-        Some(user) => Some(user.email)
+        Some(user) => Some(user.email),
     };
-    match Path::validate(specified, &event, &user) {
-        Some(error) => return error,
-        None => {}
-    }
     match &event.http_method[..] {
         "OPTIONS" => OptionsResponse::new(vec![
             "OPTIONS",

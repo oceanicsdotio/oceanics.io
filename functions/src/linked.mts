@@ -1,4 +1,3 @@
-import { paths } from "../../specification.json";
 import { linked } from "@oceanics/functions";
 import type { Handler } from "@netlify/functions";
 import { Node } from "@logtail/js";
@@ -6,8 +5,6 @@ import { Node } from "@logtail/js";
 const url = process.env.NEO4J_HOSTNAME ?? "";
 const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
 const logtail_source_token = process.env.LOGTAIL_SOURCE_TOKEN ?? "";
-// OpenAPI description
-const specification = paths["/{root}({rootId})/{entity}"];
 // Reusable logging interface
 let log: Node | null = null;
 export const handler: Handler = async function (event, context) {
@@ -16,7 +13,6 @@ export const handler: Handler = async function (event, context) {
     const result = await linked(
         url,
         access_key,
-        specification,
         event,
         context
     );

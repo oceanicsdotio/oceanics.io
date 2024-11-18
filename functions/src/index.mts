@@ -1,4 +1,3 @@
-import { paths } from "../../specification.json";
 import { index } from "@oceanics/functions";
 import { Handler } from "@netlify/functions";
 import { Node } from "@logtail/js";
@@ -6,8 +5,6 @@ import { Node } from "@logtail/js";
 const url = process.env.NEO4J_HOSTNAME ?? "";
 const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
 const logtail_source_token = process.env.LOGTAIL_SOURCE_TOKEN ?? "";
-// OpenAPI route description
-const specification = paths["/"];
 // Reusable logging interface
 let log: Node | null = null;
 // Index and node counting handler
@@ -17,7 +14,6 @@ export const handler: Handler = async function (event, context) {
     const response = await index(
         url,
         access_key,
-        specification,
         event,
         context
     );

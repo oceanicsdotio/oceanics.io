@@ -1,16 +1,32 @@
 use std::cmp::max;
-
 use crate::{
-    Cypher, DataResponse, ErrorResponse, HandlerContext, HandlerEvent, Links, Node, OptionsResponse, Path, SerializedQueryResult
+    Cypher, DataResponse, ErrorResponse, HandlerContext, Links, Node, OptionsResponse, SerializedQueryResult
 };
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HandlerEvent {
+    pub body: Option<String>,
+    #[serde(rename = "queryStringParameters")]
+    pub query: QueryStringParameters,
+    pub http_method: String,
+}
+
+#[derive(Deserialize)]
+pub struct QueryStringParameters {
+    pub left: String,
+    pub left_uuid: String,
+    pub right: String,
+    pub offset: String,
+    pub limit: String
+}
 /// Called from JS inside the generated handler function. Any errors
 /// will be caught, and should return an Invalid Method response.
 #[wasm_bindgen]
 pub async fn linked(
     url: String,
     access_key: String,
-    specified: JsValue,
     event: JsValue,
     context: JsValue,
 ) -> JsValue {
@@ -21,16 +37,6 @@ pub async fn linked(
         None => None,
         Some(user) => Some(user.email),
     };
-    match Path::validate(specified, &event, &user) {
-        Some(error) => return error,
-        None => {}
-    }
-    if event.query.left.is_none() {
-        return ErrorResponse::new("Bad request", 400, "Missing node label");
-    }
-    if event.query.left_uuid.is_none() {
-        return ErrorResponse::new("Bad request", 400, "Missing node uuid");
-    }
     match &event.http_method[..] {
         "OPTIONS" => OptionsResponse::new(vec!["OPTIONS", "GET"]),
         "GET" => get(&url, &access_key, user.unwrap(), event).await,
@@ -43,13 +49,13 @@ pub async fn linked(
 /// and doesn't fit into the API pattern.
 async fn get(url: &String, access_key: &String, user: String, event: HandlerEvent) -> JsValue {
     let user = Node::user_from_string(user);
-    let off = event.query.offset(0);
-    let lim = event.query.limit(100);
+    let off = event.query.offset.parse::<i32>().unwrap();
+    let lim = event.query.limit.parse::<i32>().unwrap();
     let current = (off / lim) + 1;
     let prev = max(0, off as i32 - lim as i32);
     let next = off + lim;
-    let left = Node::from_uuid(&event.query.left.unwrap(), &event.query.left_uuid.unwrap());
-    let mut right = Node::from_label(&event.query.right.as_ref().unwrap());
+    let left = Node::from_uuid(&event.query.left, &event.query.left_uuid);
+    let mut right = Node::from_label(&event.query.right);
     let r = "b";
     right.symbol = r.to_string();
     let links = Links::create();
