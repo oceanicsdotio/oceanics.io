@@ -28,6 +28,3 @@
     "neo4j-driver",
     "@logtail/js"
   ]
-[[edge_functions]]
-  path = "/.netlify/functions/collection"
-  function = "validate"
