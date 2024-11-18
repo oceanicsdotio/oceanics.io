@@ -2,14 +2,14 @@ import { Context, Config } from "@netlify/edge-functions";
 import specification from "../../specification.json" assert { type: "json" };
 
 const allowed = new Set([
-  "Things",
-  "Sensors",
-  "Observations",
-  "ObservedProperties",
+  "DataStreams",
   "FeaturesOfInterest",
   "HistoricalLocations",
   "Locations",
-  "DataStreams"
+  "Observations",
+  "ObservedProperties",
+  "Sensors",
+  "Things"
 ]);
 
 const lookup = {
