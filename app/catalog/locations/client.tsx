@@ -7,6 +7,7 @@ import {
   TextInput,
   NumberInput,
   TextSelectInput,
+  Collection,
   type Initial,
   type FormArgs
 } from "@catalog/client";
@@ -22,6 +23,13 @@ const GEOLOCATION_PRECISION = 5;
  * OpenAPI schema information used in the interface.
  */
 const schema = specification.components.schemas.Locations;
+export function Data() {
+  return <Collection<LocationsType> 
+    title={schema.title}
+    nav={"map"}
+    AdditionalProperties={AdditionalProperties as any}
+  />;
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

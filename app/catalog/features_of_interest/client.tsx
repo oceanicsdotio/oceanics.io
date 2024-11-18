@@ -14,6 +14,12 @@ import style from "@catalog/page.module.css";
  */
 const schema = specification.components.schemas.FeaturesOfInterest;
 const properties = schema.properties;
+export function Data() {
+  return <Collection<FeaturesOfInterest> 
+    title={schema.title}
+    AdditionalProperties={AdditionalProperties as any}
+  />;
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

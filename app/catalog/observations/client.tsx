@@ -2,10 +2,15 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import { TextInput, NumberInput, type Initial, FormArgs, Collection } from "../client";
+import { TextInput, NumberInput, FormArgs, Collection } from "../client";
 const components = specification.components;
 const { title, properties } = components.schemas.Observations;
 import style from "@catalog/page.module.css";
+export function Data() {
+  return <Collection<Observations> 
+    title={title}
+  />;
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

@@ -5,11 +5,16 @@ import type { HistoricalLocations } from "@oceanics/app";
 import { type FormArgs, type Initial, Collection, NumberInput } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
 import { TextInput } from "@catalog/client";
 
 const schema = specification.components.schemas.HistoricalLocations;
-const properties = schema.properties
+const properties = schema.properties;
+export function Data() {
+  return <Collection<HistoricalLocations> 
+    title={schema.title}
+    AdditionalProperties={AdditionalProperties as any}
+  />;
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -68,7 +73,7 @@ export function Form({
       </form>
   );
 }
-export function AdditionalProperties(rest: Initial<HistoricalLocations>) {
+function AdditionalProperties(rest: Initial<HistoricalLocations>) {
   return(<>
     <p>time: {rest.time}</p>
   </>)

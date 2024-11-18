@@ -2,16 +2,22 @@
 import React, { useRef } from "react";
 import {
   type FormArgs,
-  Initial,
+  type Initial,
   TextInput,
   TextSelectInput,
+  Collection
 } from "@catalog/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
 import type { DataStreams } from "@oceanics/app";
 const schema = openapi.components.schemas.DataStreams;
 const properties = schema.properties;
+export function Data() {
+  return <Collection<DataStreams> 
+    title={schema.title}
+    AdditionalProperties={AdditionalProperties as any}
+  />;
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

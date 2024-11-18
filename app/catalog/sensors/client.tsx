@@ -1,15 +1,21 @@
 "use client";
 import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
-import { TextSelectInput, type Initial } from "../client";
-
+import { TextSelectInput, type Initial, Collection } from "../client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
-import Markdown from "react-markdown";
 import { TextInput } from "@catalog/client";
+
 
 const schema = specification.components.schemas.Sensors;
 const properties = schema.properties;
+
+export function Data() {
+  return <Collection<Sensors> 
+    title={schema.title}
+    AdditionalProperties={AdditionalProperties as any}
+  />;
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -85,8 +91,7 @@ export function Form({
         defaultValue={properties.encodingType.default}
         options={properties.encodingType.enum}
         description={properties.encodingType.description}
-      >
-      </TextSelectInput>
+      ></TextSelectInput>
       <TextInput
         name={"metadata"}
         inputRef={metadata}
@@ -102,7 +107,9 @@ export function Form({
   );
 }
 export function AdditionalProperties(sensor: Initial<Sensors>) {
-  return (<>
-    <p>description: {sensor.description}</p>
-  </>)
+  return (
+    <>
+      <p>description: {sensor.description}</p>
+    </>
+  );
 }

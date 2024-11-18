@@ -4,14 +4,25 @@ import OpenAPI from "@app/../specification.json";
 import type { Things } from "@oceanics/app";
 import {
   TextInput,
-  Initial,
-  FormArgs
+  type Initial,
+  type FormArgs,
+  Collection
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification
  */
-const properties = OpenAPI.components.schemas.Things.properties;
+const schema = OpenAPI.components.schemas.Things;
+const properties = schema.properties;
+export function Data({}) {
+  return (
+    <Collection<Things>
+      title={schema.title}
+      nav={"view"}
+      AdditionalProperties={AdditionalProperties as any}
+    />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database. Shared between
