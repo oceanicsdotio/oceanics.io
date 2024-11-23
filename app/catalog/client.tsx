@@ -352,11 +352,11 @@ export function useGetCollection<T extends NodeLike>(title: string) {
  */
 export function Collection<T extends NodeLike>({
   title,
-  nav,
+  nav = false,
   AdditionalProperties=null,
 }: {
   title: string;
-  nav?: string;
+  nav?: boolean;
   AdditionalProperties?: React.FunctionComponent|null;
 }) {
   const query = useSearchParams();
@@ -388,8 +388,8 @@ export function Collection<T extends NodeLike>({
             {nav && (
               <>
                 {" [ "}
-                <Link href={`${nav}?uuid=${uuid}`} prefetch={false}>
-                  {nav}
+                <Link href={`view?uuid=${uuid}`} prefetch={false}>
+                  view
                 </Link>
                 {" ]"}
               </>

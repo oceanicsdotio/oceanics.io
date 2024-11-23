@@ -42,7 +42,7 @@ const schema = specification.components.schemas.Locations;
 export function Data() {
   return <Collection<LocationsType> 
     title={schema.title}
-    nav={"view"}
+    nav={true}
     AdditionalProperties={AdditionalProperties as any}
   />;
 }
@@ -305,7 +305,9 @@ const DEFAULTS = {
     ],
   },
 };
-
+/**
+ * Locations View is a MapBox instance that shows 
+ */
 export function View({}) {
   const query = useSearchParams();
   /**
@@ -325,11 +327,11 @@ export function View({}) {
   useEffect(() => {
     if (worker.disabled || !map) return;
     let handle = worker.ref.current;
-    const mapListener = ({ data: { data, type } }: MessageEvent) => {
+    const addLayerListener = ({ data: { data, type } }: MessageEvent) => {
       if (!(type === "layer")) return;
       map.addLayer(data, "cities");
     };
-    handle?.addEventListener("message", mapListener);
+    handle?.addEventListener("message", addLayerListener);
     worker.post({
       type: "getFileSystem",
       data: {
@@ -339,7 +341,7 @@ export function View({}) {
       },
     });
     return () => {
-      handle?.removeEventListener("message", mapListener);
+      handle?.removeEventListener("message", addLayerListener);
     };
   }, [worker.disabled, map]);
 

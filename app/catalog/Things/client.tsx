@@ -5,9 +5,8 @@ import React, {
   useRef,
   type MutableRefObject,
 } from "react";
-import type { InteractiveMesh, MeshStyle } from "@oceanics/app";
+import type { InteractiveMesh, MeshStyle, Things } from "@oceanics/app";
 import OpenAPI from "@app/../specification.json";
-import type { Things } from "@oceanics/app";
 import {
   TextInput,
   type Initial,
@@ -27,7 +26,7 @@ export function Data({}) {
   return (
     <Collection<Things>
       title={schema.title}
-      nav={"view"}
+      nav={true}
       AdditionalProperties={AdditionalProperties as any}
     />
   );

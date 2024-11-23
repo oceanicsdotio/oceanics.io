@@ -24,7 +24,7 @@ const properties = schema.properties;
 export function Data() {
   return <Collection<DataStreams> 
     title={schema.title}
-    nav="view"
+    nav={true}
     AdditionalProperties={AdditionalProperties as any}
   />;
 }

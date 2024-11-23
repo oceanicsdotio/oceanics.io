@@ -15,18 +15,16 @@ const components = specification.components;
 const schema = components.schemas.Observations;
 import style from "@catalog/page.module.css";
 export function Data() {
-  return <Collection<Observations> title={schema.title} />;
+  return <Collection<Observations> title={schema.title} />
 }
 export function New({}) {
-  return <Create<Observations> Form={Form} title={schema.title}></Create>;
+  return <Create<Observations> Form={Form} title={schema.title}></Create>
 }
 export function Edit({}) {
-  return <EditGeneric<Observations> Form={Form} title={schema.title}></EditGeneric>;
+  return <EditGeneric<Observations> Form={Form} title={schema.title}></EditGeneric>
 }
 export function Linked({}) {
-  return (
-      <LinkedGeneric<Observations> {...schema} />
-  );
+  return <LinkedGeneric<Observations> {...schema} />
 }
 /**
  * Display an index of all or some subset of the
