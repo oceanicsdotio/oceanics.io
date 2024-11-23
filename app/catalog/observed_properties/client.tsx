@@ -6,7 +6,8 @@ import {
   type FormArgs,
   type Initial,
   Collection,
-  Create
+  Create,
+  Linked as LinkedGeneric
 } from "../client";
 import style from "@catalog/page.module.css";
 import { TextInput, Edit as EditGeneric } from "@catalog/client";
@@ -37,6 +38,11 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
+export function Linked({}) {
+  return (
+      <LinkedGeneric<ObservedProperties> {...schema} />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

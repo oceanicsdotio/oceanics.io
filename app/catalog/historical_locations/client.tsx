@@ -5,7 +5,7 @@ import type { HistoricalLocations } from "@oceanics/app";
 import { type FormArgs, type Initial, Collection, Create, NumberInput } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
-import { TextInput, Edit as EditGeneric } from "@catalog/client";
+import { TextInput, Edit as EditGeneric, Linked as LinkedGeneric } from "@catalog/client";
 
 const schema = specification.components.schemas.HistoricalLocations;
 const properties = schema.properties;
@@ -31,6 +31,11 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
+export function Linked({}) {
+  return (
+      <LinkedGeneric<HistoricalLocations> {...schema} />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

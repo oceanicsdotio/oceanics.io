@@ -7,7 +7,8 @@ import {
   Initial,
   Collection,
   Create,
-  Edit as EditGeneric
+  Edit as EditGeneric,
+  Linked as LinkedGeneric
 } from "@catalog/client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -37,7 +38,12 @@ export function Edit({}) {
       title={schema.title}
     ></EditGeneric>
   )
-} 
+}
+export function Linked({}) {
+  return (
+      <LinkedGeneric<FeaturesOfInterest> {...schema} />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

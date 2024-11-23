@@ -9,6 +9,7 @@ import { New as Observations } from "@catalog/observations/client";
 import { New as ObservedProperties } from "@catalog/observed_properties/client";
 import { New as Sensors } from "@catalog/sensors/client";
 import { New as Things } from "@catalog/things/client";
+import { fromKey, type Props, toKey } from "../page";
 
 const components = {
   DataStreams,
@@ -20,12 +21,6 @@ const components = {
   Sensors,
   Things,
 };
-function fromKey(collection: string) {
-  return collection
-    .split(/\.?(?=[A-Z])/)
-    .join("_")
-    .toLowerCase();
-}
 export async function generateStaticParams() {
   return Object.keys(components).map((collection) => {
     return {
@@ -33,16 +28,6 @@ export async function generateStaticParams() {
     };
   });
 }
-type Props = {
-  params: Promise<{ collection: string }>;
-};
-function capitalizeFirstLetter(string: string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-function toKey(collection: string) {
-  return collection.split("_").map(capitalizeFirstLetter).join("");
-}
-
 export async function generateMetadata({ params }: Props) {
   const { collection } = await params;
   const key = toKey(collection);

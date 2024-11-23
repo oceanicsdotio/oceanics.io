@@ -7,7 +7,8 @@ import {
   TextSelectInput,
   Collection,
   Create,
-  Edit as EditGeneric
+  Edit as EditGeneric,
+  Linked as LinkedGeneric
 } from "@catalog/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
@@ -35,7 +36,12 @@ export function Edit({}) {
       title={schema.title}
     ></EditGeneric>
   )
-} 
+}
+export function Linked({}) {
+  return (
+      <LinkedGeneric<DataStreams> {...schema} />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

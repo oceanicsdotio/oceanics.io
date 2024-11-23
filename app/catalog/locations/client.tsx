@@ -11,7 +11,8 @@ import {
   type Initial,
   type FormArgs,
   Create,
-  Edit as EditGeneric
+  Edit as EditGeneric,
+  Linked as LinkedGeneric
 } from "@catalog/client";
 import style from "@catalog/page.module.css";
 
@@ -48,6 +49,11 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
+export function Linked({}) {
+  return (
+      <LinkedGeneric<LocationsType> {...schema} />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.

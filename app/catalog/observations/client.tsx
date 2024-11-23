@@ -9,18 +9,24 @@ import {
   Collection,
   Create,
   Edit as EditGeneric,
+  Linked as LinkedGeneric
 } from "../client";
 const components = specification.components;
-const { title, properties } = components.schemas.Observations;
+const schema = components.schemas.Observations;
 import style from "@catalog/page.module.css";
 export function Data() {
-  return <Collection<Observations> title={title} />;
+  return <Collection<Observations> title={schema.title} />;
 }
 export function New({}) {
-  return <Create<Observations> Form={Form} title={title}></Create>;
+  return <Create<Observations> Form={Form} title={schema.title}></Create>;
 }
 export function Edit({}) {
-  return <EditGeneric<Observations> Form={Form} title={title}></EditGeneric>;
+  return <EditGeneric<Observations> Form={Form} title={schema.title}></EditGeneric>;
+}
+export function Linked({}) {
+  return (
+      <LinkedGeneric<Observations> {...schema} />
+  );
 }
 /**
  * Display an index of all or some subset of the
@@ -75,7 +81,7 @@ export function Form({
         name={"uuid"}
         inputRef={uuid}
         required
-        description={properties.uuid.description}
+        description={schema.properties.uuid.description}
         defaultValue={initial.uuid}
         readOnly
       ></TextInput>
@@ -83,44 +89,44 @@ export function Form({
         name={"phenomenonTime"}
         inputRef={phenomenonTime}
         required
-        description={properties.phenomenonTime.description}
+        description={schema.properties.phenomenonTime.description}
         defaultValue={initial.phenomenonTime}
       ></NumberInput>
       <NumberInput
         name={"result"}
         inputRef={result}
         required
-        description={properties.result.description}
+        description={schema.properties.result.description}
         defaultValue={initial.result}
       ></NumberInput>
       <NumberInput
         name={"resultTime"}
         inputRef={resultTime}
-        description={properties.resultTime.description}
+        description={schema.properties.resultTime.description}
         defaultValue={initial.resultTime}
       ></NumberInput>
       <TextInput
         name={"resultQuality"}
         inputRef={resultQuality}
-        description={properties.resultQuality.description}
+        description={schema.properties.resultQuality.description}
         defaultValue={initial.resultQuality}
       ></TextInput>
       <TextInput
         name={"validTimeStart"}
         inputRef={validTimeStart}
-        description={properties.validTime.description}
+        description={schema.properties.validTime.description}
         defaultValue={initial.validTime?.start.toString()}
       ></TextInput>
       <TextInput
         name={"validTimeEnd"}
         inputRef={validTimeEnd}
-        description={properties.validTime.description}
+        description={schema.properties.validTime.description}
         defaultValue={initial.validTime?.end.toString()}
       ></TextInput>
       <TextInput
         name={"parameters"}
         inputRef={parameters}
-        description={properties.parameters.description}
+        description={schema.properties.parameters.description}
         defaultValue={initial.parameters}
       ></TextInput>
       <button className={style.submit} disabled={disabled}>

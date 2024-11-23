@@ -4,7 +4,7 @@ import type { Sensors } from "@oceanics/app";
 import { TextSelectInput, type Initial, Collection } from "../client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
-import { TextInput, Create, Edit as EditGeneric } from "@catalog/client";
+import { TextInput, Create, Edit as EditGeneric, Linked as LinkedGeneric } from "@catalog/client";
 
 
 const schema = specification.components.schemas.Sensors;
@@ -31,6 +31,11 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
+export function Linked({}) {
+  return (
+      <LinkedGeneric<Sensors> {...schema} />
+  );
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
