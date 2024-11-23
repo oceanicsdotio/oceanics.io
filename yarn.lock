@@ -4500,15 +4500,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mdx-js/react@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "@mdx-js/react@npm:3.0.1"
+"@mdx-js/react@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@mdx-js/react@npm:3.1.0"
   dependencies:
     "@types/mdx": "npm:^2.0.0"
   peerDependencies:
     "@types/react": ">=16"
     react: ">=16"
-  checksum: 10/d566407af11e76f498f8133fbfa8a9d8a2ad80dc7a66ca109d29fcb92e953a2d2d7aaedc0c28571d126f1967faeb126dd2e4ab4ea474c994bf5c76fa204c5997
+  checksum: 10/cf89d6392c76091622fb647f205e1ab5cbdf5edd4401dde7092138cefc9fbb6d61428aa63557de0bccca3695d5a8854dd4a93b34a27cb8e27369da7eaeaa3e73
   languageName: node
   linkType: hard
 
@@ -23940,7 +23940,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.24.7"
     "@logtail/js": "npm:^0.5.2"
     "@mdx-js/loader": "npm:^3.1.0"
-    "@mdx-js/react": "npm:^3.0.1"
+    "@mdx-js/react": "npm:^3.1.0"
     "@netlify/functions": "npm:^2.8.2"
     "@netlify/plugin-csp-nonce": "npm:^1.2.10"
     "@next/mdx": "npm:15.0.1"
