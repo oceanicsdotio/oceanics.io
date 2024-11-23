@@ -4293,68 +4293,68 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@logtail/browser@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "@logtail/browser@npm:0.5.1"
+"@logtail/browser@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@logtail/browser@npm:0.5.2"
   dependencies:
-    "@logtail/core": "npm:^0.5.0"
-    "@logtail/tools": "npm:^0.5.0"
+    "@logtail/core": "npm:^0.5.2"
+    "@logtail/tools": "npm:^0.5.2"
     cross-fetch: "npm:^4.0.0"
-  checksum: 10/eabb0f6a25956a4ee24d85f3430fa99038194342a18c56f0b61c0f77ba6dad9cfa6142698f864f5ee423ee452e7f746b9e5397baaec5115e8baae48cd882ead3
+  checksum: 10/b0dbb82846e902cc4261ec7a6eaeda6416252c58944d8a63809affe12f77539f7e5d67286ce652f0c72fa2c198020fd2d2541f1227fb24b8f31b7f6e6dde44d7
   languageName: node
   linkType: hard
 
-"@logtail/core@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@logtail/core@npm:0.5.0"
+"@logtail/core@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@logtail/core@npm:0.5.2"
   dependencies:
-    "@logtail/tools": "npm:^0.5.0"
-    "@logtail/types": "npm:^0.5.0"
+    "@logtail/tools": "npm:^0.5.2"
+    "@logtail/types": "npm:^0.5.2"
     serialize-error: "npm:8.1.0"
-  checksum: 10/88e9cb8e8589a132c382261aaa135a3f0d074f0f72adc01c693d8ba17df7327bcbec885abd923707d656f06e3ce57cfca681b23f40f34e31d2ac4d6e5140d58f
+  checksum: 10/aae5b4eec822947788b6b4c8917659b4eb29876a23f8c5fddbb3ac190d867977b7dbf9f7a990e3b6cf45929aa72612665cb8df2c7bf94f618445426139f68efe
   languageName: node
   linkType: hard
 
-"@logtail/js@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "@logtail/js@npm:0.5.1"
+"@logtail/js@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@logtail/js@npm:0.5.2"
   dependencies:
-    "@logtail/browser": "npm:^0.5.1"
-    "@logtail/node": "npm:^0.5.0"
-  checksum: 10/c66c64fcb0c604c80faec02e0cd50ab5a927df1aa961cb38333cc58552613f8846dde8ee9cf3c2c5da92dbe4fefb11c07d5cfee01bee796c1aa17a248d28af2b
+    "@logtail/browser": "npm:^0.5.2"
+    "@logtail/node": "npm:^0.5.2"
+  checksum: 10/c573900fa3de919acb722d1b4297e6dfbcda7a4b800ae76dd26d0b85fbbc5f8d441a3303ec9bbb5e6a0a486e0dfa5dc83b400cbdbbfe1709fa012dc649e7e8e2
   languageName: node
   linkType: hard
 
-"@logtail/node@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@logtail/node@npm:0.5.0"
+"@logtail/node@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@logtail/node@npm:0.5.2"
   dependencies:
-    "@logtail/core": "npm:^0.5.0"
-    "@logtail/types": "npm:^0.5.0"
+    "@logtail/core": "npm:^0.5.2"
+    "@logtail/types": "npm:^0.5.2"
     "@msgpack/msgpack": "npm:^2.5.1"
     "@types/stack-trace": "npm:^0.0.33"
     cross-fetch: "npm:^4.0.0"
     minimatch: "npm:^9.0.5"
     serialize-error: "npm:8.1.0"
     stack-trace: "npm:0.0.10"
-  checksum: 10/97431000831736587ff07f2e35e99de9d6ed0ae93988e1db06e61c6719c7a06bbd32bfcc5a4e244a06656622ca2073a3c934464545e5d3e649edf8a3a89c8395
+  checksum: 10/0fc231d22782966daf4ed87d074c6f49461ee992795586fc5f98ecd4ac18c4680bae6030625f1ba31f7ce70533bc3f836ae5e953c893210a89869cbd61f4cce9
   languageName: node
   linkType: hard
 
-"@logtail/tools@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@logtail/tools@npm:0.5.0"
+"@logtail/tools@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@logtail/tools@npm:0.5.2"
   dependencies:
-    "@logtail/types": "npm:^0.5.0"
+    "@logtail/types": "npm:^0.5.2"
     cross-fetch: "npm:^4.0.0"
-  checksum: 10/22f3d1d57b64568bf219103de00e3e01b912f2dfe8ac943fe536bd51bc0132021c33c5ee86f57fab0cd58c60366a6ed76a1534e8b84f798681c2cf7270972eb1
+  checksum: 10/7f64b03f3c0ad082a3066e3800843e88a85f351b8c37052880a746409a08701cef1a30289a9ce1690bfbe6a66d9693e49a1a84e2d8e759fa2de09eac19230b52
   languageName: node
   linkType: hard
 
-"@logtail/types@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@logtail/types@npm:0.5.0"
-  checksum: 10/3d6b794c35f43e42fa826f8e1d71b5d1948aba08289243b0733427e86ed0d331a7e40b3b7b68466e1f0084fb457d0851681338ab547bda97924bfc8f24dddd4f
+"@logtail/types@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@logtail/types@npm:0.5.2"
+  checksum: 10/9986f3d6c5dc9826639ecda254a31444bf66b94fc736ae637d681f642574c9544d8441c46479fba40c98be75f173420c877bb399b3ff646c858f81a45607419d
   languageName: node
   linkType: hard
 
@@ -23938,7 +23938,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@babel/preset-env": "npm:^7.26.0"
     "@babel/preset-typescript": "npm:^7.24.7"
-    "@logtail/js": "npm:^0.5.1"
+    "@logtail/js": "npm:^0.5.2"
     "@mdx-js/loader": "npm:^3.1.0"
     "@mdx-js/react": "npm:^3.0.1"
     "@netlify/functions": "npm:^2.8.2"
