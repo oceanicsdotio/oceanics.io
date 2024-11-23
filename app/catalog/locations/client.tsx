@@ -437,7 +437,7 @@ export function View({}) {
   useEffect(() => {
     if (!collection || !ready || !map) return;
     const selected = query.get("uuid");
-    const features = collection.map(({ location, ...rest }) => {
+    const features = collection.filter(each => typeof each.location !== "undefined").map(({ location, ...rest }) => {
       return {
         type: "Feature",
         geometry: JSON.parse(location as any),
