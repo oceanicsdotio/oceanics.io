@@ -35,18 +35,24 @@ export function capitalizeFirstLetter(string: string) {
 export function toKey(collection: string) {
   return collection.split("_").map(capitalizeFirstLetter).join("");
 }
-export async function generateStaticParams() {
+export function collectionSlugs(components: Object) {
   return Object.keys(components).map((collection) => {
     return {
       collection: fromKey(collection),
     };
   });
 }
-export async function generateMetadata({ params }: Props) {
-  const { collection } = await params;
+export async function generateStaticParams() {
+  return collectionSlugs(components);
+}
+export function collectionMetadata(action: string, collection: string) {
   const key = toKey(collection);
   const schema = (openapi.components.schemas as any)[key];
-  return formatMetadata("Read", schema);
+  return formatMetadata(action, schema);
+}
+export async function generateMetadata({ params }: Props) {
+  const { collection } = await params;
+  return collectionMetadata("Read", collection);
 }
 export default async function Page({ params }: Props) {
   const { collection } = await params;

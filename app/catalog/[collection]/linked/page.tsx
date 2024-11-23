@@ -1,33 +1,41 @@
 import React from "react";
 import { CollectionPage, formatMetadata } from "@catalog/page";
-import { Linked as DataStreams } from "@catalog/data_streams/client";
 import openapi from "@app/../specification.json";
-import { fromKey, toKey, type Props } from "../page";
+import { Linked as DataStreams } from "@catalog/data_streams/client";
+import { Linked as FeaturesOfInterest } from "@catalog/features_of_interest/client";
+import { Linked as HistoricalLocations } from "@catalog/historical_locations/client";
+import { Linked as Locations } from "@catalog/locations/client";
+import { Linked as Observations } from "@catalog/observations/client";
+import { Linked as ObservedProperties } from "@catalog/observed_properties/client";
+import { Linked as Sensors } from "@catalog/sensors/client";
+import { Linked as Things } from "@catalog/things/client";
+import { collectionMetadata, collectionSlugs, fromKey, toKey, type Props } from "../page";
 
 const components = {
-  DataStreams
+  DataStreams,
+  FeaturesOfInterest,
+  HistoricalLocations,
+  Observations,
+  Locations,
+  ObservedProperties,
+  Sensors,
+  Things,
 };
 export async function generateStaticParams() {
-  return Object.keys(components).map((collection) => {
-    return {
-      collection: fromKey(collection),
-    };
-  });
+  return collectionSlugs(components)
 }
 export async function generateMetadata({ params }: Props) {
   const { collection } = await params;
-  const key = toKey(collection);
-  const schema = (openapi.components.schemas as any)[key];
-  return formatMetadata("Link", schema);
+  return collectionMetadata("Link", collection);
 }
 export default async function Page({ params }: Props) {
   const { collection } = await params;
   const key = toKey(collection);
   const schema = (openapi.components.schemas as any)[key];
-  const Component = (components as any)[key] as React.FunctionComponent;
+  const Client = (components as any)[key] as React.FunctionComponent;
   return (
     <CollectionPage schema={schema} showActions={false}>
-      <Component></Component>
+      <Client></Client>
     </CollectionPage>
   );
 }
