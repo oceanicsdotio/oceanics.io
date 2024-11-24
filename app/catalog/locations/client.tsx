@@ -340,6 +340,14 @@ export function View({}) {
         },
       },
     });
+    worker.post({
+      type: "getBoundaries",
+      data: {
+        query: {
+          url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/maine-towns.json",
+        },
+      },
+    });
     return () => {
       handle?.removeEventListener("message", addLayerListener);
     };

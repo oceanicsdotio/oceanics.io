@@ -120,6 +120,34 @@ async function searchFragments(query: any) {
   });
   return true
 }
+async function getBoundaries(query: { url: string }) {
+  postStatus(`Getting boundaries...`);
+  const attribution = "Maine OIT";
+  const raw = await fetch(query.url).then((response) => response.json());
+  raw.features.forEach((feature: any, ind: number)=>{
+    const data = {
+      id: `${query.url}-${ind}`,
+      type: "line",
+      source: {
+        type: "geojson",
+        generateId: true,
+        data: {
+          type: "FeatureCollection",
+          features: [feature]
+        },
+        attribution,
+      },
+      paint: {
+        "line-color": "rgba(255,255,255,0.5)"
+      },
+    };
+    self.postMessage({
+      data,
+      type: "layer"
+    })
+  })
+  return true
+}
 /**
  * Only perform startup routine once
  */
@@ -166,7 +194,8 @@ async function startup(message: MessageEvent) {
       updateEntity: updateEntity.bind(undefined, access_token),
       createEntity: createAndPostMessage,
       deleteEntity: deleteEntityAndPostMessage,
-      getFileSystem: searchFragments
+      getFileSystem: searchFragments,
+      getBoundaries: getBoundaries
     }
   }
 }
