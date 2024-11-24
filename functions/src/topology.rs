@@ -78,9 +78,9 @@ async fn post(url: &String, access_key: &String, event: JsValue) -> JsValue {
     right.symbol = "b".to_string();
     let links = Links::new(Some("Join".to_string()), None);
     let query = format!(
-        "MATCH {}, {}
-        MERGE ({}){}({})",
-        query.left, query.right, left.symbol, links, right.symbol
+        "MATCH {left}, {right}
+        MERGE ({}){links}({})",
+        left.symbol, right.symbol
     );
     let cypher = Cypher::new(query, "WRITE".to_string());
     let raw = cypher.run(url, access_key).await;

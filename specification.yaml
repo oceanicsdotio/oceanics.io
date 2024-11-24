@@ -963,10 +963,10 @@ components:
               type: string
               description: |
                 The type of geometry, limited to values we know how to process. 
-                This includes `Point` and `Polygon` geometries. The web interface
-                only allows `Point` coordinates in form inputs, but more complex
+                This includes `Point` and `MultiPolygon` geometries. The web interface
+                only allows `Point` coordinates in form inputs, but arbitrarily complex
                 geometries can be created through the API.
-              enum: ["Point", "Polygon"]
+              enum: ["Point", "MultiPolygon", "MultiPoint"]
               default: "Point"
             coordinates:
               type: array

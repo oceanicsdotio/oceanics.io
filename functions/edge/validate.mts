@@ -17,7 +17,7 @@ const lookup = {
   "/.netlify/functions/entity": "/{entity}({uuid})",
   "/.netlify/functions/index": "/",
   "/.netlify/functions/linked": "/{root}({rootId})/{entity}",
-  "/.netlify/functions/topology": "/{root}({rootId})/{entity}({entityId})"
+  "/.netlify/functions/topology": "/{root}({rootId})/{entity}({uuid})"
 }
 
 function err_response(message: string, status_code: number, details: string) {

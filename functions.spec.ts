@@ -392,12 +392,17 @@ describe("functions", function () {
       test.each(linkedExamples)(`query %s %s to %s %s`, async function (left: string, leftUuid: string, right: string, rightUuid: string) {
         // forward linking, back-linked doesn't necessarily work because there may be multiplicity 
         // in one direction or the other.
-        const linkedResponse = await fetch(`${LINKED}?left=${left}&left_uuid=${leftUuid}&right=${right}`, {
+        const linkedResponse = await fetch(`${LINKED}?left=${left}&left_uuid=${leftUuid}&right=${right}&offset=0&limit=10`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`
           }
         })
+        
+        if (linkedResponse.status !== 200) {
+          const data: any = await linkedResponse.json();
+          console.error(data)
+        }
         expect(linkedResponse.status).toBe(200);
         const data: any = await linkedResponse.json();
         expect(data["@iot.count"]).toBe(1)
