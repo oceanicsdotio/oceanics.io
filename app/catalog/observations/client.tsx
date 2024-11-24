@@ -5,12 +5,12 @@ import type { Observations } from "@oceanics/app";
 import {
   TextInput,
   NumberInput,
-  FormArgs,
-  Collection,
-  Create,
-  Edit as EditGeneric,
-  Linked as LinkedGeneric
+  FormArgs
 } from "../client";
+import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
+import {Create} from "@catalog/[collection]/create/client";
+import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Collection} from "@catalog/[collection]/client";
 const components = specification.components;
 const schema = components.schemas.Observations;
 import style from "@catalog/page.module.css";

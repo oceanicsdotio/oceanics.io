@@ -969,14 +969,23 @@ components:
               enum: ["Point", "MultiPolygon", "MultiPoint"]
               default: "Point"
             coordinates:
-              type: array
-              description: |
-                Spatial coordinates. Need the type and encoding to be sure how to interpret.
-              minLength: 2
-              maxLength: 3
-              items:
-                type: number
-                format: float
+              oneOf:
+                - type: array
+                  description: |
+                    Spatial coordinates. Need the type and encoding to be sure how to interpret.
+                  minLength: 2
+                  maxLength: 3
+                  items:
+                    type: number
+                    format: float
+                - type: array
+                  description: |
+                    Spatial coordinates. Need the type and encoding to be sure how to interpret.
+                  minLength: 0
+                  items:
+                    type: array
+                    items:
+                      type: array
         HistoricalLocations@iot.navigation:
           readOnly: true
           oneOf:

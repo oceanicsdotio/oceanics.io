@@ -4,13 +4,14 @@ import specification from "@app/../specification.json";
 import type { ObservedProperties } from "@oceanics/app";
 import {
   type FormArgs,
-  type Initial,
-  Collection,
-  Create,
-  Linked as LinkedGeneric
+  type Initial
 } from "../client";
+import {Collection} from "@catalog/[collection]/client";
+import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
+import {Create} from "@catalog/[collection]/create/client";
+import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
 import style from "@catalog/page.module.css";
-import { TextInput, Edit as EditGeneric } from "@catalog/client";
+import { TextInput } from "@catalog/client";
 /**
  * Get DataStreams properties from OpenAPI schema
  */

@@ -170,6 +170,41 @@ async function startup(message: MessageEvent) {
     if (!result.page.previous) result.page.previous = undefined
     return result
   }
+  async function getLocations(query: any) {
+    function transform({ location, ...rest }: {location?: any}) {
+      return {
+        type: "Feature",
+        geometry: JSON.parse(location as any),
+        properties: {
+          ...rest
+        },
+      };
+    }
+    const result = await getCollectionAndTransform(query);
+    const data = {
+      id: "query-result",
+      type: "circle",
+      source: {
+        type: "geojson",
+        generateId: true,
+        data: {
+          type: "FeatureCollection",
+          features: result.value.map(transform) as any,
+        },
+        attribution: "Oceanics.io",
+      },
+      paint: {
+        "circle-radius": 5,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "orange",
+      },
+    };
+    self.postMessage({
+      data,
+      type: "layer"
+    })
+    return true
+  }
   async function getIndexAndPostMessage() {
     const result = await getIndex(access_token);
     postStatus(`Found ${result.length}`);
@@ -195,7 +230,8 @@ async function startup(message: MessageEvent) {
       createEntity: createAndPostMessage,
       deleteEntity: deleteEntityAndPostMessage,
       getFileSystem: searchFragments,
-      getBoundaries: getBoundaries
+      getBoundaries: getBoundaries,
+      getLocations: getLocations
     }
   }
 }

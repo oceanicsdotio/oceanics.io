@@ -1,6 +1,4 @@
 "use client";
-
-
 import React, {
   useRef,
   useEffect,
@@ -10,7 +8,7 @@ import React, {
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { useGetCollection } from "@catalog/client";
+import { useClient } from "@catalog/client";
 import { type Locations as LocationsType } from "@oceanics/app";
 import { useSearchParams } from "next/navigation";
 
@@ -20,13 +18,14 @@ import {
   TextInput,
   NumberInput,
   TextSelectInput,
-  Collection,
   type Initial,
   type FormArgs,
-  Create,
-  Edit as EditGeneric,
-  Linked as LinkedGeneric
+  ACTIONS
 } from "@catalog/client";
+import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
+import {Create} from "@catalog/[collection]/create/client";
+import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Collection} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
 
 /**
@@ -39,6 +38,7 @@ const GEOLOCATION_PRECISION = 5;
  * OpenAPI schema information used in the interface.
  */
 const schema = specification.components.schemas.Locations;
+const parameters = specification.components.parameters;
 export function Data() {
   return <Collection<LocationsType> 
     title={schema.title}
@@ -318,17 +318,31 @@ export function View({}) {
    * MapBoxGL Map instance saved to React state.
    */
   const [map, setMap] = useState<Map | null>(null);
-  /**
-   * Retrieve node data use Web Worker.
-   */
-  const { collection, message, worker } = useGetCollection<LocationsType>(
-    schema.title
-  );
+ const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
+ const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
+ const { message, collection, worker, page } = useClient<LocationsType>();
+ useEffect(() => {
+   if (worker.disabled) return;
+   worker.post({
+     type: ACTIONS.getCollection,
+     data: {
+       query: {
+         left: schema.title,
+         limit: parseInt(limit),
+         offset: parseInt(offset),
+       },
+     },
+   });
+ }, [worker.disabled]);
   useEffect(() => {
     if (worker.disabled || !map) return;
     let handle = worker.ref.current;
     const addLayerListener = ({ data: { data, type } }: MessageEvent) => {
       if (!(type === "layer")) return;
+      if (map.getLayer(data.id)) {
+        map.removeLayer(data.id);
+        map.removeSource(data.id);
+      }
       map.addLayer(data, "cities");
     };
     handle?.addEventListener("message", addLayerListener);
@@ -340,14 +354,14 @@ export function View({}) {
         },
       },
     });
-    worker.post({
-      type: "getBoundaries",
-      data: {
-        query: {
-          url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/maine-towns.json",
-        },
-      },
-    });
+    // worker.post({
+    //   type: "getBoundaries",
+    //   data: {
+    //     query: {
+    //       url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/maine-towns.json",
+    //     },
+    //   },
+    // });
     return () => {
       handle?.removeEventListener("message", addLayerListener);
     };
@@ -441,60 +455,6 @@ export function View({}) {
       }
     );
   }, [map, ready]);
-
-  useEffect(() => {
-    if (!collection || !ready || !map) return;
-    const selected = query.get("uuid");
-    function requireCoordinates(each: {location?: any}) {
-      return typeof each.location !== "undefined"
-    }
-    function transform({ location, ...rest }: {location?: any}) {
-      return {
-        type: "Feature",
-        geometry: JSON.parse(location as any),
-        properties: {
-          ...rest
-        },
-      };
-    }
-    const features = collection.filter(requireCoordinates).map(({ location, ...rest }) => {
-      return {
-        type: "Feature",
-        geometry: JSON.parse(location as any),
-        properties: {
-          ...rest
-        },
-      };
-    });
-    const matching = features.filter((feature)=>feature.properties.uuid===selected);
-    const layerId = "query-result";
-    if (map.getLayer(layerId)) {
-      map.removeLayer(layerId);
-      map.removeSource(layerId);
-    }
-    map.addLayer({
-      id: layerId,
-      type: "circle",
-      source: {
-        type: "geojson",
-        generateId: true,
-        data: {
-          type: "FeatureCollection",
-          features: features as any,
-        },
-        attribution: "Oceanics.io",
-      },
-      paint: {
-        "circle-radius": 5,
-        "circle-stroke-width": 1,
-        "circle-stroke-color": "orange",
-      },
-    });
-    if (matching.length===1) {
-      map.panTo(matching[0].geometry.coordinates)
-    }
-    
-  }, [collection, ready, map]);
   return (
     <div>
       <p>{message}</p>

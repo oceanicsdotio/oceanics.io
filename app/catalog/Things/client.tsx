@@ -10,12 +10,12 @@ import OpenAPI from "@app/../specification.json";
 import {
   TextInput,
   type Initial,
-  type FormArgs,
-  Collection,
-  Create,
-  Edit as EditGeneric,
-  Linked as LinkedGeneric,
+  type FormArgs
 } from "@catalog/client";
+import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
+import {Create} from "@catalog/[collection]/create/client";
+import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Collection} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification

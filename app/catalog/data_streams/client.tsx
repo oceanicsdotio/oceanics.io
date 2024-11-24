@@ -4,12 +4,13 @@ import {
   type Initial,
   TextInput,
   TextSelectInput,
-  Collection,
-  Create,
-  Edit as EditGeneric,
-  Linked as LinkedGeneric,
-  useGetCollection
+  useClient,
+  ACTIONS
 } from "@catalog/client";
+import {Collection} from "@catalog/[collection]/client";
+import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
+import {Create} from "@catalog/[collection]/create/client";
+import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
 import React, { useState, useEffect, useRef } from "react";
@@ -19,8 +20,10 @@ import type {
   DataStreams,
   Observations,
 } from "@oceanics/app";
+import { useSearchParams } from "next/navigation";
 const schema = openapi.components.schemas.DataStreams;
 const properties = schema.properties;
+const parameters = openapi.components.parameters;
 export function Data() {
   return <Collection<DataStreams> 
     title={schema.title}
@@ -213,7 +216,23 @@ export function View({}) {
    * Retrieve node data using Web Worker. Redirect if there are
    * no nodes of the given type.
    */
- const { message, collection } = useGetCollection(schema.title);
+ const query = useSearchParams();
+  const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
+  const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
+  const { message, collection, worker, page } = useClient<DataStreams>();
+  useEffect(() => {
+    if (worker.disabled) return;
+    worker.post({
+      type: ACTIONS.getCollection,
+      data: {
+        query: {
+          left: schema.title,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        },
+      },
+    });
+  }, [worker.disabled]);
   /**
    * Keep reference to the WASM constructor
    */
