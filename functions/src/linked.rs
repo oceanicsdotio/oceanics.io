@@ -42,7 +42,12 @@ pub async fn linked(
 /// use to get all linked nodes of all types, which would be a special application
 /// and doesn't fit into the API pattern.
 async fn get(url: &String, access_key: &String, user: &String, event: JsValue) -> JsValue {
-    let event: Get = serde_wasm_bindgen::from_value(event).unwrap();
+    let event = serde_wasm_bindgen::from_value::<Get>(event);
+    if event.is_err() {
+        let details = event.err().unwrap().to_string();
+        return ErrorResponse::bad_request(&details)
+    }
+    let event = event.unwrap();
     let query =  event.query_string_parameters;
     let off = query.offset.parse::<i32>().unwrap();
     let lim = query.limit.parse::<i32>().unwrap();

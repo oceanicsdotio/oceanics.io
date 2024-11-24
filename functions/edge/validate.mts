@@ -21,27 +21,29 @@ const lookup = {
 }
 
 function err_response(message: string, status_code: number, details: string) {
-  return {
+  let body = JSON.stringify({
+    message,
+    details
+  });
+  return new Response(body, {
     headers: {
       "Content-Type": "application/problem+json"
     },
-    status_code,
-    body: {
-      message,
-      details
-    }
-  }
+    status: status_code,
+    statusText: message
+  })
 }
 
 function opt_response(options: string[]) {
   const lower = ["options", ...options] as string[];
   const allow = lower.map((each: string)=>each.toUpperCase()).sort();
-  return {
+  return new Response(null, {
+    status: 204,
+    statusText: "OK",
     headers: {
       "allow": allow.join(",")
-    },
-    status_code: 204
-  }
+    }
+  })
 }
 
 export default async (request: Request, context: Context) => {
@@ -54,19 +56,19 @@ export default async (request: Request, context: Context) => {
   const no_auth_header = typeof auth_header === "undefined";
   const key = lookup[url.pathname];
   const path = specification.paths[key];
-  const pathSpec = path[method.toLowerCase()];
-  const [security] = pathSpec.security;
   if (left && !allowed.has(left)) {
     return err_response("Not Found", 404, "Unknown Label")
   }
   if (right && !allowed.has(right)) {
     return err_response("Not Found", 404, "Unknown Label")
   }
+  if (method === "OPTIONS") {
+    return opt_response(Object.keys(path))
+  }
+  const pathSpec = path[method.toLowerCase()];
+  const [security] = pathSpec.security;
   if (typeof pathSpec === "undefined") {
     return err_response("Invalid HTTP method", 405, "Not specified")
-  }
-  if (method === "OPTIONS") {
-    opt_response(Object.keys(path))
   }
   if (method === "POST" && !request.body) {
     return err_response("Bad request", 405, "Missing post body")

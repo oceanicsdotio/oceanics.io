@@ -1,6 +1,7 @@
-import {readFile, writeFile} from "fs/promises";
-import {v7 as uuid7} from "uuid";
+import { readFileSync, writeFileSync } from "fs";
+import { v7 as uuid7 } from "uuid";
 import yaml from "yaml";
+
 
 const extensions = {
   sensing: new Set([
@@ -34,7 +35,7 @@ const cacheItem = (label: string, props: object) => {
   return [
     label,
     uuid,
-    {...props, uuid}
+    { ...props, uuid }
   ]
 }
 /**
@@ -45,12 +46,12 @@ const cacheItem = (label: string, props: object) => {
  * be populated with UUID for each record. This is used
  * to reference instances across test runs.
  */
-const schemaToLookup = ([label, { examples = [] }]: [string, {examples: any[]}]) => {
+const schemaToLookup = ([label, { examples = [] }]: [string, { examples: any[] }]) => {
   let _flatten = cacheItem.bind(undefined, label)
   return examples.map(_flatten);
 }
 
-const parseWreck = ({attributes, geometry}: any) => {
+const parseWreck = ({ attributes, geometry }: any) => {
   return {
     name: `${attributes.vesselTerms} (${attributes.record})`,
     description: attributes.history.replaceAll("'", ""),
@@ -60,33 +61,81 @@ const parseWreck = ({attributes, geometry}: any) => {
     }
   }
 }
-const getWrecks = async () => {
-  const sourcesText = await readFile("locations.yml", "utf-8");
-  const {geojson} = yaml.parse(sourcesText);
-  const [{url}] = geojson.filter((each: any) => each.id === "wrecks")
+export const getWrecks = async () => {
+  const sourcesText = readFileSync("locations.yml", "utf-8");
+  const { geojson } = yaml.parse(sourcesText);
+  const [{ url }] = geojson.filter((each: any) => each.id === "wrecks")
   const response = await fetch(url);
   const parsed = await response.json();
   let _flatten = cacheItem.bind(undefined, "Locations")
   return parsed.features.map(parseWreck).map(_flatten)
 }
+export const reducePrecision = (data: Object | Array<number>, precision: number) => {
+  const replacer = function (_: string, val: Number | string): Number | string {
+    return (typeof val === "number") ? Number(val.toFixed(precision)) : val;
+  }
+  return JSON.stringify(data, replacer)
+}
+export function transformFeatureToCollection({ geometry }: any) {
+  return cacheItem("Locations", {
+    name: undefined,
+    encodingType: "application/vnd.geo+json",
+    location: geometry
+  })
+}
 
-// Command-line args
-const [
-  specification,
-  target
-] = process.argv.slice(2)
+async function staticCollectionToLocationTuples(url: string) {
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.features.map(transformFeatureToCollection);
+}
 
-const specText = await readFile(specification, "utf8");
-const {components: {schemas}}: {components: {schemas: any[]}} = JSON.parse(specText);
-const all = Object.entries(schemas).flatMap(schemaToLookup);
-// const wrecks = await getWrecks()
-const wrecks: any[] = []
-const fromSpec = (all as [string, string, {uuid?: string}][]).filter(
-  ([label]) => extensions.sensing.has(label)
-)
+export async function fetchStaticFeatureCollection(url: string) {
+  const response = await fetch(url);
+  const serialized = await response.text();
+  const before = serialized.length;
+  const data = JSON.parse(serialized);
+  let after = 0
+  function measureDiff(feature: any) {
+    const singleton = transformFeatureToCollection(feature)
+    const truncated = reducePrecision(singleton, 5);
+    after += truncated.length;
+    return singleton
+  }
+  const result = data.features.map(measureDiff);
+  const stats = {
+    before,
+    after
+  }
+  return [result, stats]
+}
 
-const examples = [...wrecks, ...fromSpec];
+import * as url from 'node:url';
 
-console.warn(`Writing new unique examples: ${target}`);
-await writeFile(target, JSON.stringify(examples));
-export {}
+if (import.meta.url.startsWith('file:')) { // (A)
+  const modulePath = url.fileURLToPath(import.meta.url);
+  if (process.argv[1] === modulePath) { // (B)
+    // Command-line args
+    const [
+      specification,
+      target
+    ] = process.argv.slice(2)
+    const specText = readFileSync(specification, "utf8");
+    const { components: { schemas } }: { components: { schemas: any[] } } = JSON.parse(specText);
+    const all = Object.entries(schemas).flatMap(schemaToLookup);
+
+    const fromSpec = (all as [string, string, { uuid?: string }][]).filter(
+      ([label]) => extensions.sensing.has(label)
+    )
+
+    const fromSpaces = await staticCollectionToLocationTuples("https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/maine-towns.json")
+
+    const examples = [...fromSpec, ...fromSpaces];
+
+    console.warn(`Writing new unique examples: ${target}`);
+    writeFileSync(target, reducePrecision(examples, 5));
+  }
+}
+
+
+export { }

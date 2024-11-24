@@ -54,7 +54,7 @@
     "build/types/**/*.ts", 
     "mdx-components.tsx", 
     "palette.ts"
-  ],
+, "examples.ts"  ],
   "exclude": [
     "node_modules",
     ".next"

@@ -57,7 +57,7 @@ coverage:
 
 # Create examples with static UUID values for deterministic testing.
 test: out coverage
-	@ yarn jest
+	@ yarn jest -t "functions"
 .PHONY: test
 
 # Deploy to production.

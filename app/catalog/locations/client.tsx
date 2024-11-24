@@ -445,7 +445,19 @@ export function View({}) {
   useEffect(() => {
     if (!collection || !ready || !map) return;
     const selected = query.get("uuid");
-    const features = collection.filter(each => typeof each.location !== "undefined").map(({ location, ...rest }) => {
+    function requireCoordinates(each: {location?: any}) {
+      return typeof each.location !== "undefined"
+    }
+    function transform({ location, ...rest }: {location?: any}) {
+      return {
+        type: "Feature",
+        geometry: JSON.parse(location as any),
+        properties: {
+          ...rest
+        },
+      };
+    }
+    const features = collection.filter(requireCoordinates).map(({ location, ...rest }) => {
       return {
         type: "Feature",
         geometry: JSON.parse(location as any),

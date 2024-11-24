@@ -58,7 +58,11 @@ pub async fn collection(
 /// - root node type
 /// - paging parameters that translate to offset & limit cypher values
 async fn get(url: &String, access_key: &String, user: &String, event: JsValue) -> JsValue {
-    let event  = serde_wasm_bindgen::from_value::<Get>(event).unwrap();
+    let event  = serde_wasm_bindgen::from_value::<Get>(event);
+    if event.is_err() {
+        return ErrorResponse::bad_request("Request missing required parameters")
+    }
+    let event = event.unwrap();
     let query = event.query_string_parameters;
     let off = query.offset.parse::<u32>().unwrap();
     let lim = query.limit.parse::<u32>().unwrap();
@@ -112,7 +116,12 @@ async fn get(url: &String, access_key: &String, user: &String, event: JsValue) -
 /// Query parameters include:
 /// - root node type
 async fn post(url: &String, access_key: &String, user: &String, event: JsValue) -> JsValue {
-    let event  = serde_wasm_bindgen::from_value::<Post>(event).unwrap();
+    let event  = serde_wasm_bindgen::from_value::<Post>(event);
+    if event.is_err() {
+        let details = String::from("Problem parsing request");
+        return ErrorResponse::bad_request(&details)
+    }
+    let event = event.unwrap();
     let label = Some(event.query_string_parameters.left);
     let node = Node::new(Some(event.body), "n".to_string(), label);
     let links = Links::create();
