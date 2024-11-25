@@ -57,10 +57,21 @@ export function useWorkerFixtures() {
     ref,
   };
 }
+type IndexData = {
+  description: string
+  href: string
+  url: string
+  content: string
+  "@iot.count": number
+}[]
 /**
  * Link items for listing available collections.
  */
 export default function ({}) {
+  /**
+   * Load worker once
+   */
+  const ref = useRef<Worker>();
   /**
    * Status message to understand what is going on in the background.
    */
@@ -68,15 +79,7 @@ export default function ({}) {
   /**
    * Index information.
    */
-  const [index, setIndex] = useState<
-    {
-      description: string;
-      href: string;
-      url: string;
-      content: string;
-      "@iot.count": number;
-    }[]
-  >([]);
+  const [index, setIndex] = useState<IndexData>([]);
   /**
    * Process web worker messages.
    */
@@ -112,38 +115,30 @@ export default function ({}) {
     []
   );
   /**
-   * Ref to Web Worker.
-   */
-  const worker = useWorkerFixtures();
-  /**
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    worker.ref.current = new Worker(
+    if (ref.current) return
+    ref.current = new Worker(
       new URL("@catalog/worker.ts", import.meta.url),
       {
         type: "module",
       }
     );
-    worker.ref.current.addEventListener("message", workerMessageHandler, {
+    ref.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    const handle = worker.ref.current;
-    worker.setDisabled(false);
+    ref.current.postMessage({
+      type: ACTIONS.getIndex,
+      data: {
+        user: localStorage.getItem("gotrue.user")
+      },
+    });
+    const handle = ref.current;
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, []);
-  /**
-   * Post message when worker is ready
-   */
-  useEffect(() => {
-    if (worker.disabled) return;
-    worker.post({
-      type: ACTIONS.getIndex,
-      data: {},
-    });
-  }, [worker.disabled]);
+  }, [workerMessageHandler]);
   return (
     <>
       <p>{message}</p>

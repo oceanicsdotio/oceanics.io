@@ -6,14 +6,9 @@ import React, {
   useCallback,
   type MutableRefObject,
 } from "react";
-import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { type Locations as LocationsType } from "@oceanics/app";
 import { useSearchParams } from "next/navigation";
-
-import specification from "@app/../specification.json";
-import "mapbox-gl/dist/mapbox-gl.css";
 import {
   type Initial,
   ACTIONS,
@@ -24,7 +19,8 @@ import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
 import {Collection, TextInput, NumberInput, TextSelectInput, FormArgs} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
-
+import specification from "@app/../specification.json";
+import { type Locations as LocationsType } from "@oceanics/app";
 /**
  * Number of decimal places in geospatial coordinates when automatically
  * determining location. A value of 4 gives good results to within tens
@@ -68,7 +64,7 @@ export function Linked({}) {
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Form({
+function Form({
   action,
   initial,
   onSubmit,
@@ -327,7 +323,12 @@ export function View({}) {
  const workerMessageHandler = useCallback(
    ({ data: { data, type } }: MessageEvent) => {
      switch (type) {
-       case ACTIONS.getCollection:
+       case "layer":
+          if (map?.getLayer(data.id)) {
+            map.removeLayer(data.id);
+            map.removeSource(data.id);
+          }
+          map?.addLayer(data, "cities");
        case ACTIONS.getEntity:
          return;
        case ACTIONS.error:
@@ -352,7 +353,7 @@ export function View({}) {
     */
    useEffect(() => {
      worker.ref.current = new Worker(
-       new URL("@catalog/[collection]/worker.ts", import.meta.url),
+       new URL("@catalog/[collection]/locations/worker.ts", import.meta.url),
        {
          type: "module",
        }
@@ -366,56 +367,32 @@ export function View({}) {
        handle.removeEventListener("message", workerMessageHandler);
      };
    }, []);
- useEffect(() => {
-   if (worker.disabled) return;
-   worker.post({
-     type: ACTIONS.getCollection,
-     data: {
-       query: {
-         left: schema.title,
-         limit: parseInt(limit),
-         offset: parseInt(offset),
-       },
-     },
-   });
- }, [worker.disabled]);
-  useEffect(() => {
-    if (worker.disabled || !map) return;
-    let handle = worker.ref.current;
-    const addLayerListener = ({ data: { data, type } }: MessageEvent) => {
-      if (!(type === "layer")) return;
-      if (map.getLayer(data.id)) {
-        map.removeLayer(data.id);
-        map.removeSource(data.id);
-      }
-      map.addLayer(data, "cities");
-    };
-    handle?.addEventListener("message", addLayerListener);
-    worker.post({
-      type: "getFileSystem",
-      data: {
-        query: {
-          url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
-        },
-      },
-    });
-    // worker.post({
-    //   type: "getBoundaries",
-    //   data: {
-    //     query: {
-    //       url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/maine-towns.json",
-    //     },
-    //   },
-    // });
-    return () => {
-      handle?.removeEventListener("message", addLayerListener);
-    };
-  }, [worker.disabled, map]);
-
+ 
   /**
    * Map is in idle state
    */
   const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (worker.disabled || !ready) return;
+    worker.post({
+      type: ACTIONS.getCollection,
+      data: {
+        query: {
+          left: schema.title,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        },
+      },
+    });
+    worker.post({
+     type: "getFileSystem",
+     data: {
+       query: {
+         url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
+       },
+     },
+   });
+  }, [worker.disabled, ready]);
   /**
    * Current zoom level
    */
@@ -503,8 +480,8 @@ export function View({}) {
   return (
     <div>
       <p>{message}</p>
-      <div className={styles.locations}>
-        <div className={styles.mapbox} ref={ref} />
+      <div className={style.locations}>
+        <div className={style.mapbox} ref={ref} />
       </div>
     </div>
   );

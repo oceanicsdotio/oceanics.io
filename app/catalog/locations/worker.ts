@@ -1,4 +1,5 @@
 import { DOMParser } from "@xmldom/xmldom";
+import { postError } from "@catalog/worker"
 type WorkerCache = {
   handlers: { [key: string]: Function },
 };
@@ -6,14 +7,6 @@ let CACHE: WorkerCache | null = null;
 let postStatus = (message: string) => {
   self.postMessage({
     type: "status",
-    data: {
-      message
-    }
-  })
-}
-export let postError = (message: string) => {
-  self.postMessage({
-    type: "error",
     data: {
       message
     }
@@ -168,7 +161,7 @@ async function startup(message: MessageEvent) {
   if (!access_token) {
     throw Error(`worker missing access token`)
   }
-  const { panic_hook, getIndex, getCollection, getEntity, createEntity, deleteEntity, getLinked, updateEntity } = await import("@oceanics/app");
+  const { panic_hook, getCollection } = await import("@oceanics/app");
   // Provide better error messaging on web assembly panic
   panic_hook();
   async function getCollectionAndTransform(query: any) {
@@ -213,30 +206,9 @@ async function startup(message: MessageEvent) {
     })
     return true
   }
-  async function getIndexAndPostMessage() {
-    const result = await getIndex(access_token);
-    postStatus(`Found ${result.length}`);
-    return result
-  }
-  async function deleteEntityAndPostMessage(query: any) {
-    const result = await deleteEntity(access_token, query);
-    postStatus(`Deleted 1`);
-    return result
-  }
-  async function createAndPostMessage(query: any, body: string) {
-    const result = await createEntity(access_token, query, body);
-    postStatus(`Created 1`);
-    return result
-  }
   return {
     handlers: {
-      getIndex: getIndexAndPostMessage,
       getCollection: getCollectionAndTransform,
-      getLinked: getLinked.bind(undefined, access_token),
-      getEntity: getEntity.bind(undefined, access_token),
-      updateEntity: updateEntity.bind(undefined, access_token),
-      createEntity: createAndPostMessage,
-      deleteEntity: deleteEntityAndPostMessage,
       getFileSystem: searchFragments,
       getBoundaries: getBoundaries,
       getLocations: getLocations

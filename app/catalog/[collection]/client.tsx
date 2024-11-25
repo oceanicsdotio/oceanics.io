@@ -3,15 +3,17 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  type MutableRefObject
+  type MutableRefObject,
+  useRef,
 } from "react";
 import Markdown from "react-markdown";
-import style from "@catalog/page.module.css";
 import Link from "next/link";
-import specification from "@app/../specification.json";
-const parameters = specification.components.parameters;
 import { useSearchParams } from "next/navigation";
-import { Initial, ACTIONS, useWorkerFixtures } from "@catalog/client"
+import style from "@catalog/page.module.css";
+import specification from "@app/../specification.json";
+import { Initial, ACTIONS } from "@catalog/client";
+
+const parameters = specification.components.parameters;
 export type FormArgs<T> = {
   action: string;
   initial: Initial<T>;
@@ -19,11 +21,33 @@ export type FormArgs<T> = {
   formRef: MutableRefObject<HTMLFormElement | null>;
   disabled: boolean;
 };
+export type IMutate<T> = {
+  title: string;
+  Form: React.FunctionComponent<FormArgs<T>>;
+};
+export type NodeLike = { uuid: string; name?: string };
 /**
- * Display an index of all or some subset of the
- * available nodes in the database.
+ * Wraps collection retrieval and paging. Need to provide
+ * a concrete type annotation, but at least expects uuid
+ * and an optional name in the result data.
+ *
+ * Expects offset and limit to be in the query for paging,
+ * but will revert to the defaults described in OpenAPI
+ * spec.
+ *
+ * First one in array is shown with its summary details
+ * open.
  */
-export function useClient<T extends NodeLike>() {
+export function Collection<T extends NodeLike>({
+  title,
+  nav = false,
+  AdditionalProperties = null,
+}: {
+  title: string;
+  nav?: boolean;
+  AdditionalProperties?: React.FunctionComponent | null;
+}) {
+  const query = useSearchParams();
   /**
    * Status message to understand what is going on in the background.
    */
@@ -32,7 +56,6 @@ export function useClient<T extends NodeLike>() {
    * Node or index data, if any.
    */
   const [collection, setCollection] = useState<T[]>([]);
-  const [linked, setLinked] = useState<any[]>([]);
   const [page, setPage] = useState<{
     next?: string;
     previous?: string;
@@ -40,52 +63,16 @@ export function useClient<T extends NodeLike>() {
   }>({
     current: 1,
   });
-  const [index, setIndex] = useState<
-    {
-      description: string;
-      href: string;
-      url: string;
-      content: string;
-      "@iot.count": number;
-    }[]
-  >([]);
   /**
    * Process web worker messages.
    */
   const workerMessageHandler = useCallback(
     ({ data: { data, type } }: MessageEvent) => {
       switch (type) {
-        case ACTIONS.getIndex:
-          setIndex(
-            data.map((each: { name: string }) => {
-              const { description } = (
-                specification.components.schemas as {
-                  [key: string]: { description?: string };
-                }
-              )[each.name];
-              return {
-                ...each,
-                description,
-              };
-            })
-          );
-          return;
         case ACTIONS.getCollection:
           window.scrollTo({ top: 0, behavior: "smooth" });
           setCollection(data.value);
           setPage(data.page);
-          return;
-        case ACTIONS.getLinked:
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setLinked(data.value);
-          return;
-        case ACTIONS.getEntity:
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setCollection(data.value);
-          return;
-        case ACTIONS.createEntity:
-        case ACTIONS.updateEntity:
-          window.location.reload();
           return;
         case ACTIONS.error:
           console.error("@worker", type, data);
@@ -100,72 +87,37 @@ export function useClient<T extends NodeLike>() {
     },
     []
   );
-    /**
+  /**
    * Ref to Web Worker.
    */
-    const worker = useWorkerFixtures();
-    /**
-     * Load Web Worker on component mount
-     */
-    useEffect(() => {
-      worker.ref.current = new Worker(
+  const ref = useRef<Worker>();
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    const user = localStorage.getItem("gotrue.user");
+    if (typeof user === "undefined" || !user) {
+      const err = "! You are not logged in";
+      console.error(err);
+      return;
+    }
+    if (!ref.current) {
+      ref.current = new Worker(
         new URL("@catalog/[collection]/worker.ts", import.meta.url),
         {
           type: "module",
         }
       );
-      worker.ref.current.addEventListener("message", workerMessageHandler, {
-        passive: true,
-      });
-      const handle = worker.ref.current;
-      worker.setDisabled(false);
-      return () => {
-        handle.removeEventListener("message", workerMessageHandler);
-      };
-    }, []);
-  return {
-    collection,
-    index,
-    message,
-    worker,
-    page,
-    linked
-  };
-}
-
-export type IMutate<T> = { title: string; Form: React.FunctionComponent<FormArgs<T>> };
-export type NodeLike = {uuid: string, name?: string};
-
-/**
- * Wraps collection retrieval and paging. Need to provide
- * a concrete type annotation, but at least expects uuid
- * and an optional name in the result data.
- * 
- * Expects offset and limit to be in the query for paging,
- * but will revert to the defaults described in OpenAPI
- * spec.
- * 
- * First one in array is shown with its summary details
- * open.
- */
-export function Collection<T extends NodeLike>({
-  title,
-  nav = false,
-  AdditionalProperties=null,
-}: {
-  title: string;
-  nav?: boolean;
-  AdditionalProperties?: React.FunctionComponent|null;
-}) {
-  const query = useSearchParams();
-  const { message, collection, worker, page } = useClient<T>();
-  useEffect(() => {
-    if (worker.disabled) return;
+    }
+    ref.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
     const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
     const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
-    worker.post({
+    ref.current.postMessage({
       type: ACTIONS.getCollection,
       data: {
+        user,
         query: {
           left: title,
           limit: parseInt(limit),
@@ -173,12 +125,17 @@ export function Collection<T extends NodeLike>({
         },
       },
     });
-  }, [worker.disabled]);
+    // Durable ref, current may change before cleanup
+    const handle = ref.current;
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, [workerMessageHandler]);
   return (
     <>
       <p>{message}</p>
       {collection.map(({ uuid, name, ...rest }, index) => (
-        <details key={uuid} name="exclusive" open={index===0}>
+        <details key={uuid} name="exclusive" open={index === 0}>
           <summary>
             <Link href={`edit?uuid=${uuid}`} prefetch={false}>
               {name ?? uuid}
@@ -193,7 +150,11 @@ export function Collection<T extends NodeLike>({
               </>
             )}
           </summary>
-          {AdditionalProperties && <div className={style.add_props} ><AdditionalProperties {...(rest as any)} /></div>}
+          {AdditionalProperties && (
+            <div className={style.add_props}>
+              <AdditionalProperties {...(rest as any)} />
+            </div>
+          )}
         </details>
       ))}
       <p>
@@ -208,6 +169,7 @@ export function Collection<T extends NodeLike>({
     </>
   );
 }
+
 function InputMetadata({
   name,
   description,

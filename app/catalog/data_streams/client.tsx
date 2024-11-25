@@ -225,15 +225,6 @@ export function View({}) {
   }>({
     current: 1,
   });
-  const [index, setIndex] = useState<
-    {
-      description: string;
-      href: string;
-      url: string;
-      content: string;
-      "@iot.count": number;
-    }[]
-  >([]);
   /**
    * Process web worker messages.
    */
@@ -270,6 +261,7 @@ export function View({}) {
    * Load Web Worker on component mount
    */
   useEffect(() => {
+    if (worker.ref.current) return;
     worker.ref.current = new Worker(
       new URL("@catalog/[collection]/worker.ts", import.meta.url),
       {
@@ -279,14 +271,6 @@ export function View({}) {
     worker.ref.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    const handle = worker.ref.current;
-    worker.setDisabled(false);
-    return () => {
-      handle.removeEventListener("message", workerMessageHandler);
-    };
-  }, []);
-  useEffect(() => {
-    if (worker.disabled) return;
     worker.post({
       type: ACTIONS.getCollection,
       data: {
@@ -297,7 +281,11 @@ export function View({}) {
         },
       },
     });
-  }, [worker.disabled]);
+    const handle = worker.ref.current;
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, [workerMessageHandler]);
   /**
    * Keep reference to the WASM constructor
    */

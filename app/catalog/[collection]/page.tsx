@@ -9,7 +9,6 @@ import { Data as Observations } from "../observations/client";
 import { Data as ObservedProperties } from "../observed_properties/client";
 import { Data as Sensors } from "../sensors/client";
 import { Data as Things } from "../things/client";
-
 const components = {
   DataStreams,
   FeaturesOfInterest,

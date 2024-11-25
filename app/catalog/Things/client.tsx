@@ -133,10 +133,20 @@ export function AdditionalProperties(thing: Initial<Things>) {
     </>
   );
 }
+const meshStyle: Initial<MeshStyle> = {
+  backgroundColor: "#11002299",
+  overlayColor: "lightblue",
+  lineWidth: 0.5,
+  fontSize: 24,
+  tickSize: 10,
+  fade: 0.6,
+  labelPadding: 10,
+  radius: 5,
+};
 /**
- * Visualization interface wrapper as custom hook
+ * Interactive visualization viewport
  */
-function useWebAssembly() {
+export function View() {
   /**
    * Preview 2D render target.
    */
@@ -176,26 +186,6 @@ function useWebAssembly() {
     const data = new InteractiveMesh(10, 10);
     setInteractive(data);
   }, [wasm]);
-  return {
-    ref,
-    interactive,
-  };
-}
-/**
- * Interactive visualization viewport
- */
-export function View() {
-  const { ref, interactive } = useWebAssembly();
-  const meshStyle: Initial<MeshStyle> = {
-    backgroundColor: "#11002299",
-    overlayColor: "lightblue",
-    lineWidth: 0.5,
-    fontSize: 24,
-    tickSize: 10,
-    fade: 0.6,
-    labelPadding: 10,
-    radius: 5,
-  };
   useEffect(() => {
     if (!interactive || !ref.current) return;
     const handle = ref.current;
