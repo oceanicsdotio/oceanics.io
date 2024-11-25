@@ -10,7 +10,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
 import { useSearchParams } from "next/navigation";
 // local
-import { type Initial, ACTIONS, useWorkerFixtures } from "@catalog/client";
+import { type Initial, ACTIONS } from "@catalog/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";
 import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
@@ -25,7 +25,7 @@ import style from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
 import { type Locations as LocationsType } from "@oceanics/app";
 /**
- * Number of decimal places in geospatial coordinates when automatically
+ * Number of decimal places in geo-spatial coordinates when automatically
  * determining location. A value of 4 gives good results to within tens
  * of meters. A value of 5 is approximately meter precision.
  */
@@ -242,7 +242,7 @@ export function AdditionalProperties(each: Initial<LocationsType>) {
   );
 }
 const DEFAULTS = {
-  zoom: 10,
+  zoom: 7,
   antialias: false,
   pitchWithRotate: false,
   dragRotate: false,
@@ -341,7 +341,7 @@ export function View({}) {
   /**
    * Ref to Web Worker.
    */
-  const worker = useWorkerFixtures();
+  const worker = useRef<Worker>();
   /**
    * Map is in idle state
    */
@@ -350,37 +350,50 @@ export function View({}) {
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    if (worker.ref.current || !ready) return;
-    worker.ref.current = new Worker(
+    if (worker.current || !ready) return;
+    worker.current = new Worker(
       new URL("@catalog/locations/worker.ts", import.meta.url),
       {
         type: "module",
       }
     );
-    worker.ref.current.addEventListener("message", workerMessageHandler, {
+    let second = new Worker(
+      new URL("@catalog/locations/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    worker.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
+    second.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
     const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
     const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
-    worker.post({
+    const user = localStorage.getItem("gotrue.user");
+    worker.current.postMessage({
       type: "getLocations",
       data: {
+        user,
         query: {
           left: schema.title,
-          limit: 20,
+          limit: parseInt(limit),
           offset: parseInt(offset),
         },
       },
     });
-    // worker.post({
-    //   type: "getFileSystem",
-    //   data: {
-    //     query: {
-    //       url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
-    //     },
-    //   },
-    // });
-    const handle = worker.ref.current;
+    second.postMessage({
+      type: "getFileSystem",
+      data: {
+        user,
+        query: {
+          url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
+        },
+      },
+    });
+    // chnage the worker
+    const handle = worker.current;
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
