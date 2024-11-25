@@ -2,14 +2,12 @@
 import specification from "@app/../specification.json";
 import type { FeaturesOfInterest } from "@oceanics/app";
 import {
-  type FormArgs,
-  TextInput,
   Initial
 } from "@catalog/client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection} from "@catalog/[collection]/client";
+import {Collection, TextInput, FormArgs} from "@catalog/[collection]/client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
 /**

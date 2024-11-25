@@ -1,19 +1,17 @@
 "use client";
+import { type Initial, ACTIONS, useWorkerFixtures } from "@catalog/client";
 import {
-  type FormArgs,
-  type Initial,
+  Collection,
   TextInput,
   TextSelectInput,
-  useClient,
-  ACTIONS
-} from "@catalog/client";
-import {Collection} from "@catalog/[collection]/client";
-import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
-import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+  FormArgs,
+} from "@catalog/[collection]/client";
+import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
+import { Create } from "@catalog/[collection]/create/client";
+import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import type {
   InteractiveDataStream,
   DataStreamStyle,
@@ -25,32 +23,24 @@ const schema = openapi.components.schemas.DataStreams;
 const properties = schema.properties;
 const parameters = openapi.components.parameters;
 export function Data() {
-  return <Collection<DataStreams> 
-    title={schema.title}
-    nav={true}
-    AdditionalProperties={AdditionalProperties as any}
-  />;
+  return (
+    <Collection<DataStreams>
+      title={schema.title}
+      nav={true}
+      AdditionalProperties={AdditionalProperties as any}
+    />
+  );
 }
 export function New({}) {
-  return (
-    <Create<DataStreams>
-      Form={Form}
-      title={schema.title}
-    ></Create>
-  )
+  return <Create<DataStreams> Form={Form} title={schema.title}></Create>;
 }
 export function Edit({}) {
   return (
-    <EditGeneric<DataStreams>
-      Form={Form}
-      title={schema.title}
-    ></EditGeneric>
-  )
+    <EditGeneric<DataStreams> Form={Form} title={schema.title}></EditGeneric>
+  );
 }
 export function Linked({}) {
-  return (
-      <LinkedGeneric<DataStreams> {...schema} />
-  );
+  return <LinkedGeneric<DataStreams> {...schema} />;
 }
 /**
  * Display an index of all or some subset of the
@@ -207,19 +197,94 @@ let draw: Initial<DataStreamStyle> = {
 };
 /**
  * Display an index of all or some subset of the
- * available nodes in the database. This is used 
+ * available nodes in the database. This is used
  * wherever you need to fetch and render all
  * or a subset of `DataStreams`.
  */
 export function View({}) {
- /**
+  /**
    * Retrieve node data using Web Worker. Redirect if there are
    * no nodes of the given type.
    */
- const query = useSearchParams();
+  const query = useSearchParams();
   const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
   const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
-  const { message, collection, worker, page } = useClient<DataStreams>();
+  /**
+   * Status message to understand what is going on in the background.
+   */
+  const [message, setMessage] = useState("↻ Loading");
+  /**
+   * Node or index data, if any.
+   */
+  const [collection, setCollection] = useState<DataStreams[]>([]);
+
+  const [page, setPage] = useState<{
+    next?: string;
+    previous?: string;
+    current: number;
+  }>({
+    current: 1,
+  });
+  const [index, setIndex] = useState<
+    {
+      description: string;
+      href: string;
+      url: string;
+      content: string;
+      "@iot.count": number;
+    }[]
+  >([]);
+  /**
+   * Process web worker messages.
+   */
+  const workerMessageHandler = useCallback(
+    ({ data: { data, type } }: MessageEvent) => {
+      switch (type) {
+        case ACTIONS.getCollection:
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setCollection(data.value);
+          setPage(data.page);
+          return;
+        case ACTIONS.getEntity:
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setCollection(data.value);
+          return;
+        case ACTIONS.error:
+          console.error("@worker", type, data);
+          return;
+        case ACTIONS.status:
+          setMessage(data.message);
+          return;
+        default:
+          console.warn("@client", type, data);
+          return;
+      }
+    },
+    []
+  );
+  /**
+   * Ref to Web Worker.
+   */
+  const worker = useWorkerFixtures();
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    worker.ref.current = new Worker(
+      new URL("@catalog/[collection]/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    worker.ref.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
+    const handle = worker.ref.current;
+    worker.setDisabled(false);
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, []);
   useEffect(() => {
     if (worker.disabled) return;
     worker.post({
@@ -302,7 +367,7 @@ export function View({}) {
       const elapsed = performance.now() - clock.offset - clock.start;
       const phenomenonTime = timeConstant * elapsed;
       const result = Math.sin(phenomenonTime);
-      let obs: Initial<Observations> = { phenomenonTime, result, uuid: "" }
+      let obs: Initial<Observations> = { phenomenonTime, result, uuid: "" };
       interactive.pushObservation(obs, -1.0, 1.0);
       interactive.draw(handle, draw, false);
       requestId = requestAnimationFrame(render);
@@ -320,11 +385,11 @@ export function View({}) {
     const data = new InteractiveDataStream(capacity, bins, source);
     setInteractive(data);
   }, [wasm, source]);
-  useEffect(()=>{
-    if (!collection.length) return
-    console.log(collection)
+  useEffect(() => {
+    if (!collection.length) return;
+    console.log(collection);
     setSource(collection[0] as any);
-  },[collection])
+  }, [collection]);
   /**
    * UI Restart Controller
    */

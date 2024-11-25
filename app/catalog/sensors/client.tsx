@@ -1,14 +1,13 @@
 "use client";
 import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
-import { TextSelectInput, type Initial } from "../client";
+import { type Initial } from "../client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
-import { TextInput } from "@catalog/client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection} from "@catalog/[collection]/client";
+import {Collection, TextInput, TextSelectInput} from "@catalog/[collection]/client";
 const schema = specification.components.schemas.Sensors;
 const properties = schema.properties;
 export function New({}) {

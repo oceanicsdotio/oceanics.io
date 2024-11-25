@@ -1,6 +1,5 @@
 "use client";
 import React, {
-  useRef,
   useEffect,
   useState,
   useCallback,
@@ -12,7 +11,7 @@ import Link from "next/link";
 import specification from "@app/../specification.json";
 const parameters = specification.components.parameters;
 import { useSearchParams } from "next/navigation";
-import { Initial, ACTIONS, useWorker } from "@catalog/client"
+import { Initial, ACTIONS, useWorkerFixtures } from "@catalog/client"
 export type FormArgs<T> = {
   action: string;
   initial: Initial<T>;
@@ -101,10 +100,29 @@ export function useClient<T extends NodeLike>() {
     },
     []
   );
-  /**
+    /**
    * Ref to Web Worker.
    */
-  const worker = useWorker(workerMessageHandler);
+    const worker = useWorkerFixtures();
+    /**
+     * Load Web Worker on component mount
+     */
+    useEffect(() => {
+      worker.ref.current = new Worker(
+        new URL("@catalog/[collection]/worker.ts", import.meta.url),
+        {
+          type: "module",
+        }
+      );
+      worker.ref.current.addEventListener("message", workerMessageHandler, {
+        passive: true,
+      });
+      const handle = worker.ref.current;
+      worker.setDisabled(false);
+      return () => {
+        handle.removeEventListener("message", workerMessageHandler);
+      };
+    }, []);
   return {
     collection,
     index,
@@ -117,37 +135,7 @@ export function useClient<T extends NodeLike>() {
 
 export type IMutate<T> = { title: string; Form: React.FunctionComponent<FormArgs<T>> };
 export type NodeLike = {uuid: string, name?: string};
-/**
- * Shared by collection index pages. Wraps the useCollection hook,
- * and fires a query once the worker is ready.
- *
- * Redirect to Create page if there are no existing nodes to view.
- */
-export function useGetCollection<T extends NodeLike>(title: string) {
-  const query = useSearchParams();
-  const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
-  const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
-  const { message, collection, worker, page } = useClient<T>();
-  useEffect(() => {
-    if (worker.disabled) return;
-    worker.post({
-      type: ACTIONS.getCollection,
-      data: {
-        query: {
-          left: title,
-          limit: parseInt(limit),
-          offset: parseInt(offset),
-        },
-      },
-    });
-  }, [worker.disabled]);
-  return {
-    collection,
-    message,
-    page,
-    worker
-  };
-}
+
 /**
  * Wraps collection retrieval and paging. Need to provide
  * a concrete type annotation, but at least expects uuid

@@ -3,12 +3,14 @@ import React, {
   useRef,
   useEffect,
   useCallback,
+  useState,
   type FormEventHandler,
 } from "react";
 import style from "@catalog/page.module.css";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { type NodeLike, useClient, ACTIONS, TextSelectInput } from "@catalog/client";
+import { ACTIONS, useWorkerFixtures } from "@catalog/client";
+import { type NodeLike, TextSelectInput } from "@catalog/[collection]/client";
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
@@ -27,7 +29,66 @@ export function Linked<T extends NodeLike>(schema: {
   const left_uuid = query.get("uuid");
   const { push, refresh } = useRouter();
   
-  const {message, collection, worker, linked} = useClient<T>();
+  /**
+   * Status message to understand what is going on in the background.
+   */
+  const [message, setMessage] = useState("↻ Loading");
+  /**
+   * Node or index data, if any.
+   */
+  const [collection, setCollection] = useState<T[]>([]);
+  const [linked, setLinked] = useState<any[]>([]);
+  /**
+   * Process web worker messages.
+   */
+  const workerMessageHandler = useCallback(
+    ({ data: { data, type } }: MessageEvent) => {
+      switch (type) {
+        
+        case ACTIONS.getCollection:
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setCollection(data.value);
+          return;
+        case ACTIONS.getLinked:
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setLinked(data.value);
+          return;
+        case ACTIONS.error:
+          console.error("@worker", type, data);
+          return;
+        case ACTIONS.status:
+          setMessage(data.message);
+          return;
+        default:
+          console.warn("@client", type, data);
+          return;
+      }
+    },
+    []
+  );
+    /**
+   * Ref to Web Worker.
+   */
+    const worker = useWorkerFixtures();
+    /**
+     * Load Web Worker on component mount
+     */
+    useEffect(() => {
+      worker.ref.current = new Worker(
+        new URL("@catalog/[collection]/linked/worker.ts", import.meta.url),
+        {
+          type: "module",
+        }
+      );
+      worker.ref.current.addEventListener("message", workerMessageHandler, {
+        passive: true,
+      });
+      const handle = worker.ref.current;
+      worker.setDisabled(false);
+      return () => {
+        handle.removeEventListener("message", workerMessageHandler);
+      };
+    }, []);
   useEffect(()=>{
     if (worker.disabled) return;
     worker.post({

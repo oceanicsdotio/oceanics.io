@@ -2,15 +2,10 @@
 import React, { useRef } from "react";
 import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
-import {
-  TextInput,
-  NumberInput,
-  FormArgs
-} from "../client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection} from "@catalog/[collection]/client";
+import {Collection, TextInput, NumberInput, FormArgs} from "@catalog/[collection]/client";
 const components = specification.components;
 const schema = components.schemas.Observations;
 import style from "@catalog/page.module.css";

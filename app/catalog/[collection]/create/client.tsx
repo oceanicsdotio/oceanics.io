@@ -2,15 +2,66 @@
 import React, {
   useRef,
   useState,
+  useCallback,
+  useEffect,
   type FormEventHandler,
 } from "react";
 import { v7 as uuid7 } from "uuid";
-import { useClient, type FormArgs, ACTIONS, NodeLike, IMutate} from "@catalog/client"
+import { NodeLike, IMutate} from "@catalog/[collection]/client"
+import {ACTIONS, useWorkerFixtures} from "@catalog/client"
 
 export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
   const action = "Create";
   const formRef = useRef<HTMLFormElement | null>(null);
-  const { message, worker } = useClient<T>();
+  /**
+   * Status message to understand what is going on in the background.
+   */
+  const [message, setMessage] = useState("↻ Loading");
+  /**
+   * Process web worker messages.
+   */
+  const workerMessageHandler = useCallback(
+    ({ data: { data, type } }: MessageEvent) => {
+      switch (type) {
+        case ACTIONS.createEntity:
+          window.location.reload();
+          return;
+        case ACTIONS.error:
+          console.error("@worker", type, data);
+          return;
+        case ACTIONS.status:
+          setMessage(data.message);
+          return;
+        default:
+          console.warn("@client", type, data);
+          return;
+      }
+    },
+    []
+  );
+  /**
+   * Ref to Web Worker.
+   */
+  const worker = useWorkerFixtures();
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    worker.ref.current = new Worker(
+      new URL("@catalog/[collection]/create/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    worker.ref.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
+    const handle = worker.ref.current;
+    worker.setDisabled(false);
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, []);
 
   const onSubmit =
     (callback: any): FormEventHandler =>

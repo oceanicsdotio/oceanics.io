@@ -8,14 +8,12 @@ import React, {
 import type { InteractiveMesh, MeshStyle, Things } from "@oceanics/app";
 import OpenAPI from "@app/../specification.json";
 import {
-  TextInput,
-  type Initial,
-  type FormArgs
+  type Initial
 } from "@catalog/client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection} from "@catalog/[collection]/client";
+import {Collection, TextInput, type FormArgs} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification

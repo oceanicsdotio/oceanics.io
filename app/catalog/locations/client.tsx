@@ -3,29 +3,26 @@ import React, {
   useRef,
   useEffect,
   useState,
+  useCallback,
   type MutableRefObject,
 } from "react";
 import styles from "@catalog/page.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
-import { useClient } from "@catalog/client";
 import { type Locations as LocationsType } from "@oceanics/app";
 import { useSearchParams } from "next/navigation";
 
 import specification from "@app/../specification.json";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
-  TextInput,
-  NumberInput,
-  TextSelectInput,
   type Initial,
-  type FormArgs,
-  ACTIONS
+  ACTIONS,
+  useWorkerFixtures
 } from "@catalog/client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection} from "@catalog/[collection]/client";
+import {Collection, TextInput, NumberInput, TextSelectInput, FormArgs} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
 
 /**
@@ -320,7 +317,55 @@ export function View({}) {
   const [map, setMap] = useState<Map | null>(null);
  const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
  const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
- const { message, collection, worker, page } = useClient<LocationsType>();
+ /**
+   * Status message to understand what is going on in the background.
+   */
+ const [message, setMessage] = useState("↻ Loading");
+ /**
+  * Process web worker messages.
+  */
+ const workerMessageHandler = useCallback(
+   ({ data: { data, type } }: MessageEvent) => {
+     switch (type) {
+       case ACTIONS.getCollection:
+       case ACTIONS.getEntity:
+         return;
+       case ACTIONS.error:
+         console.error("@worker", type, data);
+         return;
+       case ACTIONS.status:
+         setMessage(data.message);
+         return;
+       default:
+         console.warn("@client", type, data);
+         return;
+     }
+   },
+   []
+ );
+   /**
+  * Ref to Web Worker.
+  */
+   const worker = useWorkerFixtures();
+   /**
+    * Load Web Worker on component mount
+    */
+   useEffect(() => {
+     worker.ref.current = new Worker(
+       new URL("@catalog/[collection]/worker.ts", import.meta.url),
+       {
+         type: "module",
+       }
+     );
+     worker.ref.current.addEventListener("message", workerMessageHandler, {
+       passive: true,
+     });
+     const handle = worker.ref.current;
+     worker.setDisabled(false);
+     return () => {
+       handle.removeEventListener("message", workerMessageHandler);
+     };
+   }, []);
  useEffect(() => {
    if (worker.disabled) return;
    worker.post({
