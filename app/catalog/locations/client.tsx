@@ -9,15 +9,18 @@ import React, {
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
 import { useSearchParams } from "next/navigation";
+// local
+import { type Initial, ACTIONS, useWorkerFixtures } from "@catalog/client";
+import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
+import { Create } from "@catalog/[collection]/create/client";
+import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
 import {
-  type Initial,
-  ACTIONS,
-  useWorkerFixtures
-} from "@catalog/client";
-import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
-import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection, TextInput, NumberInput, TextSelectInput, FormArgs} from "@catalog/[collection]/client";
+  Collection,
+  TextInput,
+  NumberInput,
+  TextSelectInput,
+  FormArgs,
+} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
 import { type Locations as LocationsType } from "@oceanics/app";
@@ -33,32 +36,24 @@ const GEOLOCATION_PRECISION = 5;
 const schema = specification.components.schemas.Locations;
 const parameters = specification.components.parameters;
 export function Data() {
-  return <Collection<LocationsType> 
-    title={schema.title}
-    nav={true}
-    AdditionalProperties={AdditionalProperties as any}
-  />;
+  return (
+    <Collection<LocationsType>
+      title={schema.title}
+      nav={true}
+      AdditionalProperties={AdditionalProperties as any}
+    />
+  );
 }
 export function New({}) {
-  return (
-    <Create<LocationsType>
-      Form={Form}
-      title={schema.title}
-    ></Create>
-  )
+  return <Create<LocationsType> Form={Form} title={schema.title}></Create>;
 }
 export function Edit({}) {
   return (
-    <EditGeneric<LocationsType>
-      Form={Form}
-      title={schema.title}
-    ></EditGeneric>
-  )
-} 
-export function Linked({}) {
-  return (
-      <LinkedGeneric<LocationsType> {...schema} />
+    <EditGeneric<LocationsType> Form={Form} title={schema.title}></EditGeneric>
   );
+}
+export function Linked({}) {
+  return <LinkedGeneric<LocationsType> {...schema} />;
 }
 /**
  * Display an index of all or some subset of the
@@ -239,10 +234,12 @@ function Form({
   );
 }
 export function AdditionalProperties(each: Initial<LocationsType>) {
-  return (<>
-    <p>description: {each.description ?? "n/a"}</p>
-    <p>encoding type: {each.encodingType ?? "n/a"}</p>
-  </>)
+  return (
+    <>
+      <p>description: {each.description ?? "n/a"}</p>
+      <p>encoding type: {each.encodingType ?? "n/a"}</p>
+    </>
+  );
 }
 const DEFAULTS = {
   zoom: 10,
@@ -299,7 +296,7 @@ const DEFAULTS = {
   },
 };
 /**
- * Locations View is a MapBox instance that shows 
+ * Locations View is a MapBox instance that shows
  */
 export function View({}) {
   const query = useSearchParams();
@@ -311,88 +308,83 @@ export function View({}) {
    * MapBoxGL Map instance saved to React state.
    */
   const [map, setMap] = useState<Map | null>(null);
- const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
- const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
- /**
+  /**
    * Status message to understand what is going on in the background.
    */
- const [message, setMessage] = useState("↻ Loading");
- /**
-  * Process web worker messages.
-  */
- const workerMessageHandler = useCallback(
-   ({ data: { data, type } }: MessageEvent) => {
-     switch (type) {
-       case "layer":
-          if (map?.getLayer(data.id)) {
+  const [message, setMessage] = useState("↻ Loading");
+  /**
+   * Process web worker messages.
+   */
+  const workerMessageHandler = useCallback(
+    ({ data: { data, type } }: MessageEvent) => {
+      switch (type) {
+        case ACTIONS.status:
+          setMessage(data.message);
+          return;
+        case ACTIONS.error:
+          console.error("@worker", type, data);
+          return;
+        case "layer":
+          const exists = !!map && !!map.getLayer(data.id);
+          if (exists) {
             map.removeLayer(data.id);
             map.removeSource(data.id);
           }
           map?.addLayer(data, "cities");
-       case ACTIONS.getEntity:
-         return;
-       case ACTIONS.error:
-         console.error("@worker", type, data);
-         return;
-       case ACTIONS.status:
-         setMessage(data.message);
-         return;
-       default:
-         console.warn("@client", type, data);
-         return;
-     }
-   },
-   []
- );
-   /**
-  * Ref to Web Worker.
-  */
-   const worker = useWorkerFixtures();
-   /**
-    * Load Web Worker on component mount
-    */
-   useEffect(() => {
-     worker.ref.current = new Worker(
-       new URL("@catalog/[collection]/locations/worker.ts", import.meta.url),
-       {
-         type: "module",
-       }
-     );
-     worker.ref.current.addEventListener("message", workerMessageHandler, {
-       passive: true,
-     });
-     const handle = worker.ref.current;
-     worker.setDisabled(false);
-     return () => {
-       handle.removeEventListener("message", workerMessageHandler);
-     };
-   }, []);
- 
+        default:
+          console.warn("@client", type, data);
+          return;
+      }
+    },
+    [map]
+  );
+  /**
+   * Ref to Web Worker.
+   */
+  const worker = useWorkerFixtures();
   /**
    * Map is in idle state
    */
   const [ready, setReady] = useState(false);
+  /**
+   * Load Web Worker on component mount
+   */
   useEffect(() => {
-    if (worker.disabled || !ready) return;
+    if (worker.ref.current || !ready) return;
+    worker.ref.current = new Worker(
+      new URL("@catalog/locations/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    worker.ref.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
+    const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
+    const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
     worker.post({
-      type: ACTIONS.getCollection,
+      type: "getLocations",
       data: {
         query: {
           left: schema.title,
-          limit: parseInt(limit),
+          limit: 20,
           offset: parseInt(offset),
         },
       },
     });
-    worker.post({
-     type: "getFileSystem",
-     data: {
-       query: {
-         url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
-       },
-     },
-   });
-  }, [worker.disabled, ready]);
+    // worker.post({
+    //   type: "getFileSystem",
+    //   data: {
+    //     query: {
+    //       url: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com",
+    //     },
+    //   },
+    // });
+    const handle = worker.ref.current;
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, [workerMessageHandler, ready]);
   /**
    * Current zoom level
    */
@@ -431,51 +423,51 @@ export function View({}) {
    * Create home animation image.
    */
   useEffect(() => {
-    if (!navigator.geolocation || !map || !ready) return;
-    let onGetPosition = (location: GeolocationPosition) => {
-      map.addLayer({
-        id: `home`,
-        type: "circle",
-        source: {
-          type: "geojson",
-          generateId: true,
-          data: {
-            type: "FeatureCollection",
-            features: [
-              {
-                type: "Feature",
-                geometry: {
-                  type: "Point",
-                  coordinates: [
-                    location.coords.longitude,
-                    location.coords.latitude,
-                  ],
-                },
-                properties: {},
-              },
-            ],
-          },
-          attribution: "Oceanics.io",
-        },
-        paint: {
-          "circle-radius": 5,
-          "circle-stroke-width": 1,
-          "circle-color": "orange",
-        },
-      });
-      // map.panTo([location.coords.longitude, location.coords.latitude]);
-    };
-    navigator.geolocation.getCurrentPosition(
-      onGetPosition,
-      () => {
-        console.error("Error getting client location.");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      }
-    );
+    // if (!navigator.geolocation || !map || !ready) return;
+    // let onGetPosition = (location: GeolocationPosition) => {
+    //   map.addLayer({
+    //     id: `home`,
+    //     type: "circle",
+    //     source: {
+    //       type: "geojson",
+    //       generateId: true,
+    //       data: {
+    //         type: "FeatureCollection",
+    //         features: [
+    //           {
+    //             type: "Feature",
+    //             geometry: {
+    //               type: "Point",
+    //               coordinates: [
+    //                 location.coords.longitude,
+    //                 location.coords.latitude,
+    //               ],
+    //             },
+    //             properties: {},
+    //           },
+    //         ],
+    //       },
+    //       attribution: "Oceanics.io",
+    //     },
+    //     paint: {
+    //       "circle-radius": 5,
+    //       "circle-stroke-width": 1,
+    //       "circle-color": "orange",
+    //     },
+    //   });
+    //   // map.panTo([location.coords.longitude, location.coords.latitude]);
+    // };
+    // navigator.geolocation.getCurrentPosition(
+    //   onGetPosition,
+    //   () => {
+    //     console.error("Error getting client location.");
+    //   },
+    //   {
+    //     enableHighAccuracy: true,
+    //     timeout: 5000,
+    //     maximumAge: 0,
+    //   }
+    // );
   }, [map, ready]);
   return (
     <div>

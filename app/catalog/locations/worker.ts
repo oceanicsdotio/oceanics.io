@@ -1,9 +1,5 @@
 import { DOMParser } from "@xmldom/xmldom";
-import { postError } from "@catalog/worker"
-type WorkerCache = {
-  handlers: { [key: string]: Function },
-};
-let CACHE: WorkerCache | null = null;
+import { postError } from "@catalog/worker";
 let postStatus = (message: string) => {
   self.postMessage({
     type: "status",
@@ -149,108 +145,93 @@ async function getBoundaries(query: { url: string }) {
   })
   return true
 }
-/**
- * Only perform startup routine once
- */
-async function startup(message: MessageEvent) {
-  const { data: { user } } = message.data;
-  if (typeof user === "undefined") {
-    throw Error(`worker missing user data: ${JSON.stringify(message)}`)
-  }
-  const { token: { access_token = null } }: any = JSON.parse(user);
-  if (!access_token) {
-    throw Error(`worker missing access token`)
-  }
-  const { panic_hook, getCollection } = await import("@oceanics/app");
-  // Provide better error messaging on web assembly panic
-  panic_hook();
-  async function getCollectionAndTransform(query: any) {
-    const result = await getCollection(access_token, query);
-    postStatus(`Found ${result.value.length}`);
-    if (!result.page.next) result.page.next = undefined
-    if (!result.page.previous) result.page.previous = undefined
-    return result
-  }
-  async function getLocations(query: any) {
-    function transform({ location, ...rest }: {location?: any}) {
-      return {
-        type: "Feature",
-        geometry: JSON.parse(location as any),
-        properties: {
-          ...rest
-        },
-      };
-    }
-    const result = await getCollectionAndTransform(query);
-    const data = {
-      id: "query-result",
-      type: "circle",
-      source: {
-        type: "geojson",
-        generateId: true,
-        data: {
-          type: "FeatureCollection",
-          features: result.value.map(transform) as any,
-        },
-        attribution: "Oceanics.io",
-      },
-      paint: {
-        "circle-radius": 5,
-        "circle-stroke-width": 1,
-        "circle-stroke-color": "orange",
-      },
-    };
+function transform({ location, ...rest }: {location?: any}) {
+  return {
+    type: "Feature",
+    geometry: JSON.parse(location as any),
+    properties: {
+      ...rest
+    },
+  };
+}
+function collectionToMultiPolygonLayer(result: any) {
+  const multiPolygons = result.filter((location: any) => location.geometry.type === "MultiPolygon")
+  console.log({multiPolygons})
+  multiPolygons.forEach((feature: any, ind: number)=>{
     self.postMessage({
-      data,
+      data: {
+        id: `query-result-multi-polygon-${ind}`,
+        type: "line",
+        source: {
+          type: "geojson",
+          generateId: true,
+          data: feature,
+          attribution: "ME OIT",
+        },
+        paint: {
+          "line-color": "rgba(255,255,255,0.5)"
+        },
+      },
       type: "layer"
     })
-    return true
-  }
-  return {
-    handlers: {
-      getCollection: getCollectionAndTransform,
-      getFileSystem: searchFragments,
-      getBoundaries: getBoundaries,
-      getLocations: getLocations
-    }
-  }
+  })
+} 
+function collectionToPointLayer(result: any) {
+  const points = result.filter((location: any) => location.geometry.type === "Point")
+  console.log({points})
+  const data = {
+    id: "query-result-points",
+    type: "circle",
+    source: {
+      type: "geojson",
+      generateId: true,
+      data: {
+        type: "FeatureCollection",
+        features: points,
+      },
+      attribution: "Oceanics.io",
+    },
+    paint: {
+      "circle-radius": 5,
+      "circle-stroke-width": 1,
+      "circle-stroke-color": "orange",
+    },
+  };
+  self.postMessage({
+    data,
+    type: "layer"
+  })
 }
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
-  if (!CACHE) {
-    try {
-      CACHE = await startup(message);
-    } catch (error: any) {
-      self.postMessage({
-        type: "error",
-        data: error.message
-      });
-      return
-    }
-    postStatus(`Ready`);
+  const { data: { user }, type } = message.data;
+  if (typeof user === "undefined") {
+    postError(`worker missing user data: ${JSON.stringify(message)}`)
   }
-  const { handlers: { [message.data.type]: handler = null } } = CACHE as WorkerCache;
-  if (!handler) {
+  const { token: { access_token = null } }: any = JSON.parse(user);
+  if (!access_token) {
+    postError(`worker missing access token`)
+  }
+  if (!["getLocations"].includes(type)) {
     self.postMessage({
       type: "error",
-      data: `unknown message format: ${message.data.type}`
+      data: `unknown message format: ${type}`
     });
     return
   }
+  const { panic_hook, getCollection } = await import("@oceanics/app");
+  // Provide better error messaging on web assembly panic
+  panic_hook();
   try {
-    const result = await handler(message.data.data.query, message.data.data.body);
-    self.postMessage({
-      type: message.data.type,
-      data: result
-    });
+    const result = await getCollection(access_token, message.data.data.query);
+    const parsed = result.value.map(transform);
+    // collectionToPointLayer(parsed);
+    collectionToMultiPolygonLayer(parsed);
   } catch (error: any) {
-    self.postMessage({
-      type: "error",
-      data: error.message
-    });
+    postError(error.message);
   }
 }
 /**
