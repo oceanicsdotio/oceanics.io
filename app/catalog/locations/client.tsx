@@ -423,51 +423,51 @@ export function View({}) {
    * Create home animation image.
    */
   useEffect(() => {
-    // if (!navigator.geolocation || !map || !ready) return;
-    // let onGetPosition = (location: GeolocationPosition) => {
-    //   map.addLayer({
-    //     id: `home`,
-    //     type: "circle",
-    //     source: {
-    //       type: "geojson",
-    //       generateId: true,
-    //       data: {
-    //         type: "FeatureCollection",
-    //         features: [
-    //           {
-    //             type: "Feature",
-    //             geometry: {
-    //               type: "Point",
-    //               coordinates: [
-    //                 location.coords.longitude,
-    //                 location.coords.latitude,
-    //               ],
-    //             },
-    //             properties: {},
-    //           },
-    //         ],
-    //       },
-    //       attribution: "Oceanics.io",
-    //     },
-    //     paint: {
-    //       "circle-radius": 5,
-    //       "circle-stroke-width": 1,
-    //       "circle-color": "orange",
-    //     },
-    //   });
-    //   // map.panTo([location.coords.longitude, location.coords.latitude]);
-    // };
-    // navigator.geolocation.getCurrentPosition(
-    //   onGetPosition,
-    //   () => {
-    //     console.error("Error getting client location.");
-    //   },
-    //   {
-    //     enableHighAccuracy: true,
-    //     timeout: 5000,
-    //     maximumAge: 0,
-    //   }
-    // );
+    if (!navigator.geolocation || !map || !ready) return;
+    let onGetPosition = (location: GeolocationPosition) => {
+      map.addLayer({
+        id: `home`,
+        type: "circle",
+        source: {
+          type: "geojson",
+          generateId: true,
+          data: {
+            type: "FeatureCollection",
+            features: [
+              {
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [
+                    location.coords.longitude,
+                    location.coords.latitude,
+                  ],
+                },
+                properties: {},
+              },
+            ],
+          },
+          attribution: "Oceanics.io",
+        },
+        paint: {
+          "circle-radius": 5,
+          "circle-stroke-width": 1,
+          "circle-color": "orange",
+        },
+      });
+      // map.panTo([location.coords.longitude, location.coords.latitude]);
+    };
+    navigator.geolocation.getCurrentPosition(
+      onGetPosition,
+      () => {
+        console.error("Error getting client location.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
   }, [map, ready]);
   return (
     <div>
