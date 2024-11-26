@@ -5173,15 +5173,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=170c67&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4a7ee144a777e1188f6103bd4284bca368873ee973438cd3a36fa2812524982879655023af1774ad0d6e70250a41893e98e0c7120efe115f3da46a5712da5a37
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=a3f15e&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4818ac5adcec8972f1cc88780f5807ff6efcaac3b507cc8008203b027543498817d86192215597ae3819838bed374d381fe9f79d986ab13cadfeba0c617e76ae
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -5653,11 +5653,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/cli@npm:^1.25.11":
-  version: 1.25.11
-  resolution: "@redocly/cli@npm:1.25.11"
+"@redocly/cli@npm:^1.25.14":
+  version: 1.25.14
+  resolution: "@redocly/cli@npm:1.25.14"
   dependencies:
-    "@redocly/openapi-core": "npm:1.25.11"
+    "@redocly/openapi-core": "npm:1.25.14"
     abort-controller: "npm:^3.0.0"
     chokidar: "npm:^3.5.1"
     colorette: "npm:^1.2.0"
@@ -5679,7 +5679,7 @@ __metadata:
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/ad2ab282ee8cd5733b94e61ef8dab2c8441e92438c22f17083c635da37074b2046a75a25f619ab4ca8855372c5ef8572c1216116a996762df90eb18b1c48150e
+  checksum: 10/063eafdf9c4cce361d1d7cc3deffd4f6f62b337b0d44c71c59ef1a1399c126fe48d7e6b689e7c8bceeb2ff572f542bb228d40bc81ba8f0f251a8c29aabaa9e73
   languageName: node
   linkType: hard
 
@@ -5697,9 +5697,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:1.25.11":
-  version: 1.25.11
-  resolution: "@redocly/openapi-core@npm:1.25.11"
+"@redocly/openapi-core@npm:1.25.14":
+  version: 1.25.14
+  resolution: "@redocly/openapi-core@npm:1.25.14"
   dependencies:
     "@redocly/ajv": "npm:^8.11.2"
     "@redocly/config": "npm:^0.16.0"
@@ -5712,7 +5712,7 @@ __metadata:
     node-fetch: "npm:^2.6.1"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/8094be605d9522946e567146605a5a7b26107fa231cc16514c9047feae3e95f583dabdcbbf25ab1486bf2e017b6707bc78213893eb3b280135f2802be9f7ecef
+  checksum: 10/df2bd8638cd1f56f798c27c268c45ce0b3e1f755c7ec3d06bacd7e8502d9fdc1287d6f25ea37a3462b161cc6ff1f48c0fcbf462e79139286820975b86dc758ff
   languageName: node
   linkType: hard
 
@@ -23946,7 +23946,7 @@ __metadata:
     "@next/mdx": "npm:15.0.1"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
-    "@redocly/cli": "npm:^1.25.11"
+    "@redocly/cli": "npm:^1.25.14"
     "@types/geojson": "npm:^7946.0.14"
     "@types/jest": "npm:^29.5.14"
     "@types/katex": "npm:^0.16.7"
