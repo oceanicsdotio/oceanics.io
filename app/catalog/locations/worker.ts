@@ -15,6 +15,33 @@ let postError = (message: string) => {
     }
   })
 }
+function postSource(id: string, features: any[], attribution: string) {
+  self.postMessage({
+    type: "source",
+    data: {
+      id,
+      source: {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features,
+        },
+        attribution,
+      }
+    }
+  })
+}
+function postLayer(id: string, type: string, paint: any) {
+  self.postMessage({
+    type: "layer",
+    data: {
+      id,
+      type,
+      source: id,
+      paint,
+    }
+  })
+}
 /**
  * Retrieve remote file metadata and format it as a
  * serializable message.
@@ -54,21 +81,22 @@ async function getFileSystem(query: { url: string }) {
 const logNormal = (x: number, m = 0, s = 1.0): number =>
   (1 / s / x / Math.sqrt(2 * Math.PI)) *
   Math.exp((-1 * (Math.log(x) - m) ** 2) / (2 * s ** 2));
+
 /**
  * Retrieve a piece of a vertex array buffer from object storage.
  */
+const MAX_VALUE = 5200;
 async function getFragment(url: string, attribution: string) {
-  const blob = await fetch(url).then((response) => response.blob());
-  const arrayBuffer = await blob.arrayBuffer();
-  const MAX_VALUE = 5200;
-  const dataView = new Float32Array(arrayBuffer);
+  const arrayBuffer = await fetch(url)
+    .then((response) => response.blob())
+    .then((blob) => blob.arrayBuffer());
+  const dataView = new Float32Array(arrayBuffer); // view
   const count = dataView.length / 3;
-  let feature_collection = [];
+  let feature_collection = []; // copy
   let point = 0;
   while (point < count) {
     const start = point * 3;
-    const end = start + 3;
-    const coordinates = dataView.slice(start, end);
+    const coordinates = dataView.slice(start, start + 3);
     feature_collection.push({
       geometry: { type: "Point", coordinates },
       properties: {
@@ -78,51 +106,36 @@ async function getFragment(url: string, attribution: string) {
     })
     point = point + 1;
   }
-  return {
-    id: url,
-    type: "circle",
-    source: {
-      type: "geojson",
-      generateId: true,
-      data: {
-        type: "FeatureCollection",
-        features: feature_collection,
-      },
-      attribution,
-    },
-    paint: {
-      "circle-radius": {
-        stops: [
-          [0, 0.2],
-          [22, 4],
-        ],
-      },
-      "circle-stroke-width": 0,
-      "circle-color": [
-        "rgba",
-        ["*", 127, ["get", "q"]],
-        ["*", 127, ["get", "ln"]],
-        ["*", 127, ["-", 1, ["get", "q"]]],
-        0.75,
+  postSource(url, feature_collection, attribution);
+  postLayer(url, "circle", {
+    "circle-radius": {
+      stops: [
+        [0, 0.2],
+        [22, 4],
       ],
     },
-  };
+    "circle-stroke-width": 0,
+    "circle-color": [
+      "rgba",
+      ["*", 127, ["get", "q"]],
+      ["*", 127, ["get", "ln"]],
+      ["*", 127, ["-", 1, ["get", "q"]]],
+      0.75,
+    ],
+  });
 };
 async function searchFragments(query: any) {
   postStatus(`Getting filesystem...`);
   const collection = "assets/necofs_gom3_mesh/nodes";
-  const result = await getFileSystem(query);
   const attribution = "UMass Dartmouth";
-  const matches = result.filter((node) => node.key.includes(collection));
-  matches.forEach(async (target) => {
-    const data = await getFragment(`${query.url}/${target.key}`, attribution);
-    self.postMessage({
-      data,
-      type: "layer"
-    })
+  const result = await getFileSystem(query);
+  const tasks = result.filter((node) => node.key.includes(collection)).map((target) => {
+    const url = `${query.url}/${target.key}`;
+    return getFragment(url, attribution);
   });
+  Promise.all(tasks)
 }
-function transform({ location, ...rest }: {location?: any}) {
+function transform({ location, ...rest }: { location?: any }) {
   return {
     type: "Feature",
     geometry: JSON.parse(location as any),
@@ -131,57 +144,38 @@ function transform({ location, ...rest }: {location?: any}) {
     },
   };
 }
-function hasLocation({ location }: {location?: any}) {
+function hasLocation({ location }: { location?: any }) {
   return typeof location !== "undefined"
 }
+function isMultiPolygon(location: any) {
+  return location.geometry.type === "MultiPolygon"
+}
 function collectionToMultiPolygonLayer(result: any, limit: number, offset: number) {
-  const multiPolygons = result.filter((location: any) => location.geometry.type === "MultiPolygon")
+  const multiPolygons = result.filter(isMultiPolygon)
   if (!multiPolygons.length) return;
-  self.postMessage({
-    data: {
-      id: `locations-multi-polygons-${offset}-${limit}`,
-      type: "line",
-      source: {
-        type: "geojson",
-        generateId: true,
-        data: {
-          type: "FeatureCollection",
-          features: multiPolygons,
-        },
-        attribution: "ME OIT",
-      },
-      paint: {
-        "line-color": "rgba(255,255,255,0.5)"
-      },
-    },
-    type: "layer"
+  const id = `locations-multi-polygons-${offset}-${limit}`
+  postSource(id, multiPolygons, "ME OIT");
+  postLayer(id, "line", {
+    "line-color": "rgba(255,255,255,0.5)"
   })
-} 
+}
 function collectionToPointLayer(result: any, limit: number, offset: number) {
   const points = result.filter((location: any) => location.geometry.type === "Point");
   if (!points.length) return;
-  const data = {
-    id: `locations-points-${offset}-${limit}`,
-    type: "circle",
-    source: {
-      type: "geojson",
-      generateId: true,
-      data: {
-        type: "FeatureCollection",
-        features: points,
-      },
-      attribution: "Oceanics.io",
-    },
-    paint: {
-      "circle-radius": 5,
-      "circle-stroke-width": 1,
-      "circle-stroke-color": "orange",
-    },
-  };
-  self.postMessage({
-    data,
-    type: "layer"
-  })
+  const id = `locations-points-${offset}-${limit}`
+  postSource(id, points, "Oceanics.io");
+  postLayer(id, "circle", {
+    "circle-radius": 5,
+    "circle-stroke-width": 1,
+    "circle-stroke-color": "orange",
+  });
+}
+function processPageResult(result: any, limit: number, offset: number) {
+  postStatus(`Processing page ${result.page.current}`);
+  let parsed = result.value.filter(hasLocation).map(transform);
+  collectionToPointLayer(parsed, limit, offset);
+  collectionToMultiPolygonLayer(parsed, limit, offset);
+  return { total: parsed.length, next: result.page.next };
 }
 /**
  * On start will listen for messages and match against type to determine
@@ -204,40 +198,31 @@ async function listen(message: MessageEvent) {
     return
   }
   if (type === "getFileSystem") {
-    searchFragments(message.data.data.query);
+    await searchFragments(message.data.data.query);
     return
   }
   const { panic_hook, getCollection } = await import("@oceanics/app");
   // Provide better error messaging on web assembly panic
   panic_hook();
-  let total = 0
-  try {
-    let limit = message.data.data.query.limit
-    let offset = message.data.data.query.offset
-    let result = await getCollection(access_token, message.data.data.query);
-    postStatus(`Processing page ${result.page.current}`);
-    let parsed = result.value.filter(hasLocation).map(transform);
-    total += parsed.length;
-    collectionToPointLayer(parsed, limit, offset);
-    collectionToMultiPolygonLayer(parsed, limit, offset);
-    let next = result.page.next;
-    while (next && typeof next !== "undefined") {
-      let decoded = new URLSearchParams(next)
-      offset = parseInt(decoded.get("offset")??"0")
-      result = await getCollection(access_token, {
-        left: message.data.data.query.left,
-        limit: message.data.data.query.limit,
-        offset
-      });
-      postStatus(`Processing page ${result.page.current}`)
-      parsed = result.value.filter(hasLocation).map(transform);
-      total += parsed.length;
-      collectionToPointLayer(parsed, limit, offset);
-      collectionToMultiPolygonLayer(parsed, limit, offset);
-      next = result.page.next;
+  let total = 0;
+  const limit = message.data.data.query.limit
+  const left = message.data.data.query.left
+  let offset = message.data.data.query.offset
+  let next;
+  let first = true;
+  while (first || (next && typeof next !== "undefined")) {
+    if (first) {
+      first = false;
+    } else {
+      const decoded = new URLSearchParams(next)
+      offset = parseInt(decoded.get("offset") ?? "0")
     }
-  } catch (error: any) {
-    postError(error.message);
+    const result = await getCollection(access_token, {
+      left, limit, offset
+    });
+    let stats = processPageResult(result, limit, offset);
+    total += stats.total;
+    next = stats.next;
   }
   postStatus(`Found ${total}`)
 }

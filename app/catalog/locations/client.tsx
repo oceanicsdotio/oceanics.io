@@ -325,12 +325,19 @@ export function View({}) {
           console.error("@worker", type, data);
           return;
         case "layer":
-          const exists = !!map && !!map.getLayer(data.id);
+          let exists = !!map && !!map.getLayer(data.id);
           if (exists) {
-            map.removeLayer(data.id);
-            map.removeSource(data.id);
+            map?.removeLayer(data.id);
           }
           map?.addLayer(data, "cities");
+          return
+        case "source":
+          let source_exists = !!map && !!map.getSource(data.id);
+          if (source_exists) {
+            map?.removeSource(data.id);
+          }
+          map?.addSource(data.id, data.source);
+          return
         default:
           console.warn("@client", type, data);
           return;
