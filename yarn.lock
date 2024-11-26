@@ -5173,15 +5173,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=170c67&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4a7ee144a777e1188f6103bd4284bca368873ee973438cd3a36fa2812524982879655023af1774ad0d6e70250a41893e98e0c7120efe115f3da46a5712da5a37
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=a3f15e&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4818ac5adcec8972f1cc88780f5807ff6efcaac3b507cc8008203b027543498817d86192215597ae3819838bed374d381fe9f79d986ab13cadfeba0c617e76ae
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -23421,12 +23421,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.2":
-  version: 11.0.2
-  resolution: "uuid@npm:11.0.2"
+"uuid@npm:^11.0.3":
+  version: 11.0.3
+  resolution: "uuid@npm:11.0.3"
   bin:
     uuid: dist/esm/bin/uuid
-  checksum: 10/b98082f398fa2ece8cacc2264402f739256ca70def4bb82e3a14ec70777d189c01ce1054764c3b59b8fc098b62b135a15d1b24914712904c988822e2ac9b4f44
+  checksum: 10/251385563195709eb0697c74a834764eef28e1656d61174e35edbd129288acb4d95a43f4ce8a77b8c2fc128e2b55924296a0945f964b05b9173469d045625ff2
   languageName: node
   linkType: hard
 
@@ -23992,7 +23992,7 @@ __metadata:
     tsconfig-paths-webpack-plugin: "npm:^4.1.0"
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.6.3"
-    uuid: "npm:^11.0.2"
+    uuid: "npm:^11.0.3"
     webpack: "npm:^5.96.1"
     yaml: "npm:^2.6.0"
   languageName: unknown
