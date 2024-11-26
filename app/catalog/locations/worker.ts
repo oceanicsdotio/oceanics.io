@@ -1,8 +1,15 @@
 import { DOMParser } from "@xmldom/xmldom";
-import { postError } from "@catalog/worker";
 let postStatus = (message: string) => {
   self.postMessage({
     type: "status",
+    data: {
+      message
+    }
+  })
+}
+let postError = (message: string) => {
+  self.postMessage({
+    type: "error",
     data: {
       message
     }
@@ -58,7 +65,6 @@ async function getFragment(url: string, attribution: string) {
   const count = dataView.length / 3;
   let feature_collection = [];
   let point = 0;
-
   while (point < count) {
     const start = point * 3;
     const end = start + 3;
@@ -115,35 +121,6 @@ async function searchFragments(query: any) {
       type: "layer"
     })
   });
-  return true
-}
-async function getBoundaries(query: { url: string }) {
-  postStatus(`Getting boundaries...`);
-  const attribution = "Maine OIT";
-  const raw = await fetch(query.url).then((response) => response.json());
-  raw.features.forEach((feature: any, ind: number)=>{
-    const data = {
-      id: `${query.url}-${ind}`,
-      type: "line",
-      source: {
-        type: "geojson",
-        generateId: true,
-        data: {
-          type: "FeatureCollection",
-          features: [feature]
-        },
-        attribution,
-      },
-      paint: {
-        "line-color": "rgba(255,255,255,0.5)"
-      },
-    };
-    self.postMessage({
-      data,
-      type: "layer"
-    })
-  })
-  return true
 }
 function transform({ location, ...rest }: {location?: any}) {
   return {
@@ -154,33 +131,37 @@ function transform({ location, ...rest }: {location?: any}) {
     },
   };
 }
-function collectionToMultiPolygonLayer(result: any) {
+function hasLocation({ location }: {location?: any}) {
+  return typeof location !== "undefined"
+}
+function collectionToMultiPolygonLayer(result: any, limit: number, offset: number) {
   const multiPolygons = result.filter((location: any) => location.geometry.type === "MultiPolygon")
-  console.log({multiPolygons})
-  multiPolygons.forEach((feature: any, ind: number)=>{
-    self.postMessage({
-      data: {
-        id: `query-result-multi-polygon-${ind}`,
-        type: "line",
-        source: {
-          type: "geojson",
-          generateId: true,
-          data: feature,
-          attribution: "ME OIT",
+  if (!multiPolygons.length) return;
+  self.postMessage({
+    data: {
+      id: `locations-multi-polygons-${offset}-${limit}`,
+      type: "line",
+      source: {
+        type: "geojson",
+        generateId: true,
+        data: {
+          type: "FeatureCollection",
+          features: multiPolygons,
         },
-        paint: {
-          "line-color": "rgba(255,255,255,0.5)"
-        },
+        attribution: "ME OIT",
       },
-      type: "layer"
-    })
+      paint: {
+        "line-color": "rgba(255,255,255,0.5)"
+      },
+    },
+    type: "layer"
   })
 } 
-function collectionToPointLayer(result: any) {
-  const points = result.filter((location: any) => location.geometry.type === "Point")
-  console.log({points})
+function collectionToPointLayer(result: any, limit: number, offset: number) {
+  const points = result.filter((location: any) => location.geometry.type === "Point");
+  if (!points.length) return;
   const data = {
-    id: "query-result-points",
+    id: `locations-points-${offset}-${limit}`,
     type: "circle",
     source: {
       type: "geojson",
@@ -215,24 +196,50 @@ async function listen(message: MessageEvent) {
   if (!access_token) {
     postError(`worker missing access token`)
   }
-  if (!["getLocations"].includes(type)) {
+  if (!["getLocations", "getFileSystem"].includes(type)) {
     self.postMessage({
       type: "error",
       data: `unknown message format: ${type}`
     });
     return
   }
+  if (type === "getFileSystem") {
+    searchFragments(message.data.data.query);
+    return
+  }
   const { panic_hook, getCollection } = await import("@oceanics/app");
   // Provide better error messaging on web assembly panic
   panic_hook();
+  let total = 0
   try {
-    const result = await getCollection(access_token, message.data.data.query);
-    const parsed = result.value.map(transform);
-    // collectionToPointLayer(parsed);
-    collectionToMultiPolygonLayer(parsed);
+    let limit = message.data.data.query.limit
+    let offset = message.data.data.query.offset
+    let result = await getCollection(access_token, message.data.data.query);
+    postStatus(`Processing page ${result.page.current}`);
+    let parsed = result.value.filter(hasLocation).map(transform);
+    total += parsed.length;
+    collectionToPointLayer(parsed, limit, offset);
+    collectionToMultiPolygonLayer(parsed, limit, offset);
+    let next = result.page.next;
+    while (next && typeof next !== "undefined") {
+      let decoded = new URLSearchParams(next)
+      offset = parseInt(decoded.get("offset")??"0")
+      result = await getCollection(access_token, {
+        left: message.data.data.query.left,
+        limit: message.data.data.query.limit,
+        offset
+      });
+      postStatus(`Processing page ${result.page.current}`)
+      parsed = result.value.filter(hasLocation).map(transform);
+      total += parsed.length;
+      collectionToPointLayer(parsed, limit, offset);
+      collectionToMultiPolygonLayer(parsed, limit, offset);
+      next = result.page.next;
+    }
   } catch (error: any) {
     postError(error.message);
   }
+  postStatus(`Found ${total}`)
 }
 /**
  * Respond to messages
