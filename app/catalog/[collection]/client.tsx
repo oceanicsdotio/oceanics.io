@@ -206,13 +206,14 @@ export function NumberInput({
 }: {
   name: string;
   // Passthrough, naming matters
-  inputRef: MutableRefObject<HTMLInputElement | null>;
+  inputRef?: MutableRefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
   defaultValue?: number;
   min?: number;
   max?: number;
   step?: number;
+  readOnly?: boolean;
 }) {
   return (
     <InputMetadata name={name} description={description} required={required}>
@@ -238,7 +239,7 @@ export function TextInput({
   ...rest
 }: {
   name: string;
-  inputRef: MutableRefObject<HTMLInputElement | null>;
+  inputRef?: MutableRefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
   defaultValue?: string;
@@ -295,5 +296,35 @@ export function TextSelectInput({
         })}
       </select>
     </InputMetadata>
+  );
+}
+
+export function FormContainer({
+  action,
+  children,
+  onSubmit,
+  formRef,
+  disabled,
+}: {
+  children: React.ReactNode
+  disabled: boolean
+  action: string
+  onSubmit: any
+  formRef: any
+}) {
+  return (
+    <form
+      className={style.form}
+      onSubmit={onSubmit}
+      ref={formRef}
+    >
+      {children}
+      <button className={style.submit} disabled={disabled}>
+        {action}
+      </button>
+      <button className={style.submit} type="reset" disabled={disabled}>
+        Reset
+      </button>
+    </form>
   );
 }

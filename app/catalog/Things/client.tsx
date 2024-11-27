@@ -7,19 +7,25 @@ import React, {
 } from "react";
 import type { InteractiveMesh, MeshStyle, Things } from "@oceanics/app";
 import OpenAPI from "@app/../specification.json";
+import { type Initial } from "@catalog/client";
+import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
+import { Create } from "@catalog/[collection]/create/client";
+import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
 import {
-  type Initial
-} from "@catalog/client";
-import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
-import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
-import {Collection, TextInput, type FormArgs} from "@catalog/[collection]/client";
+  Collection,
+  TextInput,
+  type FormArgs,
+  FormContainer,
+} from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification
  */
 const schema = OpenAPI.components.schemas.Things;
 const properties = schema.properties;
+/**
+ * View interface
+ */
 export function Data({}) {
   return (
     <Collection<Things>
@@ -29,27 +35,25 @@ export function Data({}) {
     />
   );
 }
+/**
+ * Create new node
+ */
 export function New({}) {
   return <Create<Things> Form={Form} title={schema.title}></Create>;
 }
+/**
+ * Update or delete node
+ */
 export function Edit({}) {
   return <EditGeneric<Things> Form={Form} title={schema.title}></EditGeneric>;
 }
+/**
+ * Get other nodes related to this one
+ */
 export function Linked({}) {
   return <LinkedGeneric<Things> {...schema} />;
 }
-/**
- * Display an index of all or some subset of the
- * available nodes in the database. Shared between
- * `/create` and `/edit` interfaces.
- */
-export function Form({
-  action,
-  initial,
-  onSubmit,
-  formRef,
-  disabled,
-}: FormArgs<Things>) {
+function useRefs() {
   /**
    * User must input uuid, it will not be generated within
    * the system. Currently duplicate UUID silently fails.
@@ -64,67 +68,97 @@ export function Form({
   /**
    * Freeform text description input reference.
    */
-  const _description = useRef<HTMLInputElement | null>(null);
+  const description = useRef<HTMLInputElement | null>(null);
   /**
    * JSON format input.
    */
-  const _properties = useRef<HTMLInputElement | null>(null);
-  /**
-   * On submission, we delegate the request to our background
-   * worker, which will report on success/failure.
-   */
-  const onSubmitCallback = () => {
-    return {
-      uuid: uuid.current?.value,
-      name: name.current?.value || undefined,
-      description: _description.current?.value || undefined,
-      properties: _properties.current?.value || undefined,
-    };
-  };
+  const properties = useRef<HTMLInputElement | null>(null);
+  return { uuid, name, description, properties };
+}
+/**
+ * Form fields specific to Things nodes
+ */
+function Fields({
+  refs,
+  initial,
+  disabled,
+}: {
+  refs: any;
+  initial: Initial<Things>;
+  disabled: boolean;
+}) {
   return (
-    <form
-      className={style.form}
-      onSubmit={onSubmit(onSubmitCallback)}
-      ref={formRef}
-    >
+    <>
       <TextInput
         name={"uuid"}
         readOnly
         required={!properties.uuid.type.includes("null")}
-        inputRef={uuid}
+        inputRef={refs.uuid}
         description={properties.uuid.description}
         defaultValue={initial.uuid}
       ></TextInput>
       <TextInput
         name={"name"}
         required={!properties.name.type.includes("null")}
-        inputRef={name}
+        inputRef={refs.name}
         description={properties.name.description}
         defaultValue={initial.name}
+        readOnly={disabled}
       ></TextInput>
       <TextInput
         name={"description"}
         required={!properties.description.type.includes("null")}
-        inputRef={_description}
+        inputRef={refs.description}
         description={properties.description.description}
         defaultValue={initial.description}
+        readOnly={disabled}
       ></TextInput>
       <TextInput
         name={"properties"}
         required={!properties.properties.type.includes("null")}
-        inputRef={_properties}
+        inputRef={refs.properties}
         description={properties.properties.description}
         defaultValue={initial.properties}
+        readOnly={disabled}
       ></TextInput>
-      <button className={style.submit} disabled={disabled}>
-        {action}
-      </button>
-      <button className={style.submit} type="reset">
-        Reset
-      </button>
-    </form>
+    </>
   );
 }
+function Form({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: FormArgs<Things>) {
+  /**
+   * Input field handles.
+   */
+  const refs = useRefs();
+  /**
+   * On submission, we delegate the request to our background
+   * worker, which will report on success/failure.
+   */
+  const onSubmitCallback = () => {
+    return {
+      uuid: refs.uuid.current?.value,
+      name: refs.name.current?.value || undefined,
+      description: refs.description.current?.value || undefined,
+      properties: refs.properties.current?.value || undefined,
+    };
+  };
+  return (
+    <FormContainer
+      onSubmit={onSubmit(onSubmitCallback)}
+      formRef={formRef}
+      action={action}
+      disabled={disabled}
+    >
+      <Fields refs={refs} disabled={disabled} initial={initial}></Fields>
+    </FormContainer>
+  );
+}
+// Fields displayed when <details/> element is expanded
 export function AdditionalProperties(thing: Initial<Things>) {
   return (
     <>
@@ -133,6 +167,7 @@ export function AdditionalProperties(thing: Initial<Things>) {
     </>
   );
 }
+// Placehilder visualization style
 const meshStyle: Initial<MeshStyle> = {
   backgroundColor: "#11002299",
   overlayColor: "lightblue",
@@ -158,12 +193,6 @@ export function View() {
     InteractiveMesh: typeof InteractiveMesh;
   } | null>(null);
   /**
-   * Runtime will be passed back to calling Hook or Component.
-   * The WASM runtime contains all of the draw functions that
-   * target the GL context.
-   */
-  const [interactive, setInteractive] = useState<InteractiveMesh | null>(null);
-  /**
    * Load WASM runtime and save just the method handles
    * we need locally. Not sure if this saves us anything,
    * but seems like a clean idea.
@@ -181,14 +210,10 @@ export function View() {
    * save the control and data structure.
    */
   useEffect(() => {
-    if (!wasm) return;
-    const { InteractiveMesh } = wasm;
-    const data = new InteractiveMesh(10, 10);
-    setInteractive(data);
-  }, [wasm]);
-  useEffect(() => {
-    if (!interactive || !ref.current) return;
+    if (!wasm || !ref.current) return;
     const handle = ref.current;
+    const { InteractiveMesh } = wasm;
+    const interactive = new InteractiveMesh(10, 10);
     [handle.width, handle.height] = ["width", "height"].map((dim) =>
       Number(getComputedStyle(handle).getPropertyValue(dim).slice(0, -2))
     );
@@ -202,6 +227,6 @@ export function View() {
     return () => {
       if (requestId) cancelAnimationFrame(requestId);
     };
-  }, [interactive]);
+  }, [wasm]);
   return <canvas className={style.canvas} ref={ref}></canvas>;
 }

@@ -125,6 +125,7 @@ export function Form({
         inputRef={unitOfMeasurementSymbol}
         description={properties.unitOfMeasurement.properties.symbol.description}
         defaultValue={initial.unitOfMeasurement?.symbol}
+        readOnly={disabled}
       ></TextInput>
       <TextInput
         name={"unitOfMeasurementDefinition"}
@@ -133,6 +134,7 @@ export function Form({
           properties.unitOfMeasurement.properties.definition.description
         }
         defaultValue={initial.unitOfMeasurement?.definition}
+        readOnly={disabled}
       ></TextInput>
       <TextSelectInput
         name={"observationType"}
@@ -144,7 +146,7 @@ export function Form({
       <button className={style.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset">
+      <button className={style.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>

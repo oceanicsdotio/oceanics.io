@@ -92,6 +92,7 @@ export function Form({
         required
         description={properties.name.description}
         defaultValue={initial.name}
+        readOnly={disabled}
       ></TextInput>
       <TextInput
         name={"description"}
@@ -99,17 +100,19 @@ export function Form({
         required
         description={properties.description.description}
         defaultValue={initial.description}
+        readOnly={disabled}
       ></TextInput>
       <TextInput
         name={"definition"}
         inputRef={definition}
         description={properties.definition.description}
         defaultValue={initial.definition}
+        readOnly={disabled}
       ></TextInput>
       <button className={style.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset">
+      <button className={style.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>

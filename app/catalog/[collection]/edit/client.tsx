@@ -8,11 +8,9 @@ import React, {
 } from "react";
 import style from "@catalog/page.module.css";
 import { useSearchParams } from "next/navigation";
-import { type NodeLike, IMutate} from "@catalog/[collection]/client"
-import {ACTIONS, useWorkerFixtures} from "@catalog/client"
-
-export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
-  const action = "Update"
+import { type NodeLike, IMutate } from "@catalog/[collection]/client";
+import { ACTIONS, useWorkerFixtures } from "@catalog/client";
+export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
   const query = useSearchParams();
   const uuid = query.get("uuid") ?? "";
   /**
@@ -25,9 +23,10 @@ export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
    */
   const [message, setMessage] = useState("↻ Loading");
   /**
-   * Node or index data, if any.
+   * Node data, if any.
    */
-  const [collection, setCollection] = useState<T[]>([]);
+  const [initial, setInitial] = useState<T>({ uuid } as T);
+  const [exists, setExists] = useState(false);
   /**
    * Process web worker messages.
    */
@@ -35,16 +34,14 @@ export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
     ({ data: { data, type } }: MessageEvent) => {
       switch (type) {
         case ACTIONS.getEntity:
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setCollection(data.value);
-          return;
-        case ACTIONS.updateEntity:
-          window.location.reload();
+          setInitial(data.value);
+          setExists(true);
           return;
         case ACTIONS.error:
           console.error("@worker", type, data);
           return;
         case ACTIONS.status:
+          window.scrollTo({ top: 0, behavior: "smooth" });
           setMessage(data.message);
           return;
         default:
@@ -54,29 +51,38 @@ export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
     },
     []
   );
-    /**
+  /**
    * Ref to Web Worker.
    */
-    const worker = useWorkerFixtures();
-    /**
-     * Load Web Worker on component mount
-     */
-    useEffect(() => {
-      worker.ref.current = new Worker(
-        new URL("@catalog/[collection]/edit/worker.ts", import.meta.url),
-        {
-          type: "module",
-        }
-      );
-      worker.ref.current.addEventListener("message", workerMessageHandler, {
-        passive: true,
-      });
-      const handle = worker.ref.current;
-      worker.setDisabled(false);
-      return () => {
-        handle.removeEventListener("message", workerMessageHandler);
-      };
-    }, []);
+  const worker = useWorkerFixtures();
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    worker.ref.current = new Worker(
+      new URL("@catalog/[collection]/edit/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    worker.ref.current.addEventListener("message", workerMessageHandler, {
+      passive: true,
+    });
+    worker.post({
+      type: ACTIONS.getEntity,
+      data: {
+        query: {
+          left: title,
+          left_uuid: uuid,
+        },
+      },
+    });
+    const handle = worker.ref.current;
+    worker.setDisabled(false);
+    return () => {
+      handle.removeEventListener("message", workerMessageHandler);
+    };
+  }, []);
   /**
    * Delete a resource
    */
@@ -95,7 +101,9 @@ export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
       },
     });
   };
-
+  /**
+   * Update allowed parameters
+   */
   const onSubmit =
     (callback: any): FormEventHandler =>
     (event) => {
@@ -110,37 +118,21 @@ export function Edit<T extends NodeLike>({Form, title}: IMutate<T>) {
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
-
-  const [initial, setInitial] = useState<T>({ uuid } as any);
-  useEffect(() => {
-    if (!worker.disabled) {
-      worker.post({
-        type: ACTIONS.getEntity,
-        data: {
-          query: {
-            left: title,
-            left_uuid: uuid,
-          },
-        },
-      });
-    }
-  }, [worker.disabled]);
-  useEffect(() => {
-    if (!collection.length) return;
-    const [node] = collection;
-    setInitial(node);
-  }, [collection]);
   return (
     <>
       <p>{message}</p>
-      <Form 
-        action={action}
+      <Form
+        action={"Save"}
         formRef={formRef}
         initial={initial as T}
-        disabled={worker.disabled}
+        disabled={worker.disabled||!exists}
         onSubmit={onSubmit}
       />
-      <button className={style.submit} onClick={onDelete}>
+      <button
+        className={style.submit}
+        onClick={onDelete}
+        disabled={worker.disabled||!exists}
+      >
         Delete
       </button>
     </>

@@ -5,6 +5,7 @@ import React, {
   useState,
   useCallback,
   type MutableRefObject,
+  useMemo,
 } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
@@ -18,7 +19,6 @@ import {
   Collection,
   TextInput,
   NumberInput,
-  TextSelectInput,
   FormArgs,
 } from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
@@ -45,21 +45,49 @@ export function Data() {
   );
 }
 export function New({}) {
-  return <Create<LocationsType> Form={Form} title={schema.title}></Create>;
+  return (
+    <Create<LocationsType> Form={CreateForm} title={schema.title}></Create>
+  );
 }
 export function Edit({}) {
   return (
-    <EditGeneric<LocationsType> Form={Form} title={schema.title}></EditGeneric>
+    <EditGeneric<LocationsType>
+      Form={UpdateForm}
+      title={schema.title}
+    ></EditGeneric>
   );
 }
 export function Linked({}) {
   return <LinkedGeneric<LocationsType> {...schema} />;
 }
+function useRefs() {
+  const uuid = useRef<HTMLInputElement | null>(null);
+  const name = useRef<HTMLInputElement | null>(null);
+  const description = useRef<HTMLInputElement | null>(null);
+  const encodingType = useRef<HTMLInputElement | null>(null);
+  const locationType = useRef<HTMLInputElement | null>(null);
+  const locationLatitude = useRef<HTMLInputElement | null>(null);
+  const locationLongitude = useRef<HTMLInputElement | null>(null);
+  const refs = {
+    uuid,
+    name,
+    description,
+    encodingType,
+    location: {
+      type: locationType,
+      longitude: locationLongitude,
+      latitude: locationLatitude,
+    },
+  };
+  return {
+    refs,
+  };
+}
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-function Form({
+function CreateForm({
   action,
   initial,
   onSubmit,
@@ -69,42 +97,45 @@ function Form({
   /**
    * Form data is synced with user input
    */
-  const uuid = useRef<HTMLInputElement | null>(null);
-  const name = useRef<HTMLInputElement | null>(null);
-  const _description = useRef<HTMLInputElement | null>(null);
-  const encodingType = useRef<HTMLSelectElement | null>(null);
-  const locationType = useRef<HTMLSelectElement | null>(null);
-  const locationLatitude = useRef<HTMLInputElement | null>(null);
-  const locationLongitude = useRef<HTMLInputElement | null>(null);
-  /**
-   * Geolocation data
-   */
-  const [position, setPosition] = useState<GeolocationPosition | null>(null);
+  const { refs } = useRefs();
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
    */
   const onSubmitCallback = () => {
     return {
-      uuid: uuid.current?.value,
-      name: name.current?.value || undefined,
-      description: _description.current?.value || undefined,
-      encodingType: encodingType.current?.value || undefined,
+      uuid: refs.uuid.current?.value,
+      name: refs.name.current?.value || undefined,
+      description: refs.description.current?.value || undefined,
+      encodingType: refs.encodingType.current?.value,
       location: {
-        type: locationType.current?.value || undefined,
+        type: refs.location.type.current?.value,
         coordinates: [
-          locationLatitude.current?.valueAsNumber || undefined,
-          locationLongitude.current?.valueAsNumber || undefined,
+          refs.location.latitude.current?.valueAsNumber,
+          refs.location.longitude.current?.valueAsNumber,
         ],
       },
     };
   };
   /**
-   * On geolocation fix, save to client information.
+   * Update the interface with current location, either on load or manually when the
+   * UI button is pressed. This allows the user to change back if a mistake is made
+   * without having to reload the page.
    */
-  useEffect(() => {
+  const askForPosition = useCallback(() => {
+    const usePosition = (position: GeolocationPosition) => {
+      let location = refs.location;
+      if (position && location.latitude.current && location.longitude.current) {
+        location.latitude.current.value = position.coords.latitude.toFixed(
+          GEOLOCATION_PRECISION
+        );
+        location.longitude.current.value = position.coords.longitude.toFixed(
+          GEOLOCATION_PRECISION
+        );
+      }
+    };
     navigator.geolocation.getCurrentPosition(
-      setPosition,
+      usePosition,
       () => {
         console.warn(
           "Unable to obtain client location fix, enter coordinates manually."
@@ -116,39 +147,7 @@ function Form({
         maximumAge: 0,
       }
     );
-  }, []);
-  /**
-   * Update the interface with current location, either on load or manually when the
-   * UI button is pressed. This allows the user to change back if a mistake is made
-   * without having to reload the page.
-   */
-  const usePosition = () => {
-    if (position && locationLatitude.current && locationLongitude.current) {
-      locationLatitude.current.value = position.coords.latitude.toFixed(
-        GEOLOCATION_PRECISION
-      );
-      locationLongitude.current.value = position.coords.longitude.toFixed(
-        GEOLOCATION_PRECISION
-      );
-    }
-  };
-  /**
-   * Once we have saved client info, update the interface automatically. We prevent
-   * the coordinates from populating the interface if there is already a valid user
-   * input. This allows us to refresh device position without necessarily overriding
-   * actions.
-   */
-  useEffect(() => {
-    if (
-      position &&
-      locationLatitude.current &&
-      locationLongitude.current &&
-      !locationLongitude.current.value &&
-      !locationLatitude.current.value
-    ) {
-      usePosition();
-    }
-  }, [position]);
+  }, [])
   /**
    * Client Component
    */
@@ -160,7 +159,7 @@ function Form({
     >
       <TextInput
         name={"uuid"}
-        inputRef={uuid}
+        inputRef={refs.uuid}
         required
         description={schema.properties.uuid.description}
         defaultValue={initial.uuid}
@@ -168,35 +167,35 @@ function Form({
       ></TextInput>
       <TextInput
         name={"name"}
-        inputRef={name}
+        inputRef={refs.name}
         required
         description={schema.properties.name.description}
         defaultValue={initial.name}
       ></TextInput>
       <TextInput
         name={"description"}
-        inputRef={_description}
+        inputRef={refs.description}
         required
         description={schema.properties.description.description}
         defaultValue={initial.description}
       ></TextInput>
-      <TextSelectInput
+      <TextInput
         name={"encodingType"}
-        inputRef={encodingType}
+        inputRef={refs.encodingType}
         defaultValue={schema.properties.encodingType.default}
         description={schema.properties.encodingType.description}
-        options={schema.properties.encodingType.enum}
+        readOnly
       />
-      <TextSelectInput
+      <TextInput
         name={"type"}
-        inputRef={locationType}
+        inputRef={refs.location.type}
         defaultValue={schema.properties.location.properties.type.default}
         description={schema.properties.location.properties.type.description}
-        options={["Point"]} // properties.location.properties.type.enum
+        readOnly
       />
       <NumberInput
         name={"latitude"}
-        inputRef={locationLatitude}
+        inputRef={refs.location.latitude}
         description={
           "Latitude is in decimal degrees. Click below to populate this based on device location."
         }
@@ -207,7 +206,7 @@ function Form({
       ></NumberInput>
       <NumberInput
         name={"longitude"}
-        inputRef={locationLongitude}
+        inputRef={refs.location.longitude}
         description={
           "Longitude is in decimal degrees. Click below to populate this based on device location."
         }
@@ -219,15 +218,108 @@ function Form({
       <button
         className={style.submit}
         type="button"
-        disabled={!position}
-        onClick={usePosition}
+        onClick={askForPosition}
       >
-        Detect Location
+        Use Your Location
       </button>
       <button className={style.submit} disabled={disabled}>
         {action}
       </button>
       <button className={style.submit} type="reset">
+        Reset
+      </button>
+    </form>
+  );
+}
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database.
+ */
+function UpdateForm({
+  action,
+  initial,
+  onSubmit,
+  formRef,
+  disabled,
+}: FormArgs<LocationsType>) {
+  const location = useMemo(()=>{
+    if (typeof initial.location === "undefined") return undefined
+    const parsed = JSON.parse(initial.location as any);
+    if (parsed.type === "Point") {
+      return parsed
+    } 
+    return {
+      type: parsed.type,
+      coordinates: ["Multiple", "Multiple"]
+    }
+  }, [initial]);
+  const { refs } = useRefs();
+  const onSubmitCallback = useCallback(() => {
+    return {
+      uuid: refs.uuid.current?.value,
+      name: refs.name.current?.value || undefined,
+      description: refs.description.current?.value || undefined,
+    };
+  }, []);
+  return (
+    <form
+      className={style.form}
+      onSubmit={onSubmit(onSubmitCallback)}
+      ref={formRef}
+    >
+      <TextInput
+        name={"uuid"}
+        inputRef={refs.uuid}
+        description={schema.properties.uuid.description}
+        defaultValue={initial.uuid}
+        readOnly
+      ></TextInput>
+      <TextInput
+        name={"name"}
+        inputRef={refs.name}
+        description={schema.properties.name.description}
+        defaultValue={initial.name}
+        readOnly={disabled}
+      ></TextInput>
+      <TextInput
+        name={"description"}
+        inputRef={refs.description}
+        description={schema.properties.description.description}
+        defaultValue={initial.description}
+        readOnly={disabled}
+      ></TextInput>
+      <TextInput
+        name={"encodingType"}
+        defaultValue={initial.encodingType}
+        description={schema.properties.encodingType.description}
+        readOnly
+      />
+      <TextInput
+        name={"type"}
+        defaultValue={location?.type}
+        description={schema.properties.location.properties.type.description}
+        readOnly
+      />
+      <TextInput
+        name={"latitude"}
+        defaultValue={location?.coordinates[1]}
+        description={
+          "Latitude in decimal degrees."
+        }
+        readOnly
+      ></TextInput>
+      <TextInput
+        name={"longitude"}
+        defaultValue={location?.coordinates[0]}
+        description={
+          "Longitude in decimal degrees."
+        }
+        readOnly
+      ></TextInput>
+      <button className={style.submit} disabled={disabled}>
+        {action}
+      </button>
+      <button className={style.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>
@@ -330,14 +422,14 @@ export function View({}) {
             map?.removeLayer(data.id);
           }
           map?.addLayer(data, "cities");
-          return
+          return;
         case "source":
           let source_exists = !!map && !!map.getSource(data.id);
           if (source_exists) {
             map?.removeSource(data.id);
           }
           map?.addSource(data.id, data.source);
-          return
+          return;
         default:
           console.warn("@client", type, data);
           return;

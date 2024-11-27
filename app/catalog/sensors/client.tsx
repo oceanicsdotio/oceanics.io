@@ -2,7 +2,7 @@
 import specification from "@app/../specification.json";
 import type { Sensors } from "@oceanics/app";
 import { type Initial } from "../client";
-import React, { useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import style from "@catalog/page.module.css";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
@@ -66,7 +66,7 @@ export function Form({
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
    */
-  const onSubmitCallback = () => {
+  const onSubmitCallback = useCallback(() => {
     return {
       uuid: uuid.current?.value,
       name: name.current?.value || undefined,
@@ -74,10 +74,7 @@ export function Form({
       metadata: metadata.current?.value || undefined,
       encodingType: encodingType.current?.value || undefined,
     };
-  };
-  /**
-   * Client Component
-   */
+  }, []);
   return (
     <form
       className={style.form}
@@ -98,6 +95,7 @@ export function Form({
         required
         description={properties.name.description}
         defaultValue={initial.name}
+        readOnly={disabled}
       ></TextInput>
       <TextInput
         name={"description"}
@@ -105,6 +103,7 @@ export function Form({
         required
         description={properties.description.description}
         defaultValue={initial.description}
+        readOnly={disabled}
       ></TextInput>
       <TextSelectInput
         name={"encodingType"}
@@ -112,16 +111,18 @@ export function Form({
         defaultValue={properties.encodingType.default}
         options={properties.encodingType.enum}
         description={properties.encodingType.description}
+        // readOnly={disabled}
       ></TextSelectInput>
       <TextInput
         name={"metadata"}
         inputRef={metadata}
         description={properties.metadata.description}
+        readOnly={disabled}
       ></TextInput>
       <button className={style.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset">
+      <button className={style.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>
