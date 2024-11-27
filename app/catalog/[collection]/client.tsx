@@ -12,7 +12,12 @@ import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
 import { Initial, ACTIONS } from "@catalog/client";
-
+function fromKey(collection: string) {
+  return collection
+    .split(/\.?(?=[A-Z])/)
+    .join("_")
+    .toLowerCase();
+}
 const parameters = specification.components.parameters;
 export type FormArgs<T> = {
   action: string;
@@ -47,6 +52,11 @@ export function Collection<T extends NodeLike>({
   nav?: boolean;
   AdditionalProperties?: React.FunctionComponent | null;
 }) {
+  const schema = (specification.components.schemas as any)[title];
+  const options = Object.keys(schema.properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key) => key.split("@")[0]);
+
   const query = useSearchParams();
   /**
    * Status message to understand what is going on in the background.
@@ -131,32 +141,47 @@ export function Collection<T extends NodeLike>({
       handle.removeEventListener("message", workerMessageHandler);
     };
   }, [workerMessageHandler]);
+
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, name, ...rest }, index) => (
-        <details key={uuid} name="exclusive" open={index === 0}>
-          <summary>
-            <Link href={`edit?uuid=${uuid}`} prefetch={false}>
-              {name ?? uuid}
-            </Link>
-            {nav && (
-              <>
-                {" [ "}
-                <Link href={`view?uuid=${uuid}`} prefetch={false}>
-                  view
-                </Link>
-                {" ]"}
-              </>
+      {collection.map(({ uuid, name, ...rest }, index) => {
+        return (
+          <details key={uuid} name="exclusive" open={index === 0}>
+            <summary>
+              <Link href={`edit?uuid=${uuid}`} prefetch={false}>
+                {name ?? uuid}
+              </Link>
+              {nav && (
+                <>
+                  {" [ "}
+                  <Link href={`view?uuid=${uuid}`} prefetch={false}>
+                    view
+                  </Link>
+                  {" ]"}
+                </>
+              )}
+            </summary>
+            {AdditionalProperties && (
+              <div className={style.add_props}>
+                <AdditionalProperties {...(rest as any)} />
+              </div>
             )}
-          </summary>
-          {AdditionalProperties && (
-            <div className={style.add_props}>
-              <AdditionalProperties {...(rest as any)} />
-            </div>
-          )}
-        </details>
-      ))}
+            <details>
+              <summary>Related</summary>
+              {options.map((each) => {
+                return (
+                  <p>
+                    <Link href={`${fromKey(each)}?uuid=${uuid}`} prefetch={false}>
+                      {each}
+                    </Link>
+                  </p>
+                )
+              })}
+            </details>
+          </details>
+        );
+      })}
       <p>
         <a style={{ color: "lightblue" }} href={page.previous}>
           {"Back"}
@@ -306,18 +331,14 @@ export function FormContainer({
   formRef,
   disabled,
 }: {
-  children: React.ReactNode
-  disabled: boolean
-  action: string
-  onSubmit: any
-  formRef: any
+  children: React.ReactNode;
+  disabled: boolean;
+  action: string;
+  onSubmit: any;
+  formRef: any;
 }) {
   return (
-    <form
-      className={style.form}
-      onSubmit={onSubmit}
-      ref={formRef}
-    >
+    <form className={style.form} onSubmit={onSubmit} ref={formRef}>
       {children}
       <button className={style.submit} disabled={disabled}>
         {action}

@@ -67,38 +67,28 @@ export function CollectionPage({
     .join("_")
     .toLowerCase();
   return (
-    <>
-      {"/"}
-      <Link
-        className={layout.link}
-        href={`/catalog/${segment}`}
-        prefetch={false}
-      >
-        {schema.title}
-      </Link>
-      <div className={layout.content}>
-        <details open={true}>
-          <summary>About This Collection</summary>
-          <Markdown>{schema.description}</Markdown>
-        </details>
-        <details open={showActions}>
-          <summary>Actions</summary>
-          <p>
-            You can{" "}
-            <Link href={`/catalog/${segment}/create/`} prefetch={false}>
-              create
-            </Link>{" "}
-            <code>{schema.title}</code>, and{" "}
-            <Link href={`/catalog/${segment}/linked/`} prefetch={false}>
-              link
-            </Link>{" "}
-            them to {links}.
-          </p>
-        </details>
-        <hr />
-        <Suspense>{children}</Suspense>
-      </div>
-    </>
+    <div className={layout.content}>
+      <details open={true}>
+        <summary>About This Collection</summary>
+        <Markdown>{schema.description}</Markdown>
+      </details>
+      <details open={showActions}>
+        <summary>Actions</summary>
+        <p>
+          You can{" "}
+          <Link href={`/catalog/${segment}/create/`} prefetch={false}>
+            create
+          </Link>{" "}
+          <code>{schema.title}</code>, and{" "}
+          <Link href={`/catalog/${segment}/linked/`} prefetch={false}>
+            link
+          </Link>{" "}
+          them to {links}.
+        </p>
+      </details>
+      <hr />
+      <Suspense>{children}</Suspense>
+    </div>
   );
 }
 /**
