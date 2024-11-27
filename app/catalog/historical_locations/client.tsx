@@ -7,7 +7,7 @@ import { type Initial } from "@catalog/client";
 import style from "@catalog/page.module.css";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
 import {Collection, TextInput, FormArgs, NumberInput} from "@catalog/[collection]/client";
 const schema = specification.components.schemas.HistoricalLocations;
 const properties = schema.properties;
@@ -33,10 +33,8 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
-export function Linked({}) {
-  return (
-      <LinkedGeneric<HistoricalLocations> {...schema} />
-  );
+export function Linked({collection}: any) {
+  return <LinkedGeneric<HistoricalLocations> collection={collection} related={schema} />;
 }
 /**
  * Display an index of all or some subset of the

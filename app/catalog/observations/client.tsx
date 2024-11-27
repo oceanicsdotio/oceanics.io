@@ -4,7 +4,7 @@ import specification from "@app/../specification.json";
 import type { Observations } from "@oceanics/app";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
 import {Collection, TextInput, NumberInput, FormArgs} from "@catalog/[collection]/client";
 const components = specification.components;
 const schema = components.schemas.Observations;
@@ -18,8 +18,8 @@ export function New({}) {
 export function Edit({}) {
   return <EditGeneric<Observations> Form={Form} title={schema.title}></EditGeneric>
 }
-export function Linked({}) {
-  return <LinkedGeneric<Observations> {...schema} />
+export function Linked({collection}: any) {
+  return <LinkedGeneric<Observations> collection={collection} related={schema} />;
 }
 /**
  * Display an index of all or some subset of the

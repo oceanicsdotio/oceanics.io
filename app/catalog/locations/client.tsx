@@ -14,7 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { type Initial, ACTIONS } from "@catalog/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";
-import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
+import { Linked as LinkedGeneric } from "@app/catalog/[collection]/[related]/client";
 import {
   Collection,
   TextInput,
@@ -57,8 +57,8 @@ export function Edit({}) {
     ></EditGeneric>
   );
 }
-export function Linked({}) {
-  return <LinkedGeneric<LocationsType> {...schema} />;
+export function Linked({collection}: any) {
+  return <LinkedGeneric<LocationsType> collection={collection} related={schema} />;
 }
 function useRefs() {
   const uuid = useRef<HTMLInputElement | null>(null);

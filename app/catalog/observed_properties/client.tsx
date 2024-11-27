@@ -8,7 +8,7 @@ import {
 import {Collection, TextInput, FormArgs} from "@catalog/[collection]/client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
 import style from "@catalog/page.module.css";
 /**
  * Get DataStreams properties from OpenAPI schema
@@ -37,10 +37,8 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
-export function Linked({}) {
-  return (
-      <LinkedGeneric<ObservedProperties> {...schema} />
-  );
+export function Linked({collection}: any) {
+  return <LinkedGeneric<ObservedProperties> collection={collection} related={schema} />;
 }
 /**
  * Display an index of all or some subset of the

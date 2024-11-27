@@ -10,7 +10,7 @@ import OpenAPI from "@app/../specification.json";
 import { type Initial } from "@catalog/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";
-import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
+import { Linked as LinkedGeneric } from "@app/catalog/[collection]/[related]/client";
 import {
   Collection,
   TextInput,
@@ -50,8 +50,8 @@ export function Edit({}) {
 /**
  * Get other nodes related to this one
  */
-export function Linked({}) {
-  return <LinkedGeneric<Things> {...schema} />;
+export function Linked({collection}: any) {
+  return <LinkedGeneric<Things> collection={collection} related={schema} />;
 }
 function useRefs() {
   /**

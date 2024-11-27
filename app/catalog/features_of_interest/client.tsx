@@ -6,7 +6,7 @@ import {
 } from "@catalog/client";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
 import {Collection, TextInput, FormArgs} from "@catalog/[collection]/client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
@@ -37,10 +37,8 @@ export function Edit({}) {
     ></EditGeneric>
   )
 }
-export function Linked({}) {
-  return (
-      <LinkedGeneric<FeaturesOfInterest> {...schema} />
-  );
+export function Linked({collection}: any) {
+  return <LinkedGeneric<FeaturesOfInterest> collection={collection} related={schema} />;
 }
 /**
  * Display an index of all or some subset of the

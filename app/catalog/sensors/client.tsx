@@ -6,7 +6,7 @@ import React, { useCallback, useRef } from "react";
 import style from "@catalog/page.module.css";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
-import {Linked as LinkedGeneric} from "@catalog/[collection]/linked/client";
+import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
 import {Collection, TextInput, TextSelectInput} from "@catalog/[collection]/client";
 const schema = specification.components.schemas.Sensors;
 const properties = schema.properties;
@@ -32,10 +32,8 @@ export function Edit({}) {
     ></EditGeneric>
   )
 } 
-export function Linked({}) {
-  return (
-      <LinkedGeneric<Sensors> {...schema} />
-  );
+export function Linked({collection}: any) {
+  return <LinkedGeneric<Sensors> collection={collection} related={schema} />;
 }
 /**
  * Display an index of all or some subset of the

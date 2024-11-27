@@ -1,7 +1,7 @@
 [build]
   base = "/"
   publish = "out"
-  command = "yarn next build"
+  command = "yarn next build --debug"
   functions = "functions/src"
   edge_functions = "functions/edge"
 

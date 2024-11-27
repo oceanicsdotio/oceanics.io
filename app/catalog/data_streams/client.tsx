@@ -8,7 +8,7 @@ import {
 } from "@catalog/[collection]/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";
-import { Linked as LinkedGeneric } from "@catalog/[collection]/linked/client";
+import { Linked as LinkedGeneric } from "@app/catalog/[collection]/[related]/client";
 import openapi from "@app/../specification.json";
 import style from "@catalog/page.module.css";
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -39,8 +39,8 @@ export function Edit({}) {
     <EditGeneric<DataStreams> Form={Form} title={schema.title}></EditGeneric>
   );
 }
-export function Linked({}) {
-  return <LinkedGeneric<DataStreams> {...schema} />;
+export function Linked({collection}: any) {
+  return <LinkedGeneric<DataStreams> collection={collection} related={schema} />;
 }
 /**
  * Display an index of all or some subset of the
