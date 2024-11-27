@@ -328,8 +328,8 @@ function UpdateForm({
 export function AdditionalProperties(each: Initial<LocationsType>) {
   return (
     <>
-      <p>description: {each.description ?? "n/a"}</p>
-      <p>encoding type: {each.encodingType ?? "n/a"}</p>
+      <li>description: {each.description ?? "n/a"}</li>
+      <li>encoding type: {each.encodingType ?? "n/a"}</li>
     </>
   );
 }

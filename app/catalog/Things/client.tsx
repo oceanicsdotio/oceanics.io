@@ -162,8 +162,8 @@ function Form({
 export function AdditionalProperties(thing: Initial<Things>) {
   return (
     <>
-      <p>description: {thing.description ?? "n/a"}</p>
-      <p>properties: {thing.properties ?? "n/a"}</p>
+      <li>description: {thing.description ?? "n/a"}</li>
+      <li>properties: {thing.properties ?? "n/a"}</li>
     </>
   );
 }

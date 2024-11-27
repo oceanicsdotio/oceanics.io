@@ -1,6 +1,9 @@
 "use client";
 import React, { useEffect, useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import style from "@catalog/page.module.css";
+import specification from "@app/../specification.json";
+import Link from "next/link";
 import { ACTIONS, useWorkerFixtures } from "@catalog/client";
 import { type NodeLike } from "@catalog/[collection]/client";
 function fromKey(collection: string) {
@@ -17,12 +20,23 @@ type Schema = {
 type ILinked = {
   collection: Schema;
   related: Schema;
+  nav?: boolean;
+  AdditionalProperties?: React.FunctionComponent | null;
 };
 /**
  * Display an index of all or some subset of the
  * available nodes in the database.
  */
-export function Linked<T extends NodeLike>({ collection, related }: ILinked) {
+export function Linked<T extends NodeLike>({
+  collection,
+  related,
+  AdditionalProperties,
+  nav,
+}: ILinked) {
+  const schema = (specification.components.schemas as any)[related.title];
+  const options = Object.keys(schema.properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key) => key.split("@")[0]);
   const query = useSearchParams();
   /**
    * Status message to understand what is going on in the background.
@@ -32,6 +46,13 @@ export function Linked<T extends NodeLike>({ collection, related }: ILinked) {
    * Node or index data, if any.
    */
   const [linked, setLinked] = useState<T[]>([]);
+  const [page, setPage] = useState<{
+    next?: string;
+    previous?: string;
+    current: number;
+  }>({
+    current: 1,
+  });
   /**
    * Process web worker messages.
    */
@@ -41,6 +62,7 @@ export function Linked<T extends NodeLike>({ collection, related }: ILinked) {
         case ACTIONS.getLinked:
           window.scrollTo({ top: 0, behavior: "smooth" });
           setLinked(data.value);
+          setPage(data.page);
           return;
         case ACTIONS.error:
           console.error("@worker", type, data);
@@ -94,18 +116,60 @@ export function Linked<T extends NodeLike>({ collection, related }: ILinked) {
   return (
     <>
       <p>{message}</p>
-      <div>
-        {linked.map(({ uuid, ...rest }) => {
-          const _right = fromKey(related.title);
-          const _left = fromKey(collection.title);
-          const href = `/catalog/${_right}/${_left}?uuid=${uuid}`;
+      <>
+        {linked.map(({ uuid, name, ...rest }, index) => {
+          const a = fromKey(related.title);
           return (
-            <p key={uuid}>
-              <a href={href}>{rest.name ?? uuid}</a>
-            </p>
+            <details key={uuid} name="exclusive" open={index === 0}>
+              <summary>
+                <Link href={`/catalog/${a}/edit?uuid=${uuid}`} prefetch={false}>
+                  {name ?? uuid}
+                </Link>
+                {nav && (
+                  <>
+                    {" [ "}
+                    <Link
+                      href={`/catalog/${a}/view?uuid=${uuid}`}
+                      prefetch={false}
+                    >
+                      view
+                    </Link>
+                    {" ]"}
+                  </>
+                )}
+              </summary>
+              {AdditionalProperties && (
+                <div className={style.add_props}>
+                  <AdditionalProperties {...(rest as any)} />
+                </div>
+              )}
+              <ul>
+                {options.map((each) => {
+                  return (
+                    <li>
+                      <Link
+                        href={`/catalog/${fromKey(related.title)}/${fromKey(each)}?uuid=${uuid}`}
+                        prefetch={false}
+                      >
+                        {each}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
           );
         })}
-      </div>
+        <p>
+          <a style={{ color: "lightblue" }} href={page.previous}>
+            {"Back"}
+          </a>
+          <span>{` | Page ${page.current} | `}</span>
+          <a style={{ color: "lightblue" }} href={page.next}>
+            {"Next"}
+          </a>
+        </p>
+      </>
     </>
   );
 }

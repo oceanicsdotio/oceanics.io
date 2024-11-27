@@ -47,3 +47,7 @@ a {
 summary {
   cursor: pointer;
 }
+
+ul {
+  list-style-type: square;
+}

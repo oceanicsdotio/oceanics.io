@@ -96,6 +96,6 @@ export function Form({
 }
 function AdditionalProperties(rest: Initial<HistoricalLocations>) {
   return(<>
-    <p>time: {rest.time}</p>
+    <li>time: {rest.time}</li>
   </>)
 }

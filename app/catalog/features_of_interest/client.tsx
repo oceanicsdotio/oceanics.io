@@ -124,9 +124,9 @@ export function Form({
 }
 export function AdditionalProperties(rest: Initial<FeaturesOfInterest>) {
   return(<>
-    <p>description: {rest.description ?? "n/a"}</p>
-    <p>encoding type: {rest.encodingType ?? "n/a"}</p>
-    <p>feature: {rest.feature ?? "n/a"}</p>
+    <li>description: {rest.description ?? "n/a"}</li>
+    <li>encoding type: {rest.encodingType ?? "n/a"}</li>
+    <li>feature: {rest.feature ?? "n/a"}</li>
   </>)
 }
 

@@ -45,23 +45,6 @@ export function CollectionPage({
   };
   showActions?: boolean;
 }) {
-  const links = Object.keys(schema.properties)
-    .filter((key: string) => key.includes("@"))
-    .map((key, index, related) => {
-      let name = key.split("@")[0];
-      let prepend = "";
-      if (index === related.length - 1 && index > 0) {
-        prepend = " and ";
-      } else if (index > 0) {
-        prepend = ", ";
-      }
-      return (
-        <span key={`linked-${index}`}>
-          {prepend}
-          <code>{name}</code>
-        </span>
-      );
-    });
   const segment = schema.title
     .split(/\.?(?=[A-Z])/)
     .join("_")
@@ -74,17 +57,14 @@ export function CollectionPage({
       </details>
       <details open={showActions}>
         <summary>Actions</summary>
-        <p>
-          You can{" "}
+        <ul>
+          <li>
           <Link href={`/catalog/${segment}/create/`} prefetch={false}>
-            create
+            Create 
           </Link>{" "}
-          <code>{schema.title}</code>, and{" "}
-          <Link href={`/catalog/${segment}/linked/`} prefetch={false}>
-            link
-          </Link>{" "}
-          them to {links}.
-        </p>
+          <code>{schema.title}</code>
+          </li>
+        </ul>
       </details>
       <hr />
       <Suspense>{children}</Suspense>

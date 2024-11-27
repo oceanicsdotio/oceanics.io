@@ -56,7 +56,6 @@ export function Collection<T extends NodeLike>({
   const options = Object.keys(schema.properties)
     .filter((key: string) => key.includes("@"))
     .map((key) => key.split("@")[0]);
-
   const query = useSearchParams();
   /**
    * Status message to understand what is going on in the background.
@@ -145,52 +144,58 @@ export function Collection<T extends NodeLike>({
   return (
     <>
       <p>{message}</p>
-      {collection.map(({ uuid, name, ...rest }, index) => {
-        return (
-          <details key={uuid} name="exclusive" open={index === 0}>
-            <summary>
-              <Link href={`edit?uuid=${uuid}`} prefetch={false}>
-                {name ?? uuid}
-              </Link>
-              {nav && (
-                <>
-                  {" [ "}
-                  <Link href={`view?uuid=${uuid}`} prefetch={false}>
-                    view
-                  </Link>
-                  {" ]"}
-                </>
-              )}
-            </summary>
-            {AdditionalProperties && (
-              <div className={style.add_props}>
-                <AdditionalProperties {...(rest as any)} />
-              </div>
-            )}
-            <details>
-              <summary>Related</summary>
-              {options.map((each) => {
-                return (
-                  <p>
-                    <Link href={`${fromKey(each)}?uuid=${uuid}`} prefetch={false}>
-                      {each}
+      <>
+        {collection.map(({ uuid, name, ...rest }, index) => {
+          return (
+            <details key={uuid} name="exclusive" open={index === 0}>
+              <summary>
+                <Link href={`edit?uuid=${uuid}`} prefetch={false}>
+                  {name ?? uuid}
+                </Link>
+                {nav && (
+                  <>
+                    {" [ "}
+                    <Link href={`view?uuid=${uuid}`} prefetch={false}>
+                      view
                     </Link>
-                  </p>
-                )
-              })}
+                    {" ]"}
+                  </>
+                )}
+              </summary>
+              <ul>
+                <li>Related</li>
+                <ul>{options.map((each) => {
+                  return (
+                    <li>
+                      <Link
+                        href={`${fromKey(each)}?uuid=${uuid}`}
+                        prefetch={false}
+                      >
+                        {each}
+                      </Link>
+                    </li>
+                  );
+                })}</ul>
+                <li>Attributes</li>
+                <ul>
+                {AdditionalProperties && (
+                  <AdditionalProperties {...(rest as any)} />
+                )}
+                </ul>
+              </ul>
             </details>
-          </details>
-        );
-      })}
-      <p>
-        <a style={{ color: "lightblue" }} href={page.previous}>
-          {"Back"}
-        </a>
-        <span>{` | Page ${page.current} | `}</span>
-        <a style={{ color: "lightblue" }} href={page.next}>
-          {"Next"}
-        </a>
-      </p>
+          );
+        })}
+        <p>
+          <a style={{ color: "lightblue" }} href={page.previous}>
+            {"Back"}
+          </a>
+          <span>{` | Page ${page.current} | `}</span>
+          <a style={{ color: "lightblue" }} href={page.next}>
+            {"Next"}
+          </a>
+        </p>
+      </>
     </>
   );
 }

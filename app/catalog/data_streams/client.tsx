@@ -155,19 +155,12 @@ export function Form({
 export function AdditionalProperties(rest: Initial<DataStreams>) {
   return (
     <>
-      <p>unit of measurement:</p>
-      <p style={{ textIndent: "2em" }}>{`name: ${
-        rest.unitOfMeasurement?.name ?? "n/a"
-      }`}</p>
-      <p style={{ textIndent: "2em" }}>{`symbol: ${
-        rest.unitOfMeasurement?.symbol ?? "n/a"
-      }`}</p>
-      <p style={{ textIndent: "2em" }}>{`definition: ${
-        rest.unitOfMeasurement?.definition ?? "n/a"
-      }`}</p>
-      <p>observation type: {rest.observationType ?? "n/a"}</p>
-      <p>phenomenon time: unknown</p>
-      <p>result time: unknown</p>
+      <li>unit name: {rest.unitOfMeasurement?.name}</li>
+      <li>unit symbol: {rest.unitOfMeasurement?.symbol}</li>
+      <li>unit definition: {rest.unitOfMeasurement?.definition}</li>
+      <li>observation type: {rest.observationType ?? "n/a"}</li>
+      <li>phenomenon time: unknown</li>
+      <li>result time: unknown</li>
     </>
   );
 }

@@ -129,7 +129,7 @@ export function Form({
 export function AdditionalProperties(sensor: Initial<Sensors>) {
   return (
     <>
-      <p>description: {sensor.description}</p>
+      <li>description: {sensor.description}</li>
     </>
   );
 }
