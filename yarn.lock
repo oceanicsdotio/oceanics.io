@@ -5186,15 +5186,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=170c67&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4a7ee144a777e1188f6103bd4284bca368873ee973438cd3a36fa2812524982879655023af1774ad0d6e70250a41893e98e0c7120efe115f3da46a5712da5a37
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=a3f15e&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4818ac5adcec8972f1cc88780f5807ff6efcaac3b507cc8008203b027543498817d86192215597ae3819838bed374d381fe9f79d986ab13cadfeba0c617e76ae
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -20259,16 +20259,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rehype-highlight@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "rehype-highlight@npm:7.0.0"
+"rehype-highlight@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "rehype-highlight@npm:7.0.1"
   dependencies:
     "@types/hast": "npm:^3.0.0"
     hast-util-to-text: "npm:^4.0.0"
     lowlight: "npm:^3.0.0"
     unist-util-visit: "npm:^5.0.0"
     vfile: "npm:^6.0.0"
-  checksum: 10/cb8ce18bc23ba63c4ca8602ff2cd91566415e1813277e7a6144e3dfcf92f08b16bfb4d06178f79836709124be69e2f7dcca5b0aea10dc1b558de288109f858f2
+  checksum: 10/91813a6dba6719a8281aa672e0c59476eb77e73693cb84745e0ac1d565374e58aceb7e11fd2e60001d58ab83341793ecd5b899d1473c4d11e0b381298ae5afb1
   languageName: node
   linkType: hard
 
@@ -23998,7 +23998,7 @@ __metadata:
     react-markdown: "npm:^9.0.1"
     react-pdf: "npm:9.1.1"
     rehype: "npm:^13.0.2"
-    rehype-highlight: "npm:^7.0.0"
+    rehype-highlight: "npm:^7.0.1"
     rehype-stringify: "npm:^10.0.1"
     remark-gfm: "npm:^4.0.0"
     ts-jest: "npm:^29.2.5"
