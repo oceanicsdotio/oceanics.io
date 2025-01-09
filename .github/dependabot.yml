@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"
-    directory: "/rust"
+    directory: "/functions"
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
