@@ -4484,6 +4484,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@netlify/build-info@npm:^7.15.2":
+  version: 7.17.0
+  resolution: "@netlify/build-info@npm:7.17.0"
+  dependencies:
+    "@bugsnag/js": "npm:^7.20.0"
+    "@iarna/toml": "npm:^2.2.5"
+    dot-prop: "npm:^7.2.0"
+    find-up: "npm:^6.3.0"
+    minimatch: "npm:^9.0.0"
+    read-pkg: "npm:^7.1.0"
+    semver: "npm:^7.3.8"
+    yaml: "npm:^2.1.3"
+    yargs: "npm:^17.6.0"
+  bin:
+    build-info: bin.js
+  checksum: 10/6788562d1961cf2d59d5cc2aa8e58cf1f2a2da46dc5ee4f7ad87b290ecab38844494db8941d74a7fc733ddaabd44a91676fcb0053555416b419f4ae6b1b90122
+  languageName: node
+  linkType: hard
+
 "@netlify/build@npm:29.56.0":
   version: 29.56.0
   resolution: "@netlify/build@npm:29.56.0"
@@ -4873,10 +4892,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/plugin-csp-nonce@npm:^1.2.10":
-  version: 1.2.10
-  resolution: "@netlify/plugin-csp-nonce@npm:1.2.10"
-  checksum: 10/39103f7fcc09bb4af1b1784bc8dd11f3fbdff98a1b5d46d933c3fd59305177e5e4fe3278d39b8ce5db6cd2fa5ad8b84c263e3e4b28983119f20882ba7f6f9578
+"@netlify/plugin-csp-nonce@npm:^1.3.7":
+  version: 1.3.7
+  resolution: "@netlify/plugin-csp-nonce@npm:1.3.7"
+  dependencies:
+    "@netlify/build-info": "npm:^7.15.2"
+  checksum: 10/97d537abee3f5bcbc11b26d3990b8a1fb19560f02d0b79e1546f17ae347f4bb7ad9431f9def54932f529cbe716a10e6ea62a683465fc984142017c35d1c9dee1
   languageName: node
   linkType: hard
 
@@ -23865,7 +23886,7 @@ __metadata:
     "@mdx-js/loader": "npm:^3.1.0"
     "@mdx-js/react": "npm:^3.1.0"
     "@netlify/functions": "npm:^2.8.2"
-    "@netlify/plugin-csp-nonce": "npm:^1.2.10"
+    "@netlify/plugin-csp-nonce": "npm:^1.3.7"
     "@next/mdx": "npm:15.0.1"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
