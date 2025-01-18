@@ -6745,12 +6745,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:22.10.0":
-  version: 22.10.0
-  resolution: "@types/node@npm:22.10.0"
+"@types/node@npm:22.10.6":
+  version: 22.10.6
+  resolution: "@types/node@npm:22.10.6"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10/e2561e15eaac6261cf828cd7dcd4882a5ce2e10104db4123566b00418acf30e18518e39c7a906682f44118b420c555cc774ac3e0e6f80e37f55884cfe6cf1f78
+  checksum: 10/ac93c9b6337ddb70176abade1ca4cdec24cde93cfc19023f3e001d80cb42f1d3c2487dd1626ce016985953319de30528d9e73dc5c6e2e28be9eaa9ec0237fc1d
   languageName: node
   linkType: hard
 
@@ -23896,7 +23896,7 @@ __metadata:
     "@types/katex": "npm:^0.16.7"
     "@types/mapbox-gl": "npm:^3.4.1"
     "@types/mdx": "npm:^2.0.13"
-    "@types/node": "npm:22.10.0"
+    "@types/node": "npm:22.10.6"
     "@types/prop-types": "npm:^15.7.13"
     "@types/react": "npm:^18.3.11"
     "@types/react-dom": "npm:^18.3.1"
