@@ -6568,6 +6568,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:^7946.0.15":
+  version: 7946.0.15
+  resolution: "@types/geojson@npm:7946.0.15"
+  checksum: 10/226d7ab59540632b19f7889c76c4c586a5104c18c43a81f32974aa035eafe557f86bd5a79ca5568bb63cbe5bfa9014c8e9a29cb0bb3d2f0bd71b0cc13ad8ccb3
+  languageName: node
+  linkType: hard
+
 "@types/graceful-fs@npm:^4.1.3":
   version: 4.1.5
   resolution: "@types/graceful-fs@npm:4.1.5"
@@ -23905,7 +23912,7 @@ __metadata:
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
     "@redocly/cli": "npm:^1.26.0"
-    "@types/geojson": "npm:^7946.0.14"
+    "@types/geojson": "npm:^7946.0.15"
     "@types/jest": "npm:^29.5.14"
     "@types/katex": "npm:^0.16.7"
     "@types/mapbox-gl": "npm:^3.4.1"
