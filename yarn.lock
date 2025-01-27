@@ -6561,13 +6561,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson@npm:^7946.0.14":
-  version: 7946.0.14
-  resolution: "@types/geojson@npm:7946.0.14"
-  checksum: 10/ae511bee6488ae3bd5a3a3347aedb0371e997b14225b8983679284e22fa4ebd88627c6e3ff8b08bf4cc35068cb29310c89427311ffc9322c255615821a922e71
-  languageName: node
-  linkType: hard
-
 "@types/geojson@npm:^7946.0.15":
   version: 7946.0.15
   resolution: "@types/geojson@npm:7946.0.15"
@@ -16313,9 +16306,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mapbox-gl@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "mapbox-gl@npm:3.7.0"
+"mapbox-gl@npm:^3.9.4":
+  version: 3.9.4
+  resolution: "mapbox-gl@npm:3.9.4"
   dependencies:
     "@mapbox/jsonlint-lines-primitives": "npm:^2.0.2"
     "@mapbox/mapbox-gl-supported": "npm:^3.0.0"
@@ -16324,7 +16317,7 @@ __metadata:
     "@mapbox/unitbezier": "npm:^0.0.1"
     "@mapbox/vector-tile": "npm:^1.3.1"
     "@mapbox/whoots-js": "npm:^3.1.0"
-    "@types/geojson": "npm:^7946.0.14"
+    "@types/geojson": "npm:^7946.0.15"
     "@types/geojson-vt": "npm:^3.2.5"
     "@types/mapbox__point-geometry": "npm:^0.1.4"
     "@types/mapbox__vector-tile": "npm:^1.3.4"
@@ -16345,7 +16338,7 @@ __metadata:
     supercluster: "npm:^8.0.1"
     tinyqueue: "npm:^3.0.0"
     vt-pbf: "npm:^3.1.3"
-  checksum: 10/fdd989ca4900b65d04a022db2bd0b615d05f69a5e717fa6f5862d08bd809c1cfdcca583b6e59e597a8291587c3479d8da1d4652518a104d1dcbb52f685df137c
+  checksum: 10/3c515419714bc2ceed86fc0d2d0caf07072e84835c60082b70427e6c30ea1fe178f7e9c8a2081c241845672d669363afd6bb877f18379a3ab80197e12c7560b2
   languageName: node
   linkType: hard
 
@@ -23936,7 +23929,7 @@ __metadata:
     jose: "npm:^5.9.6"
     js-yaml: "npm:^4.1.0"
     katex: "npm:^0.16.21"
-    mapbox-gl: "npm:^3.7.0"
+    mapbox-gl: "npm:^3.9.4"
     neo4j-driver: "npm:^5.27.0"
     netlify-cli: "npm:^17.37.2"
     next: "npm:15.1.2"
