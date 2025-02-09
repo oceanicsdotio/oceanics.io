@@ -51,8 +51,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    "build/types/**/*.ts", 
-    "mdx-components.tsx", 
+    "build/types/**/*.ts",
     "palette.ts"
 , "examples.ts"  ],
   "exclude": [

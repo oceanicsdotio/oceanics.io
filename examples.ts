@@ -61,15 +61,6 @@ const parseWreck = ({ attributes, geometry }: any) => {
     }
   }
 }
-export const getWrecks = async () => {
-  const sourcesText = readFileSync("locations.yml", "utf-8");
-  const { geojson } = yaml.parse(sourcesText);
-  const [{ url }] = geojson.filter((each: any) => each.id === "wrecks")
-  const response = await fetch(url);
-  const parsed = await response.json();
-  let _flatten = cacheItem.bind(undefined, "Locations")
-  return parsed.features.map(parseWreck).map(_flatten)
-}
 export const reducePrecision = (data: Object | Array<number>, precision: number) => {
   const replacer = function (_: string, val: Number | string): Number | string {
     return (typeof val === "number") ? Number(val.toFixed(precision)) : val;
