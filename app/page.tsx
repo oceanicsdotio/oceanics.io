@@ -15,11 +15,6 @@ export default function Page() {
   return (
     <>
       <Script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></Script>
-      <h1>
-        <Link className={layout.link} href="/" prefetch={false}>
-          Oceanics.io
-        </Link>
-      </h1>
       <Suspense fallback={<div className={style.placeholder}></div>}>
         <Oceanics
           gridSize={20}
