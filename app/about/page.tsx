@@ -54,38 +54,6 @@ export default function Page() {
           . We will not share your contact information.
         </p>
       </Subscribe>
-      <h2>
-        Some more information
-      </h2>
-      <p>
-        <Link href="/about/apocryphal-ocean">Apocryphal Ocean</Link>
-      </p>
-      <p>
-        <Link href="/about/aquaculture-workforce">
-          Maine Aquaculture Workforce
-        </Link>
-      </p>
-      <p>
-        <Link href="/about/blue-accountability">Blue Accountability</Link>
-      </p>
-      <p>
-        <Link href="/about/helmholtz-lobsters">Helmholtz Lobsters</Link>
-      </p>
-      <p>
-        <Link href="/about/marine-operators-software-rubric">
-          Marine Operators Software Rubric
-        </Link>
-      </p>
-      <p>
-        <Link href="/about/observer-lottery">
-          Observer Library
-        </Link>
-      </p>
-      <p>
-        <Link href="/about/predictive-aquaculture-siting">
-          Predictive Aquaculture Siting
-        </Link>
-      </p>
     </div>
   );
 }

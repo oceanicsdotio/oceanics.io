@@ -1,11 +1,10 @@
 import type { NextConfig } from 'next';
-import withMDX from '@next/mdx';
-import remarkGFM from 'remark-gfm';
 
 const nextConfig: NextConfig = {
   output: "export",
   reactStrictMode: false,
-  pageExtensions: ['mdx', 'tsx'],
+  // Error on array of length 1, doesn't process MDX
+  pageExtensions: ['tsx', 'mdx'],
   trailingSlash: true,
   eslint: {
     ignoreDuringBuilds: false,
@@ -36,9 +35,4 @@ const nextConfig: NextConfig = {
     return config;
   },
 };
-const final =  withMDX({
-  options: {
-    remarkPlugins: [remarkGFM]
-  }
-})(nextConfig);
-export default final
+export default nextConfig

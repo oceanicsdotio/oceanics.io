@@ -167,7 +167,7 @@ export function AdditionalProperties(thing: Initial<Things>) {
     </>
   );
 }
-// Placehilder visualization style
+// Placeholder visualization style
 const meshStyle: Initial<MeshStyle> = {
   backgroundColor: "#11002299",
   overlayColor: "lightblue",
