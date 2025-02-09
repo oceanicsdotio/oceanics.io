@@ -21,7 +21,6 @@ extern "C" {
     fn fetch(input: &Request, init: &RequestInit) -> Promise;
 }
 
-
 /// Assets are references to external data objects, which may or may not
 /// be accessible at the time of query.
 /// These are likely blobs in object storage

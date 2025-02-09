@@ -8,7 +8,8 @@
   - [Getting started](#getting-started)
   - [Environment](#environment)
   - [Logging](#logging)
-    - [Troubleshooting](#troubleshooting)
+  - [Dead code and dependencies](#dead-code-and-dependencies)
+  - [Troubleshooting](#troubleshooting)
 
 ## About
 
@@ -66,7 +67,16 @@ WHERE
 GROUP BY method, function
 ```
 
-### Troubleshooting
+## Dead code and dependencies
+
+Unused code and dependencies should be removed as a matter of course.
+
+Use `machete` for Rust dependencies:
+https://github.com/bnjbvr/cargo-machete
+
+Use `yarn depcheck` for Yarn/Node, which is already installed in the environment. This will return false positives for packages that are used in `makefile`, or that are imported in Rust code using `wasm_bindgen`.
+
+## Troubleshooting
 
 Some tips that could help save some time...
 

@@ -4,9 +4,8 @@ mod oceanics;
 mod about;
 
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::{JsCast, JsValue};
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
+use wasm_bindgen::JsCast;
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d};
 
 // Better error reporting
 extern crate console_error_panic_hook;
@@ -24,28 +23,6 @@ fn context2d (canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
         .unwrap()
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap()
-}
-
-#[wasm_bindgen]
-pub fn create_color_map_canvas(_color: JsValue) -> CanvasRenderingContext2d {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.create_element("canvas").unwrap();
-    let canvas: HtmlCanvasElement = canvas
-        .dyn_into::<HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap();
-
-    canvas.set_width(256);
-    canvas.set_height(1);
-
-    let ctx = context2d(&canvas);
-    let gradient = ctx.create_linear_gradient(0.0, 0.0, 256.0, 0.0);
-//    for (let stop in colors) {
-//        gradient.add_color_stop(+stop, colors[stop]);
-//    }
-    ctx.set_fill_style_canvas_gradient(&gradient);
-    ctx.fill_rect(0.0, 0.0, 256.0, 1.0);
-    return ctx;
 }
 
 #[wasm_bindgen]
@@ -79,21 +56,4 @@ pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: &
     );
     
     frames + 1
-}
-
-
-
-#[wasm_bindgen]
-pub async fn fetch_text(path: String) -> Result<JsValue, JsValue> {
-    let opts = RequestInit::new();
-    opts.set_method("GET");
-    opts.set_mode(RequestMode::Cors);
-    let request = Request::new_with_str_and_init(&path, &opts)?;
-    request.headers().set("Accept", "application/txt")?;
-    let window = web_sys::window().unwrap();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
-    assert!(resp_value.is_instance_of::<Response>());
-    let resp: Response = resp_value.dyn_into().unwrap();
-    let text = JsFuture::from(resp.text()?).await?;
-    Ok(text)
 }

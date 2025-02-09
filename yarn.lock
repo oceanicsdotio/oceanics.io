@@ -4304,25 +4304,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mapbox/node-pre-gyp@npm:^1.0.0":
-  version: 1.0.11
-  resolution: "@mapbox/node-pre-gyp@npm:1.0.11"
-  dependencies:
-    detect-libc: "npm:^2.0.0"
-    https-proxy-agent: "npm:^5.0.0"
-    make-dir: "npm:^3.1.0"
-    node-fetch: "npm:^2.6.7"
-    nopt: "npm:^5.0.0"
-    npmlog: "npm:^5.0.1"
-    rimraf: "npm:^3.0.2"
-    semver: "npm:^7.3.5"
-    tar: "npm:^6.1.11"
-  bin:
-    node-pre-gyp: bin/node-pre-gyp
-  checksum: 10/59529a2444e44fddb63057152452b00705aa58059079191126c79ac1388ae4565625afa84ed4dd1bf017d1111ab6e47907f7c5192e06d83c9496f2f3e708680a
-  languageName: node
-  linkType: hard
-
 "@mapbox/node-pre-gyp@npm:^1.0.5":
   version: 1.0.9
   resolution: "@mapbox/node-pre-gyp@npm:1.0.9"
@@ -5044,8 +5025,8 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=663cda&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/06b6da8e4d0bd1ac369f4ee057d64a4a667c282a7534e276d25106202deebec4610f3dedb92046102b2a8c2d61a4c2f35ef58ff412c72cd30379f4495ce7aedd
   languageName: node
   linkType: hard
 
@@ -6580,13 +6561,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/katex@npm:^0.16.7":
-  version: 0.16.7
-  resolution: "@types/katex@npm:0.16.7"
-  checksum: 10/4fd15d93553be97c02c064e16be18d7ccbabf66ec72a9dc7fd5bfa47f0c7581da2f942f693c7cb59499de4c843c2189796e49c9647d336cbd52b777b6722a95a
-  languageName: node
-  linkType: hard
-
 "@types/mapbox-gl@npm:^3.4.1":
   version: 3.4.1
   resolution: "@types/mapbox-gl@npm:3.4.1"
@@ -6685,13 +6659,6 @@ __metadata:
   version: 15.7.5
   resolution: "@types/prop-types@npm:15.7.5"
   checksum: 10/5b43b8b15415e1f298243165f1d44390403bb2bd42e662bca3b5b5633fdd39c938e91b7fce3a9483699db0f7a715d08cef220c121f723a634972fdf596aec980
-  languageName: node
-  linkType: hard
-
-"@types/prop-types@npm:^15.7.13":
-  version: 15.7.13
-  resolution: "@types/prop-types@npm:15.7.13"
-  checksum: 10/8935cad87c683c665d09a055919d617fe951cb3b2d5c00544e3a913f861a2bd8d2145b51c9aa6d2457d19f3107ab40784c40205e757232f6a80cc8b1c815513c
   languageName: node
   linkType: hard
 
@@ -8923,18 +8890,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"canvas@npm:^2.11.2":
-  version: 2.11.2
-  resolution: "canvas@npm:2.11.2"
-  dependencies:
-    "@mapbox/node-pre-gyp": "npm:^1.0.0"
-    nan: "npm:^2.17.0"
-    node-gyp: "npm:latest"
-    simple-get: "npm:^3.0.3"
-  checksum: 10/500040e93310b33f5733746b909712fdeced56aa74a1370c563f0c7ffc5b4a31006b2d881644b59eea8ab6c465406705a59b280f1d4e3ec4e1e2c88d4a725ca6
-  languageName: node
-  linkType: hard
-
 "ccount@npm:^2.0.0":
   version: 2.0.1
   resolution: "ccount@npm:2.0.1"
@@ -9453,13 +9408,6 @@ __metadata:
   version: 7.2.0
   resolution: "commander@npm:7.2.0"
   checksum: 10/9973af10727ad4b44f26703bf3e9fdc323528660a7590efe3aa9ad5042b4584c0deed84ba443f61c9d6f02dade54a5a5d3c95e306a1e1630f8374ae6db16c06d
-  languageName: node
-  linkType: hard
-
-"commander@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "commander@npm:8.3.0"
-  checksum: 10/6b7b5d334483ce24bd73c5dac2eab901a7dbb25fd983ea24a1eeac6e7166bb1967f641546e8abf1920afbde86a45fbfe5812fbc69d0dc451bb45ca416a12a3a3
   languageName: node
   linkType: hard
 
@@ -10037,15 +9985,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decompress-response@npm:^4.2.0":
-  version: 4.2.1
-  resolution: "decompress-response@npm:4.2.1"
-  dependencies:
-    mimic-response: "npm:^2.0.0"
-  checksum: 10/4e783ca4dfe9417354d61349750fe05236f565a4415a6ca20983a311be2371debaedd9104c0b0e7b36e5f167aeaae04f84f1a0b3f8be4162f1d7d15598b8fdba
-  languageName: node
-  linkType: hard
-
 "decompress-response@npm:^6.0.0":
   version: 6.0.0
   resolution: "decompress-response@npm:6.0.0"
@@ -10241,7 +10180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dequal@npm:^2.0.0, dequal@npm:^2.0.3":
+"dequal@npm:^2.0.0":
   version: 2.0.3
   resolution: "dequal@npm:2.0.3"
   checksum: 10/6ff05a7561f33603df87c45e389c9ac0a95e3c056be3da1a0c4702149e3a7f6fe5ffbb294478687ba51a9e95f3a60e8b6b9005993acd79c292c7d15f71964b6b
@@ -15484,17 +15423,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"katex@npm:^0.16.21":
-  version: 0.16.21
-  resolution: "katex@npm:0.16.21"
-  dependencies:
-    commander: "npm:^8.3.0"
-  bin:
-    katex: cli.js
-  checksum: 10/db1094c528972ffb881c64969e87cbca465d21f918f4dad8bfe583f68e1bd601438eda3d79e8d74bc7ccc14e7b76616a9053bb21945749a30a73bc68f20e721b
-  languageName: node
-  linkType: hard
-
 "kdbush@npm:^4.0.2":
   version: 4.0.2
   resolution: "kdbush@npm:4.0.2"
@@ -15938,7 +15866,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.0.0, loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -16036,13 +15964,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"make-cancellable-promise@npm:^1.3.1":
-  version: 1.3.2
-  resolution: "make-cancellable-promise@npm:1.3.2"
-  checksum: 10/d4dcad8211272a4d6ef979747a3d7085cdefb92cf50e096ab6a3ea8295e7578b82edaac261c7c4e3d656eadfac285f05b98856b3cf1fd14390ec2708328a9b35
-  languageName: node
-  linkType: hard
-
 "make-dir@npm:^3.0.0, make-dir@npm:^3.1.0":
   version: 3.1.0
   resolution: "make-dir@npm:3.1.0"
@@ -16065,13 +15986,6 @@ __metadata:
   version: 1.3.6
   resolution: "make-error@npm:1.3.6"
   checksum: 10/b86e5e0e25f7f777b77fabd8e2cbf15737972869d852a22b7e73c17623928fccb826d8e46b9951501d3f20e51ad74ba8c59ed584f610526a48f8ccf88aaec402
-  languageName: node
-  linkType: hard
-
-"make-event-props@npm:^1.6.0":
-  version: 1.6.2
-  resolution: "make-event-props@npm:1.6.2"
-  checksum: 10/9728126c93465d14d624bd00e2542ab9e180d19ac1669f58c121910645bd1d6d0d10a77b832e3e6254b912780a01408da3dd00dba4a823653b503f14ff9b4760
   languageName: node
   linkType: hard
 
@@ -16356,18 +16270,6 @@ __metadata:
   dependencies:
     is-plain-obj: "npm:^2.1.0"
   checksum: 10/d86ddb3dd6e85d558dbf25dc944f3527b6bacb944db3fdda6e84a3f59c4e4b85231095f58b835758b9a57708342dee0f8de0dffa352974a48221487fe9f4584f
-  languageName: node
-  linkType: hard
-
-"merge-refs@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "merge-refs@npm:1.3.0"
-  peerDependencies:
-    "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10/8400f716a77857dac6b5d49cd5ef69cec7bff6c5555785c5e91a5142fbb5f3e6fe81282bc5be1f01c0c0843ed29f5b4169bfa9838ec69c459b4538f3fef3e79c
   languageName: node
   linkType: hard
 
@@ -16721,13 +16623,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mimic-response@npm:^2.0.0":
-  version: 2.1.0
-  resolution: "mimic-response@npm:2.1.0"
-  checksum: 10/014fad6ab936657e5f2f48bd87af62a8e928ebe84472aaf9e14fec4fcb31257a5edff77324d8ac13ddc6685ba5135cf16e381efac324e5f174fb4ddbf902bf07
-  languageName: node
-  linkType: hard
-
 "mimic-response@npm:^3.1.0":
   version: 3.1.0
   resolution: "mimic-response@npm:3.1.0"
@@ -17077,7 +16972,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.16.0, nan@npm:^2.17.0":
+"nan@npm:^2.16.0":
   version: 2.18.0
   resolution: "nan@npm:2.18.0"
   dependencies:
@@ -18006,13 +17901,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openapi-types@npm:^12.1.3":
-  version: 12.1.3
-  resolution: "openapi-types@npm:12.1.3"
-  checksum: 10/9d1d7ed848622b63d0a4c3f881689161b99427133054e46b8e3241e137f1c78bb0031c5d80b420ee79ac2e91d2e727ffd6fc13c553d1b0488ddc8ad389dcbef8
-  languageName: node
-  linkType: hard
-
 "optionator@npm:^0.8.1":
   version: 0.8.3
   resolution: "optionator@npm:0.8.3"
@@ -18496,13 +18384,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"path2d@npm:^0.2.0":
-  version: 0.2.1
-  resolution: "path2d@npm:0.2.1"
-  checksum: 10/16dd250206069417cc9e7377a8f077a4f385e1b0ed121d9766420f592b5519fad8c160b85205561fcdd8cf5169c779deb9e2e883ed61b21980c9201c6df198f8
-  languageName: node
-  linkType: hard
-
 "pathe@npm:^1.1.0, pathe@npm:^1.1.1":
   version: 1.1.1
   resolution: "pathe@npm:1.1.1"
@@ -18526,21 +18407,6 @@ __metadata:
   bin:
     pbf: bin/pbf
   checksum: 10/566a64424063b07f46d3e2cb2288094a60b0a45efea48fd4030f527143b0e9c611399ebd3a6fd56db51908f2006defef5e09a1b2a027db9481a59a41156a540c
-  languageName: node
-  linkType: hard
-
-"pdfjs-dist@npm:4.4.168":
-  version: 4.4.168
-  resolution: "pdfjs-dist@npm:4.4.168"
-  dependencies:
-    canvas: "npm:^2.11.2"
-    path2d: "npm:^0.2.0"
-  dependenciesMeta:
-    canvas:
-      optional: true
-    path2d:
-      optional: true
-  checksum: 10/4fbff214db0b744259c56e2e334e8145981f08251174f8159f32be311c0d87bba3c9c9722c2ce730d0ac1cdc32d00d5668e64db1f860e6f84fc22787c8f12e69
   languageName: node
   linkType: hard
 
@@ -19200,7 +19066,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.12.0 || ^17.0.0 || ^18.0.0, react-is@npm:^18.3.1":
+"react-is@npm:^16.12.0 || ^17.0.0 || ^18.0.0":
   version: 18.3.1
   resolution: "react-is@npm:18.3.1"
   checksum: 10/d5f60c87d285af24b1e1e7eaeb123ec256c3c8bdea7061ab3932e3e14685708221bf234ec50b21e10dd07f008f1b966a2730a0ce4ff67905b3872ff2042aec22
@@ -19246,29 +19112,6 @@ __metadata:
     "@types/react": ">=18"
     react: ">=18"
   checksum: 10/71ce31f200982f641d363888a26e8fb52a199a589124f20295e9be870fa3aed26fcfa14d1dc766d83df666a15cb82359291bfda207bd55d5728ff376d217e079
-  languageName: node
-  linkType: hard
-
-"react-pdf@npm:9.1.1":
-  version: 9.1.1
-  resolution: "react-pdf@npm:9.1.1"
-  dependencies:
-    clsx: "npm:^2.0.0"
-    dequal: "npm:^2.0.3"
-    make-cancellable-promise: "npm:^1.3.1"
-    make-event-props: "npm:^1.6.0"
-    merge-refs: "npm:^1.3.0"
-    pdfjs-dist: "npm:4.4.168"
-    tiny-invariant: "npm:^1.0.0"
-    warning: "npm:^4.0.0"
-  peerDependencies:
-    "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10/9ec41f4be1643092920ab3951af69eabbc2969a59807047bff25c9fa9e3520e41a13e56e26a5696e077ba650399e7e2efb395b4a1ff5626539eaa3265df776de
   languageName: node
   linkType: hard
 
@@ -20609,17 +20452,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-get@npm:^3.0.3":
-  version: 3.1.1
-  resolution: "simple-get@npm:3.1.1"
-  dependencies:
-    decompress-response: "npm:^4.2.0"
-    once: "npm:^1.3.1"
-    simple-concat: "npm:^1.0.0"
-  checksum: 10/94fa04e74077c2607142f7597af8409c6c8d1e9487b597ce1da6f824e732b3e51ef492e495a4d8a2a12a94780214d77a8d3bb81c2139b3ec4ce21b93224442c0
-  languageName: node
-  linkType: hard
-
 "simple-get@npm:^4.0.0, simple-get@npm:^4.0.1":
   version: 4.0.1
   resolution: "simple-get@npm:4.0.1"
@@ -21695,13 +21527,6 @@ __metadata:
   version: 1.0.0
   resolution: "time-zone@npm:1.0.0"
   checksum: 10/e46f5a69b8c236dcd8e91e29d40d4e7a3495ed4f59888c3f84ce1d9678e20461421a6ba41233509d47dd94bc18f1a4377764838b21b584663f942b3426dcbce8
-  languageName: node
-  linkType: hard
-
-"tiny-invariant@npm:^1.0.0":
-  version: 1.2.0
-  resolution: "tiny-invariant@npm:1.2.0"
-  checksum: 10/e09a718a7c4a499ba592cdac61f015d87427a0867ca07f50c11fd9b623f90cdba18937b515d4a5e4f43dac92370498d7bdaee0d0e7a377a61095e02c4a92eade
   languageName: node
   linkType: hard
 
@@ -22917,15 +22742,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"warning@npm:^4.0.0":
-  version: 4.0.3
-  resolution: "warning@npm:4.0.3"
-  dependencies:
-    loose-envify: "npm:^1.0.0"
-  checksum: 10/e7842aff036e2e07ce7a6cc3225e707775b969fe3d0577ad64bd24660e3a9ce3017f0b8c22a136566dcd3a151f37b8ed1ccee103b3bd82bd8a571bf80b247bc4
-  languageName: node
-  linkType: hard
-
 "watchpack@npm:^2.4.1":
   version: 2.4.1
   resolution: "watchpack@npm:2.4.1"
@@ -23325,10 +23141,8 @@ __metadata:
     "@redocly/cli": "npm:^1.28.1"
     "@types/geojson": "npm:^7946.0.15"
     "@types/jest": "npm:^29.5.14"
-    "@types/katex": "npm:^0.16.7"
     "@types/mapbox-gl": "npm:^3.4.1"
     "@types/node": "npm:22.10.7"
-    "@types/prop-types": "npm:^15.7.13"
     "@types/react": "npm:^18.3.11"
     "@types/react-dom": "npm:^18.3.1"
     "@types/react-google-recaptcha": "npm:^2.1.9"
@@ -23345,20 +23159,15 @@ __metadata:
     jest: "npm:^29.7.0"
     jose: "npm:^5.9.6"
     js-yaml: "npm:^4.1.0"
-    katex: "npm:^0.16.21"
     mapbox-gl: "npm:^3.9.4"
     neo4j-driver: "npm:^5.27.0"
     netlify-cli: "npm:^17.37.2"
     next: "npm:15.1.2"
-    openapi-types: "npm:^12.1.3"
     postmark: "npm:^4.0.5"
-    prop-types: "npm:^15.8.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-google-recaptcha: "npm:^3.1.0"
-    react-is: "npm:^18.3.1"
     react-markdown: "npm:^9.0.1"
-    react-pdf: "npm:9.1.1"
     rehype: "npm:^13.0.2"
     rehype-highlight: "npm:^7.0.1"
     rehype-stringify: "npm:^10.0.1"
