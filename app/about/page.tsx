@@ -13,9 +13,6 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <div className={`${style.subscribe}`}>
-      <h2>
-        We are so <strong>glad</strong> you asked!
-      </h2>
       <p>
         Oceanicsdotio LLC is a Rockland Maine business developing digital tools
         for civilian marine operators. We like innovative business models that
@@ -23,14 +20,7 @@ export default function Page() {
         <strong>accountability</strong> in the blue economy.
       </p>
       <h2>
-        You can <strong>hire us</strong>.
-      </h2>
-      <p>
-        We will help design, implement, and operate data and technology
-        projects. Just ask!
-      </p>
-      <h2>
-        Subscribe to <strong>Out of the Blue</strong>
+        Stay in touch
       </h2>
       <Subscribe
         {...{
@@ -46,7 +36,7 @@ export default function Page() {
           news, and events.{" "}
           <Link
             className={layout.link}
-            href="mailto:wave@oceanics.io?subject=Out of the Blue"
+            href="mailto:business@oceanics.io?subject=Hello"
             target="_blank"
           >
             Send us an email to say hello or unsubscribe
