@@ -4636,12 +4636,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/functions@npm:^2.8.2":
-  version: 2.8.2
-  resolution: "@netlify/functions@npm:2.8.2"
+"@netlify/functions@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@netlify/functions@npm:3.0.0"
   dependencies:
-    "@netlify/serverless-functions-api": "npm:1.26.1"
-  checksum: 10/7d0850d69d15f80d6d1fc1dd0d06e47b9aa6f0cd763a1569df091174894a42afe906f940c90371276c7f62f42389554d793fd28eeef0eb8e45bef8c262c26825
+    "@netlify/serverless-functions-api": "npm:1.30.1"
+  checksum: 10/1d73ce12d214b1f21e4dec17ea0b2c28ed35d94c663b7d1502958a41193232b2c8fb1b0bfc0895f2ae4830a4ff02cde03495d6bd6c8adb9384ef0f787e9007e7
   languageName: node
   linkType: hard
 
@@ -4859,13 +4859,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/serverless-functions-api@npm:1.26.1":
-  version: 1.26.1
-  resolution: "@netlify/serverless-functions-api@npm:1.26.1"
+"@netlify/serverless-functions-api@npm:1.30.1":
+  version: 1.30.1
+  resolution: "@netlify/serverless-functions-api@npm:1.30.1"
   dependencies:
     "@netlify/node-cookies": "npm:^0.1.0"
     urlpattern-polyfill: "npm:8.0.2"
-  checksum: 10/a24c7424d7f06f2b527d19fc1607c93e9f517860369f1b2edae90dc6f68d5222be6b0d15be80d80cd28c5322a8cbd521fcd38f5fe945e1e045e6db5d2b15ba89
+  checksum: 10/2f586e34f677f7070f26f802367d0c060fcf7599bf91757c10a257fefce653bf89df420a33625fb36c853e212a55267aae8406e752e202815c75b406c92aa859
   languageName: node
   linkType: hard
 
@@ -5524,11 +5524,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/cli@npm:^1.26.0":
-  version: 1.26.0
-  resolution: "@redocly/cli@npm:1.26.0"
+"@redocly/cli@npm:^1.28.1":
+  version: 1.28.1
+  resolution: "@redocly/cli@npm:1.28.1"
   dependencies:
-    "@redocly/openapi-core": "npm:1.26.0"
+    "@redocly/openapi-core": "npm:1.28.1"
     abort-controller: "npm:^3.0.0"
     chokidar: "npm:^3.5.1"
     colorette: "npm:^1.2.0"
@@ -5538,7 +5538,6 @@ __metadata:
     glob: "npm:^7.1.6"
     handlebars: "npm:^4.7.6"
     mobx: "npm:^6.0.4"
-    node-fetch: "npm:^2.6.1"
     pluralize: "npm:^8.0.0"
     react: "npm:^17.0.0 || ^18.2.0"
     react-dom: "npm:^17.0.0 || ^18.2.0"
@@ -5550,7 +5549,7 @@ __metadata:
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/586505cc506a64720d2ffce532b3d04c8ec192300450a05dd2cd5246691fca1a6a00dd6c91173d0f25601faefa9ea9a2dab6cd808af6882b7b9a1f6fd2840c8c
+  checksum: 10/bd96d253bb01731d17cc5e7c47915f0e36a49779572e3cec885e4552ca9a40f57b14e7c773fb1c00ef8cdeb04b790c2da44c2a7379d3b0cedc93aa5523adb257
   languageName: node
   linkType: hard
 
@@ -5561,29 +5560,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/config@npm:^0.17.0":
-  version: 0.17.1
-  resolution: "@redocly/config@npm:0.17.1"
-  checksum: 10/c4c5a172571aa9885680134e2590c0aed7338cd35abe9bbf23e73c1167609b9123c97d7b7052794e6f6c756ac07f7f79c26d74fb09938c0ac3cc26ebc8c305b1
+"@redocly/config@npm:^0.20.1":
+  version: 0.20.3
+  resolution: "@redocly/config@npm:0.20.3"
+  checksum: 10/dd9501c96d6aa7d6cd7d9879d9bbab6c62fced0adbc8ca2ee1cde37a65384e8b09972aad2dd3a3bef1ee48e6a6287b854deb9858b3fd27c8c36fc7aec039a496
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:1.26.0":
-  version: 1.26.0
-  resolution: "@redocly/openapi-core@npm:1.26.0"
+"@redocly/openapi-core@npm:1.28.1":
+  version: 1.28.1
+  resolution: "@redocly/openapi-core@npm:1.28.1"
   dependencies:
     "@redocly/ajv": "npm:^8.11.2"
-    "@redocly/config": "npm:^0.17.0"
+    "@redocly/config": "npm:^0.20.1"
     colorette: "npm:^1.2.0"
-    https-proxy-agent: "npm:^7.0.4"
+    https-proxy-agent: "npm:^7.0.5"
     js-levenshtein: "npm:^1.1.6"
     js-yaml: "npm:^4.1.0"
-    lodash.isequal: "npm:^4.5.0"
     minimatch: "npm:^5.0.1"
-    node-fetch: "npm:^2.6.1"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/529a6157b5fe4ad7047c859976e044715bad37ebe525676b32d25306efe68d1dedb9c5b15be363563a8f1fb8f909d8168aecf49c8967c76d0897e893a46bf801
+  checksum: 10/a6c2b318ddc8550d005d2aeeaa1c707ba37e8bc8df1b76db46b066104f9fcce9310108af884d2395721ad494824a68210a108dd97c7db4822bd27812db075c67
   languageName: node
   linkType: hard
 
@@ -6474,13 +6471,6 @@ __metadata:
   version: 7946.0.10
   resolution: "@types/geojson@npm:7946.0.10"
   checksum: 10/12c407c2dc93ecb26c08af533ee732f1506a9b29456616ba7ba1d525df96206c28ddf44a528f6a5415d7d22893e9d967420940a9c095ee5e539c1eba5fefc1f4
-  languageName: node
-  linkType: hard
-
-"@types/geojson@npm:^7946.0.14":
-  version: 7946.0.14
-  resolution: "@types/geojson@npm:7946.0.14"
-  checksum: 10/ae511bee6488ae3bd5a3a3347aedb0371e997b14225b8983679284e22fa4ebd88627c6e3ff8b08bf4cc35068cb29310c89427311ffc9322c255615821a922e71
   languageName: node
   linkType: hard
 
@@ -7613,6 +7603,13 @@ __metadata:
   dependencies:
     debug: "npm:^4.3.4"
   checksum: 10/c478fec8f79953f118704d007a38f2a185458853f5c45579b9669372bd0e12602e88dc2ad0233077831504f7cd6fcc8251c383375bba5eaaf563b102938bda26
+  languageName: node
+  linkType: hard
+
+"agent-base@npm:^7.1.2":
+  version: 7.1.3
+  resolution: "agent-base@npm:7.1.3"
+  checksum: 10/3db6d8d4651f2aa1a9e4af35b96ab11a7607af57a24f3bc721a387eaa3b5f674e901f0a648b0caefd48f3fd117c7761b79a3b55854e2aebaa96c3f32cf76af84
   languageName: node
   linkType: hard
 
@@ -13707,6 +13704,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"https-proxy-agent@npm:^7.0.5":
+  version: 7.0.6
+  resolution: "https-proxy-agent@npm:7.0.6"
+  dependencies:
+    agent-base: "npm:^7.1.2"
+    debug: "npm:4"
+  checksum: 10/784b628cbd55b25542a9d85033bdfd03d4eda630fb8b3c9477959367f3be95dc476ed2ecbb9836c359c7c698027fc7b45723a302324433590f45d6c1706e8c13
+  languageName: node
+  linkType: hard
+
 "human-signals@npm:^2.1.0":
   version: 2.1.0
   resolution: "human-signals@npm:2.1.0"
@@ -16108,9 +16115,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mapbox-gl@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "mapbox-gl@npm:3.7.0"
+"mapbox-gl@npm:^3.9.4":
+  version: 3.9.4
+  resolution: "mapbox-gl@npm:3.9.4"
   dependencies:
     "@mapbox/jsonlint-lines-primitives": "npm:^2.0.2"
     "@mapbox/mapbox-gl-supported": "npm:^3.0.0"
@@ -16119,7 +16126,7 @@ __metadata:
     "@mapbox/unitbezier": "npm:^0.0.1"
     "@mapbox/vector-tile": "npm:^1.3.1"
     "@mapbox/whoots-js": "npm:^3.1.0"
-    "@types/geojson": "npm:^7946.0.14"
+    "@types/geojson": "npm:^7946.0.15"
     "@types/geojson-vt": "npm:^3.2.5"
     "@types/mapbox__point-geometry": "npm:^0.1.4"
     "@types/mapbox__vector-tile": "npm:^1.3.4"
@@ -16140,7 +16147,7 @@ __metadata:
     supercluster: "npm:^8.0.1"
     tinyqueue: "npm:^3.0.0"
     vt-pbf: "npm:^3.1.3"
-  checksum: 10/fdd989ca4900b65d04a022db2bd0b615d05f69a5e717fa6f5862d08bd809c1cfdcca583b6e59e597a8291587c3479d8da1d4652518a104d1dcbb52f685df137c
+  checksum: 10/3c515419714bc2ceed86fc0d2d0caf07072e84835c60082b70427e6c30ea1fe178f7e9c8a2081c241845672d669363afd6bb877f18379a3ab80197e12c7560b2
   languageName: node
   linkType: hard
 
@@ -23315,7 +23322,7 @@ __metadata:
     "@netlify/plugin-csp-nonce": "npm:^1.3.7"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
-    "@redocly/cli": "npm:^1.26.0"
+    "@redocly/cli": "npm:^1.28.1"
     "@types/geojson": "npm:^7946.0.15"
     "@types/jest": "npm:^29.5.14"
     "@types/katex": "npm:^0.16.7"
@@ -23339,7 +23346,7 @@ __metadata:
     jose: "npm:^5.9.6"
     js-yaml: "npm:^4.1.0"
     katex: "npm:^0.16.21"
-    mapbox-gl: "npm:^3.7.0"
+    mapbox-gl: "npm:^3.9.4"
     neo4j-driver: "npm:^5.27.0"
     netlify-cli: "npm:^17.37.2"
     next: "npm:15.1.2"
