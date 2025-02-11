@@ -15,7 +15,7 @@ interface IVerify {
 }
 
 interface ISubscribe {
-  children: ReactNode;
+  children?: ReactNode;
   sitekey: string;
   verify: IVerify;
 }
@@ -78,9 +78,9 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
       }),
     });
     if (result.ok) {
-      router.push("/subscribe/check-your-email");
+      router.push("/verify/email");
     } else {
-      router.push("/subscribe/verify/error");
+      router.push("/verify/error");
     }
   };
 
@@ -110,7 +110,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
       />
       {children}
       <button className={style.submit} type="submit" disabled={!verified}>
-        Subscribe
+        Verify email
       </button>
       <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>
         {/*  @ts-expect-error */}
@@ -128,7 +128,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
  * 
  * The animation parameters are dimensionless.
  */
-export default function Oceanics({
+export function Oceanics({
   gridSize,
   backgroundColor,
   timeConstant,

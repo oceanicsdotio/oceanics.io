@@ -10,7 +10,7 @@ export default function Page() {
     <>
       <h2>Your verification link is invalid or has expired!</h2>
       <p>
-        Links only work for 1 hour. Please login again.
+        Links work for 1 hour. Please try again.
       </p>
     </>
   );

@@ -1,15 +1,12 @@
 import type { Context } from "@netlify/functions";
 import * as jose from "jose";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-// Persist to Object Storage
-const client = new S3Client({
-    endpoint: "https://nyc3.digitaloceanspaces.com",
-    region: "us-east-1",
-    credentials: {
-        accessKeyId: process.env.SPACES_ACCESS_KEY ?? "",
-        secretAccessKey: process.env.SPACES_SECRET_KEY ?? ""
-    }
-});
+import { on_signup } from "@oceanics/functions";
+import { Node } from "@logtail/js";
+// Routing and credentials from environment
+const url = process.env.NEO4J_HOSTNAME ?? "";
+const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
+const logtail_source_token = process.env.LOGTAIL_SOURCE_TOKEN ?? "";
+const signing_key = process.env.JWT_SIGNING_KEY ?? "";
 // Reused for error and success responses
 const headers = {
     'Content-Type': 'application/json; charset=utf-8'
@@ -23,36 +20,43 @@ const headers = {
  * and write it as a base64 string to cloud
  * object storage.
  */
-export default async (req: Request, _: Context) => {
-    if (req.method !== "POST") {
+export default async function (event: Request, context: Context) {
+    if (event.method !== "POST") {
         return new Response("Method not supported", {
             status: 405
         })
     }
-    const {host} = new URL(req.url);
-    const secret = new TextEncoder().encode(process.env.JWT_SIGNING_KEY);
+    const start = performance.now();
+    const log = new Node(logtail_source_token);
+    const {host} = new URL(event.url);
+    const secret = new TextEncoder().encode(signing_key);
     try {
-        const { token } = await req.json();
+        const { token } = await event.json();
         const { payload } = await jose.jwtVerify(token as string, secret, {
             issuer: host,
             audience: host,
         });
         if (typeof payload.sub === "undefined") throw Error("No Payload Sub");
-        const command = new PutObjectCommand({
-            Bucket: "out-of-the-blue-today",
-            Key: Buffer.from(payload.sub).toString('base64'),
-            Body: "verified",
-            ContentType: "text/plain"
-        });
-        const response = await client.send(command);
-        const status = response["$metadata"].httpStatusCode;
-        const success = status === 200;
-        return new Response(JSON.stringify({ success }), {
-            status,
+        const obfuscated = Buffer.from(payload.sub).toString('base64');
+        await on_signup(url, access_key, obfuscated);
+        const duration = performance.now() - start;
+        log.info(`verify-email`, {
+            duration,
+            event,
+            context
+        })
+        const body = JSON.stringify({ success: true })
+        return new Response(body, {
+            status: 200,
             headers
         })  
     } catch (error) {
-        console.error(error.message)
+        const duration = performance.now() - start;
+        log.error(`verify-email`, {
+            duration,
+            event,
+            context
+        })
         return new Response(JSON.stringify({ success: false }), {
             status: 401,
             headers

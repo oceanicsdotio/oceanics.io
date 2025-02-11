@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Oceanics.io | E-mail verification still needed",
+  title: "Oceanics.io | E-mail verification needed",
   description: "Check your e-mail for a verification link.",
 };
 
 /**
- * User is redirected here after subscribing to newsletter.
+ * User is redirected here after submitting email for verification.
  */
 export default function Page() {
   return (
@@ -19,10 +19,6 @@ export default function Page() {
         The link is good for 1 hour. 
         If you do not want to continue, ignore the email and we will not
         contact you.
-      </p>
-      <p>
-        We only require your email address, and will not request other
-        information or share your personal information.
       </p>
     </>
   );

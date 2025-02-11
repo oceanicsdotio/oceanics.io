@@ -16,7 +16,7 @@ export default function RootLayout({
           </div>
         </main>
         <footer className={styles.footer}>
-          <p>© 2018-25 <a>Oceanicsdotio LLC</a></p>
+          <p>© 2018-25 Oceanicsdotio LLC</p>
           <p>
             We love you, regardless of identity, ability, or belief! That being
             said, we do track your user agent, actions, and

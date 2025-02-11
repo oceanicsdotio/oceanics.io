@@ -5,7 +5,7 @@ import * as jose from "jose";
  * When we get a form submission, check that an email needs to 
  * be sent to verify the address.
  */
-export default async (req: Request, _context: Context) => {
+export default async function (req: Request, _context: Context) {
   const {payload: {email}} = await req.json();
   const url = new URL(req.url);
   const secret = new TextEncoder().encode(process.env.JWT_SIGNING_KEY);
