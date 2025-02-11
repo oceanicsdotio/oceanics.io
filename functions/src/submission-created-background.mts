@@ -19,12 +19,12 @@ export default async (req: Request, _context: Context) => {
     .setExpirationTime('1h')
     .sign(secret);
   const client = new ServerClient(process.env.POSTMARK_SERVER_API_TOKEN??"");
-  const link = `https://${url.host}/subscribe/verify/?token=${jwt}`;
+  const link = `https://${url.host}/verify/?token=${jwt}`;
   await client.sendEmail({
-    "From": "no-reply@outoftheblue.today",
+    "From": "no-reply@oceanics.io",
     "To": email,
     "Subject": "Verify your email",
-    "TextBody": `Verify your email to finish subscribing: ${link}`,
+    "TextBody": `Click here to login: ${link}`,
     "MessageStream": "verify-email"
   });
 }

@@ -1,4 +1,4 @@
-import ValidateToken from "./ValidateToken";
+import ValidateToken from "./client";
 import { Suspense } from "react";
 import { Metadata } from "next";
 

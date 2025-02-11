@@ -16,12 +16,13 @@ export default function RootLayout({
           </div>
         </main>
         <footer className={styles.footer}>
-          <p>© 2018-25 Oceanicsdotio LLC</p>
+          <p>© 2018-25 <a>Oceanicsdotio LLC</a></p>
           <p>
             We love you, regardless of identity, ability, or belief! That being
-            said, when you arrive we track your user agent, actions, and
+            said, we do track your user agent, actions, and
             location. These data are never transmitted, but may be stored on
-            your device.
+            your device. Providing your email opts you into email verification 
+            and password-less login. We will never share your contact information.
           </p>
         </footer>
       </body>

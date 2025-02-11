@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import Oceanics from "@app/client";
+import {Subscribe} from "@app/client";
 import { Metadata } from "next";
 import layout from "@app/layout.module.css";
 import style from "@app/page.module.css";
@@ -44,6 +45,23 @@ export default function Page() {
           Get in touch
         </Link>
       </p>
+      <div className={`${style.subscribe}`}>
+      <h2>
+        Stay in touch
+      </h2>
+      <Subscribe
+        {...{
+          sitekey: "6LdojWcpAAAAAPMOjOcCD--jyIWLRLQPQ6blVMtZ",
+          verify: {
+            recaptcha: "/.netlify/functions/verify-recaptcha",
+            email: "/subscribe/verify",
+          },
+        }}
+      >
+      </Subscribe>
+    </div>
     </>
   );
 }
+
+
