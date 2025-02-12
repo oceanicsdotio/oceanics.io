@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <h2>Wait, you still need to verify your email address!</h2>
+      <h2>Wait, we still need to verify your email!</h2>
       <p>
         You should receive a confirmation message with a verification link
         to finish subscribing. If you do not see one within a few minutes, check
         your spam.
         The link is good for 1 hour. 
-        If you do not want to continue, ignore the email and we will not
+        Ignore the email and we will not
         contact you.
       </p>
     </>

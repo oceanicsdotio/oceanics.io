@@ -110,7 +110,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
       />
       {children}
       <button className={style.submit} type="submit" disabled={!verified}>
-        Verify email
+        Login
       </button>
       <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>
         {/*  @ts-expect-error */}
