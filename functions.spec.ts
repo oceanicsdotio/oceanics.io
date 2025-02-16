@@ -1,7 +1,7 @@
 // import { describe, expect, test, beforeAll } from '@jest/globals';
 import examples from "./examples.json";
 
-const BASE_URL = "http://localhost:8888";
+const BASE_URL = "https://test.oceanics.io";
 const IDENTITY = "https://www.oceanics.io/.netlify/identity";
 const FUNCTIONS = `${BASE_URL}/.netlify/functions`;
 const INDEX = `${FUNCTIONS}/index`;

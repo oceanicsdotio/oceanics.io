@@ -49,44 +49,11 @@ const schemaToLookup = ([label, { examples = [] }]: [string, { examples: any[] }
   return examples.map(_flatten);
 }
 
-export const reducePrecision = (data: Object | Array<number>, precision: number) => {
+const reducePrecision = (data: Object | Array<number>, precision: number) => {
   const replacer = function (_: string, val: Number | string): Number | string {
     return (typeof val === "number") ? Number(val.toFixed(precision)) : val;
   }
   return JSON.stringify(data, replacer)
-}
-export function transformFeatureToCollection({ geometry }: any) {
-  return cacheItem("Locations", {
-    name: undefined,
-    encodingType: "application/vnd.geo+json",
-    location: geometry
-  })
-}
-
-async function staticCollectionToLocationTuples(url: string) {
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.features.map(transformFeatureToCollection);
-}
-
-export async function fetchStaticFeatureCollection(url: string) {
-  const response = await fetch(url);
-  const serialized = await response.text();
-  const before = serialized.length;
-  const data = JSON.parse(serialized);
-  let after = 0
-  function measureDiff(feature: any) {
-    const singleton = transformFeatureToCollection(feature)
-    const truncated = reducePrecision(singleton, 5);
-    after += truncated.length;
-    return singleton
-  }
-  const result = data.features.map(measureDiff);
-  const stats = {
-    before,
-    after
-  }
-  return [result, stats]
 }
 
 import * as url from 'node:url';
@@ -107,9 +74,7 @@ if (import.meta.url.startsWith('file:')) { // (A)
       ([label]) => extensions.sensing.has(label)
     )
 
-    const fromSpaces = await staticCollectionToLocationTuples("https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/maine-towns.json")
-
-    const examples = [...fromSpec, ...fromSpaces];
+    const examples = [...fromSpec];
 
     console.warn(`Writing new unique examples: ${target}`);
     writeFileSync(target, reducePrecision(examples, 5));

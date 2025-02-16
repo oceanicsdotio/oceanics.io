@@ -40,15 +40,10 @@ These environment variables must be present for things to work:
 
 - `NEO4J_HOSTNAME`: the hostname for Neo4j instance
 - `NEO4J_ACCESS_KEY`: the password for Neo4j instance
-- `SPACES_ACCESS_KEY`: for accessing storage
-- `SPACES_SECRET_KEY`: for accessing storage
-- `STORAGE_ENDPOINT`: the region and host for cloud storage
-- `BUCKET_NAME`: the prefix to the storage endpoint
 - `SERVICE_PROVIDER_API_KEY`: Provider API key for registering accounts
 - `JWT_SIGNING_KEY`: A signing key for e-mail verification
 - `SERVICE_ACCOUNT_USERNAME`: email for service account
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
-- `SERVICE_ACCOUNT_SECRET`: string for salting service key password
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 
 ## Dead code and dependencies

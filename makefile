@@ -56,8 +56,13 @@ coverage:
 	@ cargo llvm-cov --manifest-path functions/Cargo.toml --html --output-dir $@
 	@ touch -m $@
 
+# Deploy to test environment.
+deploy: out
+	@ yarn netlify deploy --alias=test --message "Makefile Deploy" --open
+.PHONY: deploy
+
 # Create examples with static UUID values for deterministic testing.
-test: out coverage
+test: deploy functions.spec.ts examples.json
 	@ yarn jest -t "functions"
 .PHONY: test
 
@@ -66,10 +71,7 @@ prod: out
 	@ yarn netlify deploy --prod --message "Makefile Deploy" --open
 .PHONY: prod
 
-# Deploy to test environment.
-deploy: out
-	@ yarn netlify deploy --alias=test --message "Makefile Deploy" --open
-.PHONY: deploy
+
 
 # Remove build artifacts.
 clean:
