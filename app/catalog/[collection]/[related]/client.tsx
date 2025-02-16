@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback, useState, useRef, type RefObject } from "react";
+import React, { useEffect, useCallback, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
 import specification from "@app/../specification.json";

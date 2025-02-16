@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  type RefObject,
   useMemo,
 } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -395,7 +394,7 @@ export function View({}) {
   /**
    * MapBox container reference.
    */
-  const ref: RefObject<HTMLDivElement> = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   /**
    * MapBoxGL Map instance saved to React state.
    */
