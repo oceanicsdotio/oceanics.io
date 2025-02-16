@@ -6,9 +6,7 @@
   edge_functions = "functions/edge"
 
 [build.environment]
-  NODE_VERSION = "20"
-  AWS_LAMBDA_JS_RUNTIME = "nodejs20.x"
-  UV_THREADPOOL_SIZE = 16
+  NODE_VERSION = "22"
   NETLIFY_NEXT_PLUGIN_SKIP = true
 
 [dev]
