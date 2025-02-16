@@ -1,7 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
 import { v7 as uuid7 } from "uuid";
-import yaml from "yaml";
-
 
 const extensions = {
   sensing: new Set([
@@ -51,16 +49,6 @@ const schemaToLookup = ([label, { examples = [] }]: [string, { examples: any[] }
   return examples.map(_flatten);
 }
 
-const parseWreck = ({ attributes, geometry }: any) => {
-  return {
-    name: `${attributes.vesselTerms} (${attributes.record})`,
-    description: attributes.history.replaceAll("'", ""),
-    location: {
-      type: "Point",
-      coordinates: [geometry.x, geometry.y, attributes.depth]
-    }
-  }
-}
 export const reducePrecision = (data: Object | Array<number>, precision: number) => {
   const replacer = function (_: string, val: Number | string): Number | string {
     return (typeof val === "number") ? Number(val.toFixed(precision)) : val;
@@ -127,6 +115,5 @@ if (import.meta.url.startsWith('file:')) { // (A)
     writeFileSync(target, reducePrecision(examples, 5));
   }
 }
-
 
 export { }
