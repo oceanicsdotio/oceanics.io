@@ -48,8 +48,9 @@
     "**/*.ts",
     "**/*.tsx",
     "build/types/**/*.ts",
-    "palette.ts"
-, "examples.ts"  ],
+    "palette.ts",
+    "examples.ts"
+  ],
   "exclude": [
     "node_modules",
     ".next"

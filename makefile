@@ -27,14 +27,15 @@ node_modules: app/lib functions/lib package.json
 	@ yarn install
 	@ touch -m $@
 
+# Build OpenAPI docs page from specification.
+public/openapi.html: specification.yaml
+	@ yarn run redocly build-docs $< --output $@
+
 # Convert from YAML to JSON for bundling with API.
 specification.json: specification.yaml node_modules
 	@ yarn run yaml --json --single < $< > $@
 
-# Build OpenAPI docs page from specification.
-public/openapi.html: specification.json
-	@ yarn run redocly build-docs $< --output $@
-
+# Use examples in the specification and assign UUID then cache.
 examples.json: examples.ts specification.json
 	@ yarn exec tsx examples.ts specification.json examples.json
 

@@ -4001,7 +4001,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/endpoint@npm:^10.0.0, @octokit/endpoint@npm:^10.1.3":
+"@octokit/endpoint@npm:^10.1.3":
   version: 10.1.3
   resolution: "@octokit/endpoint@npm:10.1.3"
   dependencies:
@@ -4060,7 +4060,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/request-error@npm:^6.0.1, @octokit/request-error@npm:^6.1.7":
+"@octokit/request-error@npm:^6.1.7":
   version: 6.1.7
   resolution: "@octokit/request-error@npm:6.1.7"
   dependencies:
@@ -4069,20 +4069,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/request@npm:^9.1.4":
-  version: 9.2.0
-  resolution: "@octokit/request@npm:9.2.0"
-  dependencies:
-    "@octokit/endpoint": "npm:^10.0.0"
-    "@octokit/request-error": "npm:^6.0.1"
-    "@octokit/types": "npm:^13.6.2"
-    fast-content-type-parse: "npm:^2.0.0"
-    universal-user-agent: "npm:^7.0.2"
-  checksum: 10/b3d294f02014e2fd560d04a2188bb36f9284a1868c4ac72b711a52b15d3d97d76d6416c25ca991b597e7937c953d0398032973576c7ac3db8ac6e0e66c241e21
-  languageName: node
-  linkType: hard
-
-"@octokit/request@npm:^9.2.1":
+"@octokit/request@npm:>=9.2.1":
   version: 9.2.2
   resolution: "@octokit/request@npm:9.2.2"
   dependencies:
