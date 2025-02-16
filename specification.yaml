@@ -430,13 +430,6 @@ components:
           schema:
             $ref: '#/components/schemas/CollectionOptions'
 
-    Memos:
-      description: Create and retrieve content data
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Memos'
-
     Entity:
       description: |
         Entity
@@ -478,13 +471,6 @@ components:
           schema:
             $ref: '#/components/schemas/Collection'
 
-    Memos:
-      description: Memos
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Memos'
-
     Entity:
       description: |
         Single entity
@@ -500,7 +486,6 @@ components:
               - $ref: '#/components/schemas/ObservedProperties'
               - $ref: '#/components/schemas/Sensors'
               - $ref: '#/components/schemas/FeaturesOfInterest'
-              - $ref: '#/components/schemas/Memos'
 
     EntityCollection:
       description: |
@@ -608,40 +593,6 @@ components:
               description: |
                 Node attribute to create an index on.
 
-    Memos:
-      type: object
-      properties:
-        uuid:
-          type: string
-        publication:
-          type: string
-        published:
-          type: date-time
-        labels:
-          type: array
-          items:
-            type: object
-            properties:
-              value:
-                type: string
-        authors:
-          type: array
-          items:
-            type: string
-        title:
-          type: string
-        description:
-          type: string
-        volume:
-          type: string
-        pages:
-          type: array
-          items:
-            type: array
-            items:
-              type: number
-              format: integer
-
     EntityLabel:
       type: string
       enum:
@@ -696,7 +647,6 @@ components:
                   - $ref: '#/components/schemas/ObservedProperties'
                   - $ref: '#/components/schemas/Sensors'
                   - $ref: '#/components/schemas/FeaturesOfInterest'
-                  - $ref: '#/components/schemas/Memos'
         
 
     EntityClass:
@@ -713,7 +663,6 @@ components:
         - Actuators
         - TaskingCapabilities
         - Tasks
-        - Memos
 
     FeaturesOfInterest:
       examples:

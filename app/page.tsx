@@ -1,9 +1,7 @@
 import React, { Suspense } from "react";
-import Oceanics from "@app/client";
+import { Oceanics, Subscribe } from "@app/client";
 import { Metadata } from "next";
-import layout from "@app/layout.module.css";
 import style from "@app/page.module.css";
-import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -27,10 +25,8 @@ export default function Page() {
       </Suspense>
 
       <p>
-        We analyze public and proprietary ocean data and{" "}
-        <a className={layout.link} href="catalog">
-          serve you synthetic and aggregate products
-        </a>{" "}
+        We analyze public and proprietary ocean data and 
+        serve you synthetic and aggregate products
         to manage risk and conflict.
       </p>
       <p>
@@ -38,12 +34,21 @@ export default function Page() {
         decisions for the future. Whether watching your surf or seeking
         opportunity.
       </p>
-      <div className={layout.nested} data-netlify-identity-button></div>
-      <p className={layout.nested}>
-        <Link className={layout.link} href="about/">
-          Get in touch
-        </Link>
-      </p>
+      <div className={`${style.subscribe}`}>
+        <h3>Access our catalog, no password required</h3>
+      <Subscribe
+        {...{
+          sitekey: "6LdojWcpAAAAAPMOjOcCD--jyIWLRLQPQ6blVMtZ",
+          verify: {
+            recaptcha: "/.netlify/functions/verify-recaptcha",
+            email: "/verify",
+          },
+        }}
+      >
+      </Subscribe>
+    </div>
     </>
   );
 }
+
+

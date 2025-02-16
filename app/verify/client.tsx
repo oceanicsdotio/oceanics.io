@@ -41,12 +41,12 @@ export default function ValidateToken({ verify }: IValidateToken) {
       try {
         const data = await result.json();
         if (data.success) {
-          router.push("/subscribe/verify/success")
+          router.push("/catalog")
         } else {
-          router.push("/subscribe/verify/failure")
+          router.push("/verify/failure")
         }
       } catch (error) {
-        router.push("/subscribe/verify/error");
+        router.push("/verify/error");
       }
       
     }
@@ -55,8 +55,8 @@ export default function ValidateToken({ verify }: IValidateToken) {
 
   return (
     <>
-      <h1>Verifying your email and subscribing...</h1>
-      <p>Do not close this page just yet. Thank you for your patience. </p>
+      <h1>Verifying your email and redirecting...</h1>
+      <p>Do not close this page just yet. </p>
     </>
   );
 }

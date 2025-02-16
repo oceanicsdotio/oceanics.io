@@ -350,7 +350,7 @@ export function View({}) {
       const elapsed = performance.now() - clock.offset - clock.start;
       const phenomenonTime = timeConstant * elapsed;
       const result = Math.sin(phenomenonTime);
-      let obs: Initial<Observations> = { phenomenonTime, result, uuid: "" };
+      let obs: any = { phenomenonTime, result, uuid: "" };
       interactive.pushObservation(obs, -1.0, 1.0);
       interactive.draw(handle, draw, false);
       requestId = requestAnimationFrame(render);
