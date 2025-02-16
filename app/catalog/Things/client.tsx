@@ -3,7 +3,7 @@ import React, {
   useRef,
 } from "react";
 import type { Things } from "@oceanics/app";
-import OpenAPI from "@app/../specification.json";
+import OpenAPI from "@app/../specification.yaml";
 import { type Initial } from "@catalog/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";

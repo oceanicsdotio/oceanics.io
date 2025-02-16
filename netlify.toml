@@ -21,7 +21,7 @@
 [functions]  
   node_bundler = "esbuild"
   included_files = [
-    "specification.json",
+    "specification.json"
   ]
   external_node_modules = [
     "@oceanics/functions",

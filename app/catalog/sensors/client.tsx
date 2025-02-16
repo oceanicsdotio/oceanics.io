@@ -1,5 +1,5 @@
 "use client";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import type { Sensors } from "@oceanics/app";
 import { type Initial } from "../client";
 import React, { useCallback, useRef } from "react";

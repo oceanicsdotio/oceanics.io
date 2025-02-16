@@ -1,6 +1,6 @@
 import React from "react";
 import { CollectionPage } from "@catalog/page";
-import openapi from "@app/../specification.json";
+import openapi from "@app/../specification.yaml";
 import { View as DataStreams } from "@catalog/data_streams/client";
 import { View as Locations } from "@catalog/locations/client";
 import { toKey, type Props, collectionMetadata, collectionSlugs } from "../page";

@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef } from "react";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import type { Observations } from "@oceanics/app";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";

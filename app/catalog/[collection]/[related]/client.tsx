@@ -2,7 +2,7 @@
 import React, { useEffect, useCallback, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import Link from "next/link";
 import { ACTIONS, useWorkerFixtures } from "@catalog/client";
 import { type NodeLike } from "@catalog/[collection]/client";

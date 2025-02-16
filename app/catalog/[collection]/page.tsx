@@ -1,5 +1,5 @@
 import React from "react";
-import openapi from "@app/../specification.json";
+import openapi from "@app/../specification.yaml";
 import { CollectionPage, formatMetadata } from "@catalog/page";
 import { Data as DataStreams } from "../data_streams/client";
 import { Data as FeaturesOfInterest } from "../features_of_interest/client";

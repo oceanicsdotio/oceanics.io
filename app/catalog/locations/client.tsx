@@ -21,7 +21,7 @@ import {
   FormArgs,
 } from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import { type Locations as LocationsType } from "@oceanics/app";
 /**
  * Number of decimal places in geo-spatial coordinates when automatically

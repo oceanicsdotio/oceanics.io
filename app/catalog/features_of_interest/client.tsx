@@ -1,5 +1,5 @@
 "use client";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import type { FeaturesOfInterest } from "@oceanics/app";
 import {
   Initial

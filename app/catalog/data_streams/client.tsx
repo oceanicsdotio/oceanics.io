@@ -9,7 +9,7 @@ import {
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";
 import { Linked as LinkedGeneric } from "@app/catalog/[collection]/[related]/client";
-import openapi from "@app/../specification.json";
+import openapi from "@app/../specification.yaml";
 import style from "@catalog/page.module.css";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import type {

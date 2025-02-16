@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef } from "react";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import type { HistoricalLocations } from "@oceanics/app";
 import { type Initial } from "@catalog/client";
 

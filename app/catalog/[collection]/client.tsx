@@ -10,7 +10,7 @@ import Markdown from "react-markdown";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
-import specification from "@app/../specification.json";
+import specification from "@app/../specification.yaml";
 import { Initial, ACTIONS } from "@catalog/client";
 function fromKey(collection: string) {
   return collection

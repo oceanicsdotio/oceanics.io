@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import styles from "@catalog/page.module.css";
 import layout from "@app/layout.module.css";
-import openapi from "@app/../specification.json";
+import openapi from "@app/../specification.yaml";
 import Client from "@catalog/client";
 /**
  * Browser and crawler metadata

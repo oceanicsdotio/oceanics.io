@@ -1,6 +1,6 @@
 import React from "react";
 import { CollectionPage } from "@catalog/page";
-import openapi from "@app/../specification.json";
+import openapi from "@app/../specification.yaml";
 import { Linked as DataStreams } from "@catalog/data_streams/client";
 import { Linked as FeaturesOfInterest } from "@catalog/features_of_interest/client";
 import { Linked as HistoricalLocations } from "@catalog/historical_locations/client";
