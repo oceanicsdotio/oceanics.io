@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-mod view;
 /**
  * A thing is an object of the physical or information world that is capable of of being identified
  * and integrated into communication networks.

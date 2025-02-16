@@ -1,11 +1,8 @@
 "use client";
 import React, {
-  useEffect,
-  useState,
   useRef,
-  type MutableRefObject,
 } from "react";
-import type { InteractiveMesh, MeshStyle, Things } from "@oceanics/app";
+import type { Things } from "@oceanics/app";
 import OpenAPI from "@app/../specification.json";
 import { type Initial } from "@catalog/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
@@ -17,7 +14,6 @@ import {
   type FormArgs,
   FormContainer,
 } from "@catalog/[collection]/client";
-import style from "@catalog/page.module.css";
 /**
  * Metadata from the OpenAPI specification
  */
@@ -166,67 +162,4 @@ export function AdditionalProperties(thing: Initial<Things>) {
       <li>properties: {thing.properties ?? "n/a"}</li>
     </>
   );
-}
-// Placeholder visualization style
-const meshStyle: Initial<MeshStyle> = {
-  backgroundColor: "#11002299",
-  overlayColor: "lightblue",
-  lineWidth: 0.5,
-  fontSize: 24,
-  tickSize: 10,
-  fade: 0.6,
-  labelPadding: 10,
-  radius: 5,
-};
-/**
- * Interactive visualization viewport
- */
-export function View() {
-  /**
-   * Preview 2D render target.
-   */
-  const ref: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
-  /**
-   * Keep reference to the WASM constructor
-   */
-  const [wasm, setWasm] = useState<{
-    InteractiveMesh: typeof InteractiveMesh;
-  } | null>(null);
-  /**
-   * Load WASM runtime and save just the method handles
-   * we need locally. Not sure if this saves us anything,
-   * but seems like a clean idea.
-   */
-  useEffect(() => {
-    (async () => {
-      const wasm = await import("@oceanics/app");
-      const { panic_hook, InteractiveMesh } = wasm;
-      panic_hook();
-      setWasm({ InteractiveMesh });
-    })();
-  }, []);
-  /**
-   * Once we have the WASM instance, create and
-   * save the control and data structure.
-   */
-  useEffect(() => {
-    if (!wasm || !ref.current) return;
-    const handle = ref.current;
-    const { InteractiveMesh } = wasm;
-    const interactive = new InteractiveMesh(10, 10);
-    [handle.width, handle.height] = ["width", "height"].map((dim) =>
-      Number(getComputedStyle(handle).getPropertyValue(dim).slice(0, -2))
-    );
-    let requestId: number | null = null;
-    (function render() {
-      const elapsed = performance.now();
-      interactive.draw(handle, elapsed, meshStyle);
-      interactive.rotate(0.01, 0.5, 0.5, 0.5);
-      requestId = requestAnimationFrame(render);
-    })();
-    return () => {
-      if (requestId) cancelAnimationFrame(requestId);
-    };
-  }, [wasm]);
-  return <canvas className={style.canvas} ref={ref}></canvas>;
 }
