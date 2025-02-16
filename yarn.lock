@@ -3152,71 +3152,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@logtail/browser@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@logtail/browser@npm:0.5.2"
-  dependencies:
-    "@logtail/core": "npm:^0.5.2"
-    "@logtail/tools": "npm:^0.5.2"
-    cross-fetch: "npm:^4.0.0"
-  checksum: 10/b0dbb82846e902cc4261ec7a6eaeda6416252c58944d8a63809affe12f77539f7e5d67286ce652f0c72fa2c198020fd2d2541f1227fb24b8f31b7f6e6dde44d7
-  languageName: node
-  linkType: hard
-
-"@logtail/core@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@logtail/core@npm:0.5.2"
-  dependencies:
-    "@logtail/tools": "npm:^0.5.2"
-    "@logtail/types": "npm:^0.5.2"
-    serialize-error: "npm:8.1.0"
-  checksum: 10/aae5b4eec822947788b6b4c8917659b4eb29876a23f8c5fddbb3ac190d867977b7dbf9f7a990e3b6cf45929aa72612665cb8df2c7bf94f618445426139f68efe
-  languageName: node
-  linkType: hard
-
-"@logtail/js@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@logtail/js@npm:0.5.2"
-  dependencies:
-    "@logtail/browser": "npm:^0.5.2"
-    "@logtail/node": "npm:^0.5.2"
-  checksum: 10/c573900fa3de919acb722d1b4297e6dfbcda7a4b800ae76dd26d0b85fbbc5f8d441a3303ec9bbb5e6a0a486e0dfa5dc83b400cbdbbfe1709fa012dc649e7e8e2
-  languageName: node
-  linkType: hard
-
-"@logtail/node@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@logtail/node@npm:0.5.2"
-  dependencies:
-    "@logtail/core": "npm:^0.5.2"
-    "@logtail/types": "npm:^0.5.2"
-    "@msgpack/msgpack": "npm:^2.5.1"
-    "@types/stack-trace": "npm:^0.0.33"
-    cross-fetch: "npm:^4.0.0"
-    minimatch: "npm:^9.0.5"
-    serialize-error: "npm:8.1.0"
-    stack-trace: "npm:0.0.10"
-  checksum: 10/0fc231d22782966daf4ed87d074c6f49461ee992795586fc5f98ecd4ac18c4680bae6030625f1ba31f7ce70533bc3f836ae5e953c893210a89869cbd61f4cce9
-  languageName: node
-  linkType: hard
-
-"@logtail/tools@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@logtail/tools@npm:0.5.2"
-  dependencies:
-    "@logtail/types": "npm:^0.5.2"
-    cross-fetch: "npm:^4.0.0"
-  checksum: 10/7f64b03f3c0ad082a3066e3800843e88a85f351b8c37052880a746409a08701cef1a30289a9ce1690bfbe6a66d9693e49a1a84e2d8e759fa2de09eac19230b52
-  languageName: node
-  linkType: hard
-
-"@logtail/types@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@logtail/types@npm:0.5.2"
-  checksum: 10/9986f3d6c5dc9826639ecda254a31444bf66b94fc736ae637d681f642574c9544d8441c46479fba40c98be75f173420c877bb399b3ff646c858f81a45607419d
-  languageName: node
-  linkType: hard
-
 "@lukeed/ms@npm:^2.0.1":
   version: 2.0.1
   resolution: "@lukeed/ms@npm:2.0.1"
@@ -3291,13 +3226,6 @@ __metadata:
   version: 3.1.0
   resolution: "@mapbox/whoots-js@npm:3.1.0"
   checksum: 10/c1837c04effd205b207f441356d952eae7e8aad6c58f7c4900de50318c2147cf175936fc9434f20dfa409f9e6a78ec604d61e70c1c20572db0cc7655fbb65f50
-  languageName: node
-  linkType: hard
-
-"@msgpack/msgpack@npm:^2.5.1":
-  version: 2.8.0
-  resolution: "@msgpack/msgpack@npm:2.8.0"
-  checksum: 10/d90ab780c2c96fa5af22f38e0b76871d7c77d06fcf40786b64ada4e0ae02e17b216b38a5505fb4b7d1c339d95caee0669f5ec9004a2b392ce0cbe16afdbd9333
   languageName: node
   linkType: hard
 
@@ -5026,13 +4954,6 @@ __metadata:
   version: 0.16.2
   resolution: "@types/scheduler@npm:0.16.2"
   checksum: 10/b6b4dcfeae6deba2e06a70941860fb1435730576d3689225a421280b7742318d1548b3d22c1f66ab68e414f346a9542f29240bc955b6332c5b11e561077583bc
-  languageName: node
-  linkType: hard
-
-"@types/stack-trace@npm:^0.0.33":
-  version: 0.0.33
-  resolution: "@types/stack-trace@npm:0.0.33"
-  checksum: 10/cec5fbbe3bdcdef82763f917e99ca35a1b92ac96aa7982d09548072c5eff219d8216cf75f1ccfeec9686c91a035cc0d55dda6a76a222022616de275dc5d3a8c1
   languageName: node
   linkType: hard
 
@@ -7785,15 +7706,6 @@ __metadata:
   dependencies:
     luxon: "npm:^3.0.1"
   checksum: 10/ec8a3bded8fc0def4cdc60d80b354128651ed4720757e098d93656eeb81a1b93dfb39b178a41684a75ce2c6f7540b8fb056f8d0feb56938a38acee6c7e17839b
-  languageName: node
-  linkType: hard
-
-"cross-fetch@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "cross-fetch@npm:4.0.0"
-  dependencies:
-    node-fetch: "npm:^2.6.12"
-  checksum: 10/e231a71926644ef122d334a3a4e73d9ba3ba4b480a8a277fb9badc434c1ba905b3d60c8034e18b348361a09afbec40ba9371036801ba2b675a7b84588f9f55d8
   languageName: node
   linkType: hard
 
@@ -14684,7 +14596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.4, minimatch@npm:^9.0.5":
+"minimatch@npm:^9.0.4":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:
@@ -15347,7 +15259,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.7":
+"node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -18069,15 +17981,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"serialize-error@npm:8.1.0":
-  version: 8.1.0
-  resolution: "serialize-error@npm:8.1.0"
-  dependencies:
-    type-fest: "npm:^0.20.2"
-  checksum: 10/2eef236d50edd2d7926e602c14fb500dc3a125ee52e9f08f67033181b8e0be5d1122498bdf7c23c80683cddcad083a27974e9e7111ce23165f4d3bcdd6d65102
-  languageName: node
-  linkType: hard
-
 "serialize-to-js@npm:^3.1.2":
   version: 3.1.2
   resolution: "serialize-to-js@npm:3.1.2"
@@ -18677,7 +18580,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stack-trace@npm:0.0.10, stack-trace@npm:0.0.x":
+"stack-trace@npm:0.0.x":
   version: 0.0.10
   resolution: "stack-trace@npm:0.0.10"
   checksum: 10/7bd633f0e9ac46e81a0b0fe6538482c1d77031959cf94478228731709db4672fbbed59176f5b9a9fd89fec656b5dae03d084ef2d1b0c4c2f5683e05f2dbb1405
@@ -19827,13 +19730,6 @@ __metadata:
   version: 4.0.8
   resolution: "type-detect@npm:4.0.8"
   checksum: 10/5179e3b8ebc51fce1b13efb75fdea4595484433f9683bbc2dca6d99789dba4e602ab7922d2656f2ce8383987467f7770131d4a7f06a26287db0615d2f4c4ce7d
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^0.20.2":
-  version: 0.20.2
-  resolution: "type-fest@npm:0.20.2"
-  checksum: 10/8907e16284b2d6cfa4f4817e93520121941baba36b39219ea36acfe64c86b9dbc10c9941af450bd60832c8f43464974d51c0957f9858bc66b952b66b6914cbb9
   languageName: node
   linkType: hard
 
@@ -21021,7 +20917,6 @@ __metadata:
     "@babel/core": "npm:^7.26.9"
     "@babel/preset-env": "npm:^7.26.9"
     "@babel/preset-typescript": "npm:^7.26.0"
-    "@logtail/js": "npm:^0.5.2"
     "@netlify/functions": "npm:^3.0.0"
     "@netlify/plugin-csp-nonce": "npm:^1.4.0"
     "@oceanics/app": "file:app/lib"

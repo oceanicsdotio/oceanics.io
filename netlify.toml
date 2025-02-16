@@ -23,6 +23,5 @@
   ]
   external_node_modules = [
     "@oceanics/functions",
-    "neo4j-driver",
-    "@logtail/js"
+    "neo4j-driver"
   ]

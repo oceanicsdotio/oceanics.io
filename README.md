@@ -7,7 +7,6 @@
   - [About](#about)
   - [Getting started](#getting-started)
   - [Environment](#environment)
-  - [Logging](#logging)
   - [Dead code and dependencies](#dead-code-and-dependencies)
   - [Troubleshooting](#troubleshooting)
 
@@ -51,21 +50,6 @@ These environment variables must be present for things to work:
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
 - `SERVICE_ACCOUNT_SECRET`: string for salting service key password
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
-
-## Logging
-
-Logging is [through Logtail for JavaScript](https://docs.logtail.com/integrations/javascript). If you want to get performance metrics from the log database, you can use a query like:
-```sql
-SELECT
-  count(*) as requests,
-  JSONExtract(json, 'event', 'httpMethod','Nullable(String)') AS method,
-  JSONExtract(json, 'event', 'path','Nullable(String)') AS function,
-  avg(JSONExtract(json, 'duration','INT')) AS duration
-FROM {{source}}
-WHERE
-  method IS NOT NULL
-GROUP BY method, function
-```
 
 ## Dead code and dependencies
 
