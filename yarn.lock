@@ -3907,7 +3907,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/functions@npm:3.0.0":
+"@netlify/functions@npm:^3.0.0":
   version: 3.0.0
   resolution: "@netlify/functions@npm:3.0.0"
   dependencies:
@@ -5985,10 +5985,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:0.9.5":
-  version: 0.9.5
-  resolution: "@xmldom/xmldom@npm:0.9.5"
-  checksum: 10/d58a2f33a3cbdc73d0f7063d6b8c11a47d321bf861d3287cab1002aaa3a8e35290842e7cf1916e609add594dd66b63f13724369f9ccc3cdc938a317f1c369484
+"@xmldom/xmldom@npm:^0.9.7":
+  version: 0.9.7
+  resolution: "@xmldom/xmldom@npm:0.9.7"
+  checksum: 10/76168bb32b3f57450c4c8a5426578f2b50d50f7ae1efbd208df17de6667378b33eb7a851f0fa812c63bc791bbdace0103c873088222805a5ae9f17f171f7028f
   languageName: node
   linkType: hard
 
@@ -15773,7 +15773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:15.1.7":
+"next@npm:^15.1.7":
   version: 15.1.7
   resolution: "next@npm:15.1.7"
   dependencies:
@@ -20695,11 +20695,11 @@ __metadata:
 
 "typescript@patch:typescript@npm%3A^5.6.3#optional!builtin<compat/typescript>":
   version: 5.6.3
-  resolution: "typescript@patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=d69c25"
+  resolution: "typescript@patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/dc4bec403cd33a204b655b1152a096a08e7bad2c931cb59ef8ff26b6f2aa541bf98f09fc157958a60c921b1983a8dde9a85b692f9de60fa8f574fd131e3ae4dd
+  checksum: 10/00504c01ee42d470c23495426af07512e25e6546bce7e24572e72a9ca2e6b2e9bea63de4286c3cfea644874da1467dcfca23f4f98f7caf20f8b03c0213bb6837
   languageName: node
   linkType: hard
 
@@ -21214,21 +21214,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:11.0.5":
+"uuid@npm:11.0.5, uuid@npm:^11.0.5":
   version: 11.0.5
   resolution: "uuid@npm:11.0.5"
   bin:
     uuid: dist/esm/bin/uuid
   checksum: 10/0594ecdff3051e15d4a2c614b4c72e73af373bde0a5d156512353c01156975295d024ae8d7151846d7bd4d22ccd251b16ed51b4318fa71505fb20ad984102dc1
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^11.0.3":
-  version: 11.0.3
-  resolution: "uuid@npm:11.0.3"
-  bin:
-    uuid: dist/esm/bin/uuid
-  checksum: 10/251385563195709eb0697c74a834764eef28e1656d61174e35edbd129288acb4d95a43f4ce8a77b8c2fc128e2b55924296a0945f964b05b9173469d045625ff2
   languageName: node
   linkType: hard
 
@@ -21660,7 +21651,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.0"
     "@babel/preset-typescript": "npm:^7.26.0"
     "@logtail/js": "npm:^0.5.2"
-    "@netlify/functions": "npm:3.0.0"
+    "@netlify/functions": "npm:^3.0.0"
     "@netlify/plugin-csp-nonce": "npm:^1.4.0"
     "@oceanics/app": "file:app/lib"
     "@oceanics/functions": "file:functions/lib"
@@ -21676,7 +21667,7 @@ __metadata:
     "@types/xmldom": "npm:^0.1.34"
     "@typescript-eslint/eslint-plugin": "npm:^8.18.0"
     "@typescript-eslint/parser": "npm:^8.24.0"
-    "@xmldom/xmldom": "npm:0.9.5"
+    "@xmldom/xmldom": "npm:^0.9.7"
     babel-jest: "npm:^29.7.0"
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.20.0"
@@ -21687,7 +21678,7 @@ __metadata:
     mapbox-gl: "npm:^3.9.4"
     neo4j-driver: "npm:^5.27.0"
     netlify-cli: "npm:18.0.4"
-    next: "npm:15.1.7"
+    next: "npm:^15.1.7"
     postmark: "npm:^4.0.5"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
@@ -21697,8 +21688,8 @@ __metadata:
     tsconfig-paths-webpack-plugin: "npm:^4.2.0"
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.6.3"
-    uuid: "npm:^11.0.3"
-    yaml: "npm:2.7.0"
+    uuid: "npm:^11.0.5"
+    yaml: "npm:^2.7.0"
   languageName: unknown
   linkType: soft
 
@@ -21756,15 +21747,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:2.7.0":
-  version: 2.7.0
-  resolution: "yaml@npm:2.7.0"
-  bin:
-    yaml: bin.mjs
-  checksum: 10/c8c314c62fbd49244a6a51b06482f6d495b37ab10fa685fcafa1bbaae7841b7233ee7d12cab087bcca5a0b28adc92868b6e437322276430c28d00f1c1732eeec
-  languageName: node
-  linkType: hard
-
 "yaml@npm:^1.10.0":
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
@@ -21776,6 +21758,15 @@ __metadata:
   version: 2.3.4
   resolution: "yaml@npm:2.3.4"
   checksum: 10/f8207ce43065a22268a2806ea6a0fa3974c6fde92b4b2fa0082357e487bc333e85dc518910007e7ac001b532c7c84bd3eccb6c7757e94182b564028b0008f44b
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "yaml@npm:2.7.0"
+  bin:
+    yaml: bin.mjs
+  checksum: 10/c8c314c62fbd49244a6a51b06482f6d495b37ab10fa685fcafa1bbaae7841b7233ee7d12cab087bcca5a0b28adc92868b6e437322276430c28d00f1c1732eeec
   languageName: node
   linkType: hard
 
