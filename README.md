@@ -81,3 +81,4 @@ Use `yarn depcheck` for Yarn/Node, which is already installed in the environment
 Some tips that could help save some time...
 
 - Neo4j routing error: Likely that the URL or password for the database instance are out of date in the web UI. Can be applied from the commandline, by updating the `.env` to match the `.envrc`.
+- Yarn updates: when you are ready to update the version of yarn used, run `yarn set version stable`, followed by an install.

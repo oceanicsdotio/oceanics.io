@@ -26,10 +26,10 @@ functions/lib: $(shell find functions -type f -name '*.rs') functions/Cargo.lock
 node_modules: app/lib functions/lib package.json 
 	@ yarn install
 	@ touch -m $@
- 
+
 # Convert from YAML to JSON for bundling with API.
 specification.json: specification.yaml node_modules
-	@ yarn run js-yaml $< > $@
+	@ yarn run yaml --json --single < $< > $@
 
 # Build OpenAPI docs page from specification.
 public/openapi.html: specification.json

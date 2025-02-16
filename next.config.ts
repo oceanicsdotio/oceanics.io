@@ -17,18 +17,13 @@ const nextConfig: NextConfig = {
   webpack(config) {
     // Ensures that web workers can import scripts.
     config.output.publicPath = "/_next/";
-    // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
     config.experiments = {
       ...config.experiments,
-      syncWebAssembly: true
+      asyncWebAssembly: true
     };
     config.module.rules.push({
       test: /\.wasm$/,
-      type: "webassembly/sync",
-    });
-    config.module.rules.push({
-      test: /\.glsl/,
-      type: "asset/source",
+      type: "webassembly/async",
     });
     return config;
   },
