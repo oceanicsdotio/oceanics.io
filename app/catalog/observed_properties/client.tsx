@@ -54,10 +54,10 @@ export function Form({
   /**
    * Form data is synced with user input
    */
-  const uuid = useRef<HTMLInputElement | null>(null);
-  const name = useRef<HTMLInputElement | null>(null);
-  const _description = useRef<HTMLInputElement | null>(null);
-  const definition = useRef<HTMLInputElement | null>(null);
+  const uuid = useRef<HTMLInputElement>(null);
+  const name = useRef<HTMLInputElement>(null);
+  const _description = useRef<HTMLInputElement>(null);
+  const definition = useRef<HTMLInputElement>(null);
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.

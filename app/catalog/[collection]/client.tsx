@@ -3,7 +3,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  type MutableRefObject,
+  type RefObject,
   useRef,
 } from "react";
 import Markdown from "react-markdown";
@@ -23,7 +23,7 @@ export type FormArgs<T> = {
   action: string;
   initial: Initial<T>;
   onSubmit: Function;
-  formRef: MutableRefObject<HTMLFormElement | null>;
+  formRef: RefObject<HTMLFormElement | null>;
   disabled: boolean;
 };
 export type IMutate<T> = {
@@ -99,7 +99,7 @@ export function Collection<T extends NodeLike>({
   /**
    * Ref to Web Worker.
    */
-  const ref = useRef<Worker>();
+  const ref = useRef<Worker>(null);
   /**
    * Load Web Worker on component mount
    */
@@ -236,7 +236,7 @@ export function NumberInput({
 }: {
   name: string;
   // Passthrough, naming matters
-  inputRef?: MutableRefObject<HTMLInputElement | null>;
+  inputRef?: RefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
   defaultValue?: number;
@@ -269,7 +269,7 @@ export function TextInput({
   ...rest
 }: {
   name: string;
-  inputRef?: MutableRefObject<HTMLInputElement | null>;
+  inputRef?: RefObject<HTMLInputElement | null>;
   description: string;
   required?: boolean;
   defaultValue?: string;
@@ -303,7 +303,7 @@ export function TextSelectInput({
   options,
 }: {
   name: string;
-  inputRef: MutableRefObject<HTMLSelectElement | null>;
+  inputRef: RefObject<HTMLSelectElement | null>;
   description: string;
   defaultValue?: string;
   options: string[];

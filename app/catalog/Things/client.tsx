@@ -54,21 +54,21 @@ function useRefs() {
    * User must input uuid, it will not be generated within
    * the system. Currently duplicate UUID silently fails.
    */
-  const uuid = useRef<HTMLInputElement | null>(null);
+  const uuid = useRef<HTMLInputElement>(null);
   /**
    * Non-unique display name for humans. Can be unique
    * and contain information if you so choose, but it
    * doesn't matter to the database.
    */
-  const name = useRef<HTMLInputElement | null>(null);
+  const name = useRef<HTMLInputElement>(null);
   /**
    * Freeform text description input reference.
    */
-  const description = useRef<HTMLInputElement | null>(null);
+  const description = useRef<HTMLInputElement>(null);
   /**
    * JSON format input.
    */
-  const properties = useRef<HTMLInputElement | null>(null);
+  const properties = useRef<HTMLInputElement>(null);
   return { uuid, name, description, properties };
 }
 /**

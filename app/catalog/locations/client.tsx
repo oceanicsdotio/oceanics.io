@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  type MutableRefObject,
+  type RefObject,
   useMemo,
 } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -61,13 +61,13 @@ export function Linked({collection}: any) {
   return <LinkedGeneric<LocationsType> collection={collection} related={schema} />;
 }
 function useRefs() {
-  const uuid = useRef<HTMLInputElement | null>(null);
-  const name = useRef<HTMLInputElement | null>(null);
-  const description = useRef<HTMLInputElement | null>(null);
-  const encodingType = useRef<HTMLInputElement | null>(null);
-  const locationType = useRef<HTMLInputElement | null>(null);
-  const locationLatitude = useRef<HTMLInputElement | null>(null);
-  const locationLongitude = useRef<HTMLInputElement | null>(null);
+  const uuid = useRef<HTMLInputElement>(null);
+  const name = useRef<HTMLInputElement >(null);
+  const description = useRef<HTMLInputElement>(null);
+  const encodingType = useRef<HTMLInputElement>(null);
+  const locationType = useRef<HTMLInputElement>(null);
+  const locationLatitude = useRef<HTMLInputElement>(null);
+  const locationLongitude = useRef<HTMLInputElement>(null);
   const refs = {
     uuid,
     name,
@@ -395,7 +395,7 @@ export function View({}) {
   /**
    * MapBox container reference.
    */
-  const ref: MutableRefObject<HTMLDivElement | null> = useRef(null);
+  const ref: RefObject<HTMLDivElement> = useRef(null);
   /**
    * MapBoxGL Map instance saved to React state.
    */
@@ -440,7 +440,7 @@ export function View({}) {
   /**
    * Ref to Web Worker.
    */
-  const worker = useRef<Worker>();
+  const worker = useRef<Worker>(null);
   /**
    * Map is in idle state
    */

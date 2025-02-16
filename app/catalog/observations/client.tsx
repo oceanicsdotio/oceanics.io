@@ -35,14 +35,14 @@ export function Form({
   /**
    * Form data is synced with user input
    */
-  const uuid = useRef<HTMLInputElement | null>(null);
-  const phenomenonTime = useRef<HTMLInputElement | null>(null);
-  const result = useRef<HTMLInputElement | null>(null);
-  const resultTime = useRef<HTMLInputElement | null>(null);
-  const resultQuality = useRef<HTMLInputElement | null>(null);
-  const validTimeStart = useRef<HTMLInputElement | null>(null);
-  const validTimeEnd = useRef<HTMLInputElement | null>(null);
-  const parameters = useRef<HTMLInputElement | null>(null);
+  const uuid = useRef<HTMLInputElement>(null);
+  const phenomenonTime = useRef<HTMLInputElement>(null);
+  const result = useRef<HTMLInputElement>(null);
+  const resultTime = useRef<HTMLInputElement>(null);
+  const resultQuality = useRef<HTMLInputElement>(null);
+  const validTimeStart = useRef<HTMLInputElement>(null);
+  const validTimeEnd = useRef<HTMLInputElement>(null);
+  const parameters = useRef<HTMLInputElement>(null);
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.

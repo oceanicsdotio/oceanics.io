@@ -28,7 +28,7 @@ export function useWorkerFixtures() {
   /**
    * Ref to Web Worker.
    */
-  const ref = useRef<Worker>();
+  const ref = useRef<Worker>(null);
   /**
    * Controls disabled until the worker is ready.
    */
@@ -71,7 +71,7 @@ export default function ({}) {
   /**
    * Load worker once
    */
-  const ref = useRef<Worker>();
+  const ref = useRef<Worker>(null);
   /**
    * Status message to understand what is going on in the background.
    */
