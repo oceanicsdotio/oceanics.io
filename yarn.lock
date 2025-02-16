@@ -4352,8 +4352,8 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=732422&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/6d899978ef7114051336616e16a67573ace92c7241f6728b301f8c6925ec42247808e2d6e795000bd9395a0122e6bd9b4a562fb226ffc81d0ed69a2d26cd2a59
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=0b656e&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/993226cf222ac4728ecbd06187e588226ec230c11c131c4657c4de738c2131988751c978b6a0b8c75b2afe05e3b81b83c4a240b70c02c63fb4047d85524ee914
   languageName: node
   linkType: hard
 
@@ -7494,16 +7494,6 @@ __metadata:
     normalize-url: "npm:^8.0.0"
     responselike: "npm:^3.0.0"
   checksum: 10/102f454ac68eb66f99a709c5cf65e90ed89f1b9269752578d5a08590b3986c3ea47a5d9dff208fe7b65855a29da129a2f23321b88490106898e0ba70b807c912
-  languageName: node
-  linkType: hard
-
-"call-bind-apply-helpers@npm:^1.0.0, call-bind-apply-helpers@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "call-bind-apply-helpers@npm:1.0.1"
-  dependencies:
-    es-errors: "npm:^1.3.0"
-    function-bind: "npm:^1.1.2"
-  checksum: 10/6e30c621170e45f1fd6735e84d02ee8e02a3ab95cb109499d5308cbe5d1e84d0cd0e10b48cc43c76aa61450ae1b03a7f89c37c10fc0de8d4998b42aab0f268cc
   languageName: node
   linkType: hard
 

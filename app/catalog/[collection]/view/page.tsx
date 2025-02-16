@@ -3,13 +3,11 @@ import { CollectionPage } from "@catalog/page";
 import openapi from "@app/../specification.json";
 import { View as DataStreams } from "@catalog/data_streams/client";
 import { View as Locations } from "@catalog/locations/client";
-import { View as Things } from "@catalog/things/client";
 import { toKey, type Props, collectionMetadata, collectionSlugs } from "../page";
 
 const components = {
   DataStreams,
-  Locations,
-  Things,
+  Locations
 };
 export async function generateStaticParams() {
   return collectionSlugs(components);
