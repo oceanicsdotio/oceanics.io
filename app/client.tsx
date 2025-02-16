@@ -33,8 +33,8 @@ interface IVerification {
 }
 
 export function Subscribe({ children, sitekey, verify }: ISubscribe) {
-  const email = useRef<HTMLInputElement | null>(null);
-  const botField = useRef<HTMLInputElement | null>(null);
+  const email = useRef<HTMLInputElement>(null);
+  const botField = useRef<HTMLInputElement>(null);
   const ref = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   // Uses same nomenclature as the Google API
@@ -178,7 +178,7 @@ export function Oceanics({
   /**
    * Ref for isometric view render target.
    */
-  const board = useRef<HTMLCanvasElement | null>(null);
+  const board = useRef<HTMLCanvasElement>(null);
   /**
    * Interactive elements handled in Rust/Wasm.
    */

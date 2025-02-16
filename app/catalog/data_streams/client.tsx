@@ -16,7 +16,7 @@ import type {
   InteractiveDataStream,
   DataStreamStyle,
   DataStreams,
-  Observations,
+  // Observations,
 } from "@oceanics/app";
 import { useSearchParams } from "next/navigation";
 const schema = openapi.components.schemas.DataStreams;
@@ -56,16 +56,16 @@ export function Form({
   /**
    * Form data is synced with user input
    */
-  const uuid = useRef<HTMLInputElement | null>(null);
-  const name = useRef<HTMLInputElement | null>(null);
-  const description = useRef<HTMLInputElement | null>(null);
-  const unitOfMeasurementName = useRef<HTMLInputElement | null>(null);
-  const unitOfMeasurementSymbol = useRef<HTMLInputElement | null>(null);
-  const unitOfMeasurementDefinition = useRef<HTMLInputElement | null>(null);
-  const observationType = useRef<HTMLSelectElement | null>(null);
-  const observedArea = useRef<HTMLInputElement | null>(null);
-  const phenomenaTime = useRef<HTMLInputElement | null>(null);
-  const resultTime = useRef<HTMLInputElement | null>(null);
+  const uuid = useRef<HTMLInputElement>(null);
+  const name = useRef<HTMLInputElement>(null);
+  const description = useRef<HTMLInputElement>(null);
+  const unitOfMeasurementName = useRef<HTMLInputElement>(null);
+  const unitOfMeasurementSymbol = useRef<HTMLInputElement>(null);
+  const unitOfMeasurementDefinition = useRef<HTMLInputElement>(null);
+  const observationType = useRef<HTMLSelectElement>(null);
+  // const observedArea = useRef<HTMLInputElement>(null);
+  // const phenomenaTime = useRef<HTMLInputElement>(null);
+  // const resultTime = useRef<HTMLInputElement>(null);
   /**
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
@@ -302,7 +302,7 @@ export function View({}) {
   /**
    * Render target
    */
-  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
   /**
    * The data stream structure.
    */

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback, useState, useRef, type MutableRefObject } from "react";
+import React, { useEffect, useCallback, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
 import specification from "@app/../specification.json";
@@ -26,7 +26,7 @@ export function View() {
   /**
    * Preview 2D render target.
    */
-  const ref: MutableRefObject<HTMLCanvasElement | null> = useRef(null);
+  const ref = useRef<HTMLCanvasElement>(null);
   /**
    * Keep reference to the WASM constructor
    */

@@ -12,7 +12,7 @@ import {ACTIONS, useWorkerFixtures} from "@catalog/client"
 
 export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
   const action = "Create";
-  const formRef = useRef<HTMLFormElement | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   /**
    * Status message to understand what is going on in the background.
    */

@@ -17,7 +17,7 @@ export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
    * Form handle, used to reset inputs on successful submission,
    * as reported through the worker message.
    */
-  const formRef = useRef<HTMLFormElement | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   /**
    * Status message to understand what is going on in the background.
    */
