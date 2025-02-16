@@ -4352,15 +4352,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=0b656e&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/993226cf222ac4728ecbd06187e588226ec230c11c131c4657c4de738c2131988751c978b6a0b8c75b2afe05e3b81b83c4a240b70c02c63fb4047d85524ee914
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=69099d&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/01bedf2ed370d5d660ed96098858f638005d23e90a10914ecbec2782a915c1fca3e1d9d0dc3b139546da0c8dca17c5942d7df7c550880d5793b020bd0106d6ad
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -4387,12 +4387,12 @@ __metadata:
   linkType: hard
 
 "@octokit/endpoint@npm:^10.0.0":
-  version: 10.1.2
-  resolution: "@octokit/endpoint@npm:10.1.2"
+  version: 10.1.3
+  resolution: "@octokit/endpoint@npm:10.1.3"
   dependencies:
     "@octokit/types": "npm:^13.6.2"
     universal-user-agent: "npm:^7.0.2"
-  checksum: 10/314296d9c31cb4fc389916804d9ea2f663743bd265f85253d27b146b783419335e698de5bd6f5bef0d40f6baf3124eafcd16920029701675f59fab9d3853c3ee
+  checksum: 10/22a03e106ed66005d48a26eebd9bcb95d418b150ac25eb456dcd00623b658175644d3c7e38474549004851f5bc7aecf2da623cd3227d9620f89e2a080174bfc0
   languageName: node
   linkType: hard
 
