@@ -29,7 +29,7 @@ node_modules: app/lib functions/lib package.json
 
 # Convert from YAML to JSON for bundling with API.
 specification.json: specification.yaml node_modules
-	@ yarn run yaml --json < $< > $@
+	@ yarn run yaml --json --single < $< > $@
 
 # Build OpenAPI docs page from specification.
 public/openapi.html: specification.json
