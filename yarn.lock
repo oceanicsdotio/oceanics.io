@@ -3683,10 +3683,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/blobs@npm:8.1.0":
-  version: 8.1.0
-  resolution: "@netlify/blobs@npm:8.1.0"
-  checksum: 10/1cc89aba053f87335c6dc320aac5cec60d3bdb0b6a28692f5f7080a5e461a3da5e1a218edefe5aba19d952f04dc7aff0008b54524386881af0319439d9e00089
+"@netlify/blobs@npm:8.1.1":
+  version: 8.1.1
+  resolution: "@netlify/blobs@npm:8.1.1"
+  checksum: 10/1f713f8f2c0527239a72f3bf059e708d4f86e8d520b47b08be9877e58e367d386544e2e6ac72fa9c08289eac4ae2efc64e45419ab67c998647112ed3c94ebfb6
   languageName: node
   linkType: hard
 
@@ -5308,12 +5308,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:22.10.7":
-  version: 22.10.7
-  resolution: "@types/node@npm:22.10.7"
+"@types/node@npm:^22.10.7":
+  version: 22.13.4
+  resolution: "@types/node@npm:22.13.4"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10/64cde1c2f5e5f7d597d3bd462f52c3c2d688a66623eb75d25e1d1d63d384ef553a27100635ad0dbb7d74da517048aa636947863eb624cf85f25d2f22370ce474
+  checksum: 10/716e05b1b84d9da3b2cbba9f642d7294549a89c85d27148b48815f321e0081d0546366e97d11c7710a3280160828512eb945f4e9361dda980f708473758ac0a7
   languageName: node
   linkType: hard
 
@@ -6780,14 +6780,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:>=1.7.4":
-  version: 1.7.7
-  resolution: "axios@npm:1.7.7"
+"axios@npm:^1.7.4":
+  version: 1.7.9
+  resolution: "axios@npm:1.7.9"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10/7f875ea13b9298cd7b40fd09985209f7a38d38321f1118c701520939de2f113c4ba137832fe8e3f811f99a38e12c8225481011023209a77b0c0641270e20cde1
+  checksum: 10/b7a5f660ea53ba9c2a745bf5ad77ad8bf4f1338e13ccc3f9f09f810267d6c638c03dac88b55dae8dc98b79c57d2d6835be651d58d2af97c174f43d289a9fd007
   languageName: node
   linkType: hard
 
@@ -10066,9 +10066,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.20.0":
-  version: 9.20.0
-  resolution: "eslint@npm:9.20.0"
+"eslint@npm:^9.20.1":
+  version: 9.20.1
+  resolution: "eslint@npm:9.20.1"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.2.0"
     "@eslint-community/regexpp": "npm:^4.12.1"
@@ -10111,7 +10111,7 @@ __metadata:
       optional: true
   bin:
     eslint: bin/eslint.js
-  checksum: 10/6a7686fbda51a0dfe812ef39c251e2c2b0e828196059732d280be6aa375a1f4b5b0b34fed98de30ee363c3bf1b7e8d2a4eccf20b4112f3ad6709f067404a815c
+  checksum: 10/b1d870135c8ff628685e72c0e9cd161476835e8e69e803d89d87fc4aebe85fc6b51ca422c3c4bc62f0ef7bbd9b10feda76e37e4801706e75931c1791d0e051a8
   languageName: node
   linkType: hard
 
@@ -15634,13 +15634,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"netlify-cli@npm:18.0.4":
-  version: 18.0.4
-  resolution: "netlify-cli@npm:18.0.4"
+"netlify-cli@npm:^18.0.4":
+  version: 18.1.0
+  resolution: "netlify-cli@npm:18.1.0"
   dependencies:
     "@bugsnag/js": "npm:8.2.0"
     "@fastify/static": "npm:7.0.4"
-    "@netlify/blobs": "npm:8.1.0"
+    "@netlify/blobs": "npm:8.1.1"
     "@netlify/build": "npm:29.58.9"
     "@netlify/build-info": "npm:8.0.0"
     "@netlify/config": "npm:20.21.7"
@@ -15747,7 +15747,7 @@ __metadata:
   bin:
     netlify: bin/run.js
     ntl: bin/run.js
-  checksum: 10/ff20644c1243c858fcbeafecc952f71899ffb78461fadbe63d2ae9795dfe0505515d2642fb16ecc430ad9777c2168353f737dd9660ac879bc2990f72a19518a8
+  checksum: 10/742871585fade43b3a236deee91cd1f3956a3193755ca5d7ec7038cd1174bf9aa0d73e1557141a1687e682a3b53c7dae890d59e135e74893032abb34907b0065
   languageName: node
   linkType: hard
 
@@ -21659,7 +21659,7 @@ __metadata:
     "@types/geojson": "npm:^7946.0.15"
     "@types/jest": "npm:^29.5.14"
     "@types/mapbox-gl": "npm:^3.4.1"
-    "@types/node": "npm:22.10.7"
+    "@types/node": "npm:^22.10.7"
     "@types/react": "npm:^19.0.9"
     "@types/react-dom": "npm:^19.0.3"
     "@types/react-google-recaptcha": "npm:^2.1.9"
@@ -21670,14 +21670,14 @@ __metadata:
     "@xmldom/xmldom": "npm:^0.9.7"
     babel-jest: "npm:^29.7.0"
     depcheck: "npm:^1.4.7"
-    eslint: "npm:^9.20.0"
+    eslint: "npm:^9.20.1"
     eslint-config-next: "npm:15.1.7"
     http-proxy-middleware: "npm:^3.0.3"
     jest: "npm:^29.7.0"
     jose: "npm:^5.9.6"
     mapbox-gl: "npm:^3.9.4"
     neo4j-driver: "npm:^5.27.0"
-    netlify-cli: "npm:18.0.4"
+    netlify-cli: "npm:^18.0.4"
     next: "npm:^15.1.7"
     postmark: "npm:^4.0.5"
     react: "npm:^19.0.0"
