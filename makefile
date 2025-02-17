@@ -54,7 +54,7 @@ coverage:
 
 # Push to test environment
 stage: out 
-	@ yarn netlify deploy --alias=test --message "Deploy to test environment" --open
+	@ yarn netlify deploy --alias=test --message "Deploy to test environment"
 .PHONY: stage
 
 # Run tests on deployed functions
