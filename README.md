@@ -30,9 +30,9 @@ Netlify serverless `functions` provide our backend. These are single purpose end
 
 You can run the Neo4j database manager in a [Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports [cypher](https://neo4j.com/docs/cypher-refcard/current/).
 
-Running `make out` will build packages, and `make dev` will build and run a local API and web server.
+Running `make out` will build packages.
 
-Running `make test` populates the connected database with the examples described in `specification.yaml`.
+Running `make test` pushed to a test environment and populates the connected database with the examples described in `specification.yaml`.
 
 ## Environment
 
@@ -60,4 +60,5 @@ Use `yarn depcheck` for Yarn/Node, which is already installed in the environment
 Some tips that could help save some time...
 
 - Neo4j routing error: Likely that the URL or password for the database instance are out of date in the web UI. Can be applied from the commandline, by updating the `.env` to match the `.envrc`.
+- 502 Gateway Error: a Neo4j routing error from bad credentials or URL can result in this status code
 - Yarn updates: when you are ready to update the version of yarn used, run `yarn set version stable`, followed by an install.

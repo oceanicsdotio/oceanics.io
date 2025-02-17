@@ -9,10 +9,6 @@
   NODE_VERSION = "22"
   NETLIFY_NEXT_PLUGIN_SKIP = true
 
-[dev]
-  port = 8888
-  framework = "#static"
-
 [[plugins]]
   package = "@netlify/plugin-csp-nonce"
   

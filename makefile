@@ -35,43 +35,32 @@ public/openapi.html: specification.yaml
 specification.json: specification.yaml node_modules
 	@ yarn run yaml --json --single < $< > $@
 
-# Use examples in the specification and assign UUID then cache.
-examples.json: examples.ts specification.json
-	@ yarn exec tsx examples.ts specification.json examples.json
-
 # Build the next site within Netlify to pick up env/config.
-out: $(SRC) next.config.ts tsconfig.json netlify.toml public/openapi.html examples.json 
+out: node_modules $(SRC) next.config.ts tsconfig.json netlify.toml public/openapi.html
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
 	@ touch -m $@
-
-# Start up local development environment.
-dev: out
-	@ yarn netlify dev
-.PHONY: dev
 
 # Rust tests generate code coverage.
 coverage:
 	@ cargo llvm-cov --manifest-path functions/Cargo.toml --html --output-dir $@
 	@ touch -m $@
 
-# Deploy to test environment.
-deploy: out
-	@ yarn netlify deploy --alias=test --message "Makefile Deploy" --open
-.PHONY: deploy
+# Use examples in the specification and assign UUID then cache.
+examples.json: examples.ts specification.json
+	@ yarn exec tsx examples.ts specification.json examples.json
 
-# Create examples with static UUID values for deterministic testing.
-test: deploy functions.spec.ts examples.json
+# Push to test environment and run tests on functions
+test: examples.json out  functions.spec.ts 
+	@ yarn netlify deploy --alias=test --message "Deploy to test environment" --open
 	@ yarn jest -t "functions"
 .PHONY: test
 
 # Deploy to production.
-prod: out
-	@ yarn netlify deploy --prod --message "Makefile Deploy" --open
+release: out
+	@ yarn netlify deploy --prod --message "Deploy to production" --open
 .PHONY: prod
-
-
 
 # Remove build artifacts.
 clean:
