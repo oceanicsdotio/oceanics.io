@@ -7,12 +7,10 @@
   - [About](#about)
   - [Getting started](#getting-started)
   - [Environment](#environment)
-  - [Dead code and dependencies](#dead-code-and-dependencies)
+  - [Dead code and unused dependencies](#dead-code-and-unused-dependencies)
   - [Troubleshooting](#troubleshooting)
 
 ## About
-
-This document is for developers of [https://www.oceanics.io](https://www.oceanics.io), a web application for high-performance computing and visualization. 
 
 Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is, with no warranty or guarantee. 
 
@@ -27,8 +25,6 @@ We use `yarn` to manage code. The environment configuration lives in `.yarnrc.ym
 The `app` directory contains our NextJS web page. Client interaction is through React Hooks and browser APIs.
 
 Netlify serverless `functions` provide our backend. These are single purpose endpoints that support secure data access and processing.
-
-You can run the Neo4j database manager in a [Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports [cypher](https://neo4j.com/docs/cypher-refcard/current/).
 
 Running `make out` will build packages.
 
@@ -45,9 +41,7 @@ These environment variables must be present for things to work:
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 
-## Dead code and dependencies
-
-Unused code and dependencies should be removed as a matter of course.
+## Dead code and unused dependencies
 
 Use `machete` for Rust dependencies:
 https://github.com/bnjbvr/cargo-machete
