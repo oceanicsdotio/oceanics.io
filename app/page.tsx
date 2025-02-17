@@ -38,7 +38,7 @@ export default function Page() {
         <h3>Access our catalog, no password required</h3>
       <Subscribe
         {...{
-          sitekey: "6LdojWcpAAAAAPMOjOcCD--jyIWLRLQPQ6blVMtZ",
+          sitekey: process.env.NEXT_PUBLIC_SITE_RECAPTCHA_KEY ?? "",
           verify: {
             recaptcha: "/.netlify/functions/verify-recaptcha",
             email: "/verify",

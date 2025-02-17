@@ -35,8 +35,13 @@ public/openapi.html: specification.yaml
 specification.json: specification.yaml node_modules
 	@ yarn run yaml --json --single < $< > $@
 
+# Use examples in the specification and assign UUID then cache.
+examples.json: examples.ts specification.json
+	@ yarn exec tsx examples.ts specification.json examples.json
+
 # Build the next site within Netlify to pick up env/config.
-out: node_modules $(SRC) next.config.ts tsconfig.json netlify.toml public/openapi.html
+# - examples.json required for typechecking only
+out: node_modules $(SRC) next.config.ts tsconfig.json netlify.toml public/openapi.html examples.json
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
@@ -47,13 +52,13 @@ coverage:
 	@ cargo llvm-cov --manifest-path functions/Cargo.toml --html --output-dir $@
 	@ touch -m $@
 
-# Use examples in the specification and assign UUID then cache.
-examples.json: examples.ts specification.json
-	@ yarn exec tsx examples.ts specification.json examples.json
-
-# Push to test environment and run tests on functions
-test: examples.json out  functions.spec.ts 
+# Push to test environment
+stage: out 
 	@ yarn netlify deploy --alias=test --message "Deploy to test environment" --open
+.PHONY: stage
+
+# Run tests on deployed functions
+test: stage functions.spec.ts
 	@ yarn jest -t "functions"
 .PHONY: test
 

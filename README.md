@@ -44,25 +44,23 @@ Most apply to `functions`:
 - `NEO4J_ACCESS_KEY`: the database password
 - `JWT_SIGNING_KEY`: A signing key for transaction verification
 - `POSTMARK_SERVER_API_TOKEN`: credentials for sending out of band verification emails
-- `SITE_RECAPTCHA_KEY`: key for Google ReCaptcha verification
+- `SITE_RECAPTCHA_SECRET`: secret for Google ReCaptcha verification
 
-These need to be defined in Netlify cloud, but it can help to have saved locally for debugging.
-
-Fewer are used [publically by Next](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#bundling-environment-variables-for-the-browser) `app`:
-- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
-
-These are inlined during the `next build` process, and need to be defined only in the local `.env` file that Next reads from.
-
-Building locally and deploying to Netlify requires these variables in the `netlify.toml` file.
-
+These need to be defined in Netlify cloud, but it can help to have saved locally for debugging. Building locally and deploying to Netlify requires these variables in the `netlify.toml` file:
 - `NODE_VERSION`: Node version used to build functions, also the default runtime for functions when deployed
 - `NETLIFY_NEXT_PLUGIN_SKIP`: We define our our build process and pre-build static assets
 
-Testing with `functions.spec.ts` also requires service account credentials:
+Fewer are used [publically by Next](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#bundling-environment-variables-for-the-browser) `app`:
+- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
+- `NEXT_PUBLIC_SITE_RECAPTCHA_KEY`: Google ReCaptcha frontend key
+
+These are inlined during the `next build` process, and need to be defined only in the local `.envrc`, along with:
+- `NETLIFY_AUTH_TOKEN`: Personal access token for deploying site
+- `NETLIFY_SITE_ID`: linking to specific Netlify site
+
+Testing with `functions.spec.ts` also service account credentials defined in `.envrc`:
 - `SERVICE_ACCOUNT_USERNAME`: email for service account
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
-
-These need to be defined in the `.envrc` file used by `direnv` when testing is run locally.
 
 ## Dead code and unused dependencies
 
