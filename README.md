@@ -5,7 +5,8 @@
 - [Oceanics.io](#oceanicsio)
   - [Contents](#contents)
   - [About](#about)
-  - [Getting started](#getting-started)
+  - [Build](#build)
+  - [Testing](#testing)
   - [Environment](#environment)
   - [Dead code and unused dependencies](#dead-code-and-unused-dependencies)
   - [Troubleshooting](#troubleshooting)
@@ -14,11 +15,9 @@
 
 Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is, with no warranty or guarantee. 
 
-## Getting started
-
 The top-level directory contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying.
 
-The site is hosted on Netlify. The build process is setup in `netlify.toml` and `makefile`. Local testing requires the Netlify CLI, which is installed from the parent module.
+The site is hosted on Netlify. The build process is setup in `netlify.toml` and `makefile`.
 
 We use `yarn` to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. Shared dependencies are defined in `package.json`.
 
@@ -26,20 +25,44 @@ The `app` directory contains our NextJS web page. Client interaction is through 
 
 Netlify serverless `functions` provide our backend. These are single purpose endpoints that support secure data access and processing.
 
+## Build
+
 Running `make out` will build packages.
 
-Running `make test` pushed to a test environment and populates the connected database with the examples described in `specification.yaml`.
+## Testing
+
+Running `make test` pushes to a test environment and populates the connected database with the examples described in `specification.yaml`.
+
+Both frontend and backend will be deployed, but at this time tests only run against `functions`.
 
 ## Environment
 
-These environment variables must be present for things to work:
+Some environment variables are required for things to work.
 
-- `NEO4J_HOSTNAME`: the hostname for Neo4j instance
-- `NEO4J_ACCESS_KEY`: the password for Neo4j instance
-- `JWT_SIGNING_KEY`: A signing key for e-mail verification
+Most apply to `functions`:
+- `NEO4J_HOSTNAME`: the database hostname
+- `NEO4J_ACCESS_KEY`: the database password
+- `JWT_SIGNING_KEY`: A signing key for transaction verification
+- `POSTMARK_SERVER_API_TOKEN`: credentials for sending out of band verification emails
+- `SITE_RECAPTCHA_KEY`: key for Google ReCaptcha verification
+
+These need to be defined in Netlify cloud, but it can help to have saved locally for debugging.
+
+Fewer are used [publically by Next](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#bundling-environment-variables-for-the-browser) `app`:
+- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
+
+These are inlined during the `next build` process, and need to be defined only in the local `.env` file that Next reads from.
+
+Building locally and deploying to Netlify requires these variables in the `netlify.toml` file.
+
+- `NODE_VERSION`: Node version used to build functions, also the default runtime for functions when deployed
+- `NETLIFY_NEXT_PLUGIN_SKIP`: We define our our build process and pre-build static assets
+
+Testing with `functions.spec.ts` also requires service account credentials:
 - `SERVICE_ACCOUNT_USERNAME`: email for service account
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
-- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
+
+These need to be defined in the `.envrc` file used by `direnv` when testing is run locally.
 
 ## Dead code and unused dependencies
 
