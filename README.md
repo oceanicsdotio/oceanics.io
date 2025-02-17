@@ -40,7 +40,6 @@ These environment variables must be present for things to work:
 
 - `NEO4J_HOSTNAME`: the hostname for Neo4j instance
 - `NEO4J_ACCESS_KEY`: the password for Neo4j instance
-- `SERVICE_PROVIDER_API_KEY`: Provider API key for registering accounts
 - `JWT_SIGNING_KEY`: A signing key for e-mail verification
 - `SERVICE_ACCOUNT_USERNAME`: email for service account
 - `SERVICE_ACCOUNT_PASSWORD`: password for service account
