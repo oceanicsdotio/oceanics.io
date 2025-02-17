@@ -48,7 +48,6 @@
     "**/*.ts",
     "**/*.tsx",
     "build/types/**/*.ts",
-    "palette.ts",
     "examples.ts"
   ],
   "exclude": [

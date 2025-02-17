@@ -56,3 +56,4 @@ functions/lib
 examples.json
 specification.json
 */LICENSE
+public/openapi.html
