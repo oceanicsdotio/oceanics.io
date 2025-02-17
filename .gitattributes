@@ -3,7 +3,8 @@ public/*                        linguist-documentation
 /.yarn/releases/*               binary
 /.yarn/plugins/**/*             binary
 /.pnp.*                         binary linguist-generated
-/rust/Cargo.lock                linguist-generated
+/functions/Cargo.lock           linguist-generated
+/app/Cargo.lock                 linguist-generated
 yarn.lock                       linguist-generated
 .idea/**                        linguist-vendored
 .vscode/*                       linguist-vendored
