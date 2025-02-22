@@ -41,7 +41,7 @@ examples.json: examples.ts specification.json
 
 # Build the next site within Netlify to pick up env/config.
 # - examples.json required for typechecking only
-out: node_modules $(SRC) next.config.ts tsconfig.json netlify.toml public/openapi.html examples.json
+out: node_modules $(SRC) $(FUNCTIONS) next.config.ts tsconfig.json netlify.toml public/openapi.html examples.json
 	@ yarn run tsc
 	@ yarn netlify init
 	@ yarn netlify build
