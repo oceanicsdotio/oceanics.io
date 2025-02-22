@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
 const FORM_NAME = "subscribe";
+const SPRITE_SIZE = 32.0;
 
 interface IVerify {
   recaptcha: string;
@@ -197,14 +198,22 @@ export function Oceanics({
    * valid rendering target.
    */
   useEffect(() => {
-    if (!board.current) return;
-    const target = board.current.getContext("2d");
+    const canvas = board.current;
+    if (!canvas) return;
+    const target = canvas.getContext("2d");
     if (!target) return;
+    const [width, _] = ["width", "height"].map(
+      (dim: string) =>
+        parseInt(getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2)) *
+        window.devicePixelRatio
+    );
+    const trueGrid = Math.floor(width / SPRITE_SIZE);
+    // const trueGrid = Math.min(computedGrid, gridSize);
     (async function () {
       const { MiniMap } = await import("@oceanics/app");
       setInteractive({
         target,
-        map: new MiniMap(gridSize, icons)
+        map: new MiniMap(trueGrid, icons)
       });
     })();
   }, [gridSize, board]);
@@ -216,7 +225,7 @@ export function Oceanics({
     if (!board.current || !interactive) return;
     let requestId: number | null = null;
     let canvas = board.current;
-    const spriteSize = 32.0;
+    
     interactive.target.imageSmoothingEnabled = false;
     (function render() {
       [canvas.width, canvas.height] = ["width", "height"].map(
@@ -230,7 +239,7 @@ export function Oceanics({
         board.current.width,
         board.current.height,
         backgroundColor,
-        spriteSize,
+        SPRITE_SIZE,
         timeConstant,
         frameConstant,
         amplitude,
