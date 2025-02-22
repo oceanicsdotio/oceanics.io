@@ -3895,15 +3895,15 @@ __metadata:
 
 "@oceanics/app@file:app/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/app@file:app/lib#app/lib::hash=9a2ce3&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/4716e54c443b543a21143a2deb23ea01a6438ce1e4b0511c844166ffe31214e90ffea619897b89167023dba0304a7723643ff097ad76ec631c1209fb1b00ff9e
+  resolution: "@oceanics/app@file:app/lib#app/lib::hash=636394&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/e82e54f583c084b6b315c2a8d3550a0a8a720948fc5239bd89d7651b429435163f9ef54562678015c2837b30b4c4729fa4c9012e6a561327a812a8a221cccdf7
   languageName: node
   linkType: hard
 
 "@oceanics/functions@file:functions/lib::locator=www-oceanics-io%40workspace%3A.":
   version: 0.1.0
-  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=69099d&locator=www-oceanics-io%40workspace%3A."
-  checksum: 10/01bedf2ed370d5d660ed96098858f638005d23e90a10914ecbec2782a915c1fca3e1d9d0dc3b139546da0c8dca17c5942d7df7c550880d5793b020bd0106d6ad
+  resolution: "@oceanics/functions@file:functions/lib#functions/lib::hash=f5dfb8&locator=www-oceanics-io%40workspace%3A."
+  checksum: 10/ce962404cb95408077795c68e8b0a2971a43ba71f081d63444ae2b2c2970be80ff9d2441627377d5a9141d6adaaa605700679c09564eb4618a8365f0733a8e4f
   languageName: node
   linkType: hard
 
@@ -13147,10 +13147,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^5.9.6":
-  version: 5.9.6
-  resolution: "jose@npm:5.9.6"
-  checksum: 10/3ebbda9f6a96d493944f2720bf4436347884666cd87b7087a61cff12a3b540fe6fd743b5eb8defe7bc2a45aa58992ae6687da78797d91fc4e3e5e8588aa98c7d
+"jose@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "jose@npm:6.0.3"
+  checksum: 10/6ee4fd44abd1bccc41e1cd3725fac31bef2930b8941ca1654f663808b6492d9a8ed16783cb18f4d19e9c62f5f060225f2fcc5f6cda5836e9d38bd0f4b315f6ba
   languageName: node
   linkType: hard
 
@@ -20940,7 +20940,7 @@ __metadata:
     eslint-config-next: "npm:15.1.7"
     http-proxy-middleware: "npm:^3.0.3"
     jest: "npm:^29.7.0"
-    jose: "npm:^5.9.6"
+    jose: "npm:^6.0.3"
     mapbox-gl: "npm:^3.10.0"
     neo4j-driver: "npm:^5.28.1"
     netlify-cli: "npm:^18.1.0"
