@@ -25,7 +25,7 @@ export default async function (req: Request, _context: Context) {
     "From": "no-reply@oceanics.io",
     "To": email,
     "Subject": "Verify your email",
-    "TextBody": `Click here to login: ${link}`,
+    "TextBody": `Click here to verify your email: ${link}`,
     "MessageStream": "verify-email"
   });
 }
