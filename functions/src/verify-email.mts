@@ -1,6 +1,7 @@
 import type { Context } from "@netlify/functions";
 import * as jose from "jose";
 import { on_signup } from "@oceanics/functions";
+import {v4 as uuid} from "uuid";
 // Routing and credentials from environment
 const url = process.env.NEO4J_HOSTNAME ?? "";
 const access_key = process.env.NEO4J_ACCESS_KEY ?? "";
@@ -33,8 +34,7 @@ export default async function (event: Request, _: Context) {
             audience: host,
         });
         if (typeof payload.sub === "undefined") throw Error("No Payload Sub");
-        const obfuscated = Buffer.from(payload.sub).toString('base64');
-        await on_signup(url, access_key, obfuscated);
+        await on_signup(url, access_key, payload.sub, uuid());
         const body = JSON.stringify({ success: true })
         return new Response(body, {
             status: 200,

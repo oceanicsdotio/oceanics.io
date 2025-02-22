@@ -1,6 +1,5 @@
 use crate::{
-    Cypher, Links, Node, SerializedQueryResult, EventRouting,
-    DataResponse, ErrorResponse, HandlerContext, QueryResult, NoContentResponse
+    encode, Cypher, DataResponse, ErrorResponse, EventRouting, HandlerContext, Links, NoContentResponse, Node, QueryResult, SerializedQueryResult
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
@@ -107,6 +106,7 @@ async fn delete(
 ) -> JsValue {
     let left = Node::new(None, "n".to_string(), None);
     let links = Links::create();
+    let user = encode(user);
     let query = format!("
         MATCH (:User {{ email: '{user}'}}){links}{left} DETACH DELETE {}
     ", left.symbol);

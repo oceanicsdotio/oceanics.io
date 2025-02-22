@@ -1,7 +1,6 @@
 use std::cmp::max;
 use crate::{
-    Cypher, DataResponse, ErrorResponse, HandlerContext, Links, Node, SerializedQueryResult,
-    EventRouting
+    encode, Cypher, DataResponse, ErrorResponse, EventRouting, HandlerContext, Links, Node, SerializedQueryResult
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
@@ -58,6 +57,7 @@ async fn get(url: &String, access_key: &String, user: &String, event: JsValue) -
     let mut right = Node::from_label(&query.right);
     right.symbol = "b".to_string();
     let links = Links::create();
+    let user = encode(user);
     let query = format!("
         MATCH (u:User {{ email: '{user}' }}) WITH u
         MATCH (u){links}{left}--{right}-[ :Create ]-(u)

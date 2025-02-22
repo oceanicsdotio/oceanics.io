@@ -1,10 +1,15 @@
 #![allow(dead_code)]
 use wasm_bindgen::prelude::*;
+use base64::{prelude::BASE64_STANDARD, Engine};
 mod src;
 extern crate console_error_panic_hook;
 use std::{collections::HashMap, convert::From, fmt};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+
+pub fn encode(text: &String) -> String {
+    BASE64_STANDARD.encode(text)
+}
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventRouting {
@@ -327,6 +332,16 @@ impl Node {
     pub fn user_from_string(email: String) -> Self {
         let mut user_props = HashMap::<String, Value>::with_capacity(1);
         user_props.insert("email".to_string(), json!(email));
+        Self::from_hash_map_and_symbol(
+            user_props, 
+            "u".to_string(), 
+            &"User".to_string()
+        )
+    }
+    pub fn user_from_string_and_uuid(email: String, uuid: String) -> Self {
+        let mut user_props = HashMap::<String, Value>::with_capacity(1);
+        user_props.insert("email".to_string(), json!(email));
+        user_props.insert("uuid".to_string(), json!(uuid));
         Self::from_hash_map_and_symbol(
             user_props, 
             "u".to_string(), 
