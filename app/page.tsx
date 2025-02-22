@@ -2,7 +2,6 @@ import React, { Suspense } from "react";
 import { Oceanics, Subscribe } from "@app/client";
 import { Metadata } from "next";
 import style from "@app/page.module.css";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Oceanics.io",
@@ -12,7 +11,6 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <Script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></Script>
       <Suspense fallback={<div className={style.placeholder}></div>}>
         <Oceanics
           gridSize={20}
@@ -25,9 +23,8 @@ export default function Page() {
       </Suspense>
 
       <p>
-        We analyze public and proprietary ocean data and 
-        serve you synthetic and aggregate products
-        to manage risk and conflict.
+        We analyze public and proprietary ocean data and serve you synthetic and
+        aggregate products to manage risk and conflict.
       </p>
       <p>
         Together we can draw on community knowledge and make data-driven
@@ -35,20 +32,17 @@ export default function Page() {
         opportunity.
       </p>
       <div className={`${style.subscribe}`}>
-        <h3>Access our catalog, no password required</h3>
-      <Subscribe
-        {...{
-          sitekey: process.env.NEXT_PUBLIC_SITE_RECAPTCHA_KEY ?? "",
-          verify: {
-            recaptcha: "/.netlify/functions/verify-recaptcha",
-            email: "/verify",
-          },
-        }}
-      >
-      </Subscribe>
-    </div>
+        <h3>Request access to <a href="/catalog">our data catalog</a></h3>
+        <Subscribe
+          {...{
+            sitekey: process.env.NEXT_PUBLIC_SITE_RECAPTCHA_KEY ?? "",
+            verify: {
+              recaptcha: "/.netlify/functions/verify-recaptcha",
+              email: "/verify",
+            },
+          }}
+        ></Subscribe>
+      </div>
     </>
   );
 }
-
-
