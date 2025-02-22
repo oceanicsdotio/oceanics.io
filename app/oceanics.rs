@@ -60,7 +60,7 @@ struct DiagonalIndex {
 
 /// The MiniMap is a data structure and interactive container.
 /// It contains persistent world data as a raster, and exposes
-/// selection and subsetting methods to explore subareas.
+/// selection and sub-setting methods to explore subareas.
 /// Generate a random number
 /// and iterate through the table until a feature is chosen. Assign the
 /// empty tile by default.
@@ -162,7 +162,6 @@ impl MiniMap {
             let feature = self.features.get(&tile.name).unwrap();
             let image = &feature.image;
             let keyframe = ((tile.frame_offset + keyframe_phase * 4.0) % 4.0).floor();
-            
             ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 &image,
                 // Source top left

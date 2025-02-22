@@ -18,11 +18,12 @@ export default function RootLayout({
         <footer className={styles.footer}>
           <p>© 2018-25 Oceanicsdotio LLC</p>
           <p>
-            We love you, regardless of identity, ability, or belief! That being
-            said, we do track your user agent, actions, and
-            location. These data are never transmitted, but may be stored on
-            your device. Providing your email opts you into email verification 
-            and password-less login. We will never share your contact information.
+            Oceanicsdotio LLC is a Rockland Maine business building tools for civilian marine
+            operators. We love you, regardless of identity, ability, or belief.
+            That said, we do track your user agent, actions, and
+            location. These data are not transmitted, but may be stored on
+            your device. Providing your email opts you into verification 
+            and login features. We do not share your contact information.
           </p>
         </footer>
       </body>
