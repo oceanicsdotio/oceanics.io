@@ -338,6 +338,16 @@ impl Node {
             &"User".to_string()
         )
     }
+    pub fn user_from_string_and_uuid(email: String, uuid: String) -> Self {
+        let mut user_props = HashMap::<String, Value>::with_capacity(1);
+        user_props.insert("email".to_string(), json!(email));
+        user_props.insert("uuid".to_string(), json!(uuid));
+        Self::from_hash_map_and_symbol(
+            user_props, 
+            "u".to_string(), 
+            &"User".to_string()
+        )
+    }
     /// Create a node from label and uuid. This pattern
     /// can be used to match single node when you know
     /// its identifier. Not used when writing data, since

@@ -8,8 +8,8 @@ use wasm_bindgen::prelude::*;
 /// The JWT already has an obfuscated value set in 
 /// `submission-created` events.
 #[wasm_bindgen]
-pub async fn on_signup(url: String, access_key: String, user: String) {
-    let user = Node::user_from_string(user);
+pub async fn on_signup(url: String, access_key: String, user: String, uuid: String) {
+    let user = Node::user_from_string_and_uuid(user, uuid);
     let cypher = Cypher::new(format!("MERGE {user}"), "WRITE".to_string());
     cypher.run(&url, &access_key).await;
 }
