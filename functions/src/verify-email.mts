@@ -33,8 +33,7 @@ export default async function (event: Request, _: Context) {
             audience: host,
         });
         if (typeof payload.sub === "undefined") throw Error("No Payload Sub");
-        const obfuscated = Buffer.from(payload.sub).toString('base64');
-        await on_signup(url, access_key, obfuscated);
+        await on_signup(url, access_key, payload.sub);
         const body = JSON.stringify({ success: true })
         return new Response(body, {
             status: 200,

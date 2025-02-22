@@ -7,13 +7,14 @@ import * as jose from "jose";
  */
 export default async function (req: Request, _context: Context) {
   const {payload: {email}} = await req.json();
+  const obfuscated = Buffer.from(email).toString('base64');
   const url = new URL(req.url);
   const secret = new TextEncoder().encode(process.env.JWT_SIGNING_KEY);
   const alg = 'HS256'
   const jwt = await new jose.SignJWT()
     .setProtectedHeader({ alg })
     .setIssuedAt()
-    .setSubject(email)
+    .setSubject(obfuscated)
     .setIssuer(url.host)
     .setAudience(url.host)
     .setExpirationTime('1h')
