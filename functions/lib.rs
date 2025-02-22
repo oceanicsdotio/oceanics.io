@@ -1,10 +1,15 @@
 #![allow(dead_code)]
 use wasm_bindgen::prelude::*;
+use base64::{prelude::BASE64_STANDARD, Engine};
 mod src;
 extern crate console_error_panic_hook;
 use std::{collections::HashMap, convert::From, fmt};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+
+pub fn encode(text: &String) -> String {
+    BASE64_STANDARD.encode(text)
+}
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventRouting {

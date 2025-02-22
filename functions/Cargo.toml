@@ -24,11 +24,12 @@ wasm-opt = [
 ignored = ["serde_derive", "wasm-bindgen-futures"]
 
 [dependencies]
-serde = { version = "1.0.217", features = ["derive"] }
-serde_derive = "1.0.214"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_derive = "1.0.218"
 # no-std compatibility, while allowing heap
-serde_json = {version="1.0.138", default-features = false, features = ["alloc"]}
+serde_json = {version="1.0.139", default-features = false, features = ["alloc"]}
 serde-wasm-bindgen = "0.6.5"
 console_error_panic_hook = "0.1.7"
 wasm-bindgen = { version = "0.2.100", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.50"
+base64 = "0.22.1"

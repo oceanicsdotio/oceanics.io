@@ -1,6 +1,5 @@
 use crate::{
-    Cypher, DataResponse, ErrorResponse, HandlerContext, Links, NoContentResponse, Node,
-    QueryResult, SerializedQueryResult, EventRouting
+    encode, Cypher, DataResponse, ErrorResponse, EventRouting, HandlerContext, Links, NoContentResponse, Node, QueryResult, SerializedQueryResult
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
@@ -43,6 +42,7 @@ pub async fn get(
     let query = event.query_string_parameters;
     let node = Node::from_uuid(&query.left, &query.left_uuid);
     let links = Links::create();
+    let user = encode(user);
     let query = format!("
         MATCH (u:User {{email: '{user}'}}) WITH u
         MATCH (u){links}{node}
@@ -73,6 +73,7 @@ pub async fn delete(
 ) -> JsValue {
     let event = serde_wasm_bindgen::from_value::<Delete>(event).unwrap();
     let query = event.query_string_parameters;
+    let user = encode(user);
     let query = format!(
         "MATCH (u:User {{email: '{user}'}}) WITH u
         MATCH (u)-[:Create]-(n:{} {{uuid: '{}'}})
@@ -100,6 +101,7 @@ async fn put(url: &String, access_key: &String, user: &String, event: JsValue) -
     let label = query.left.clone();
     let updates = Node::new(event.body, "n".to_string(), Some(label.clone()));
     let pattern = updates.pattern();
+    let user = encode(user);
     let query = format!(
         "MATCH (u:User {{email: '{user}'}}) WITH u
         MATCH (u)-[:Create]-(n:{} {{uuid:'{}'}})

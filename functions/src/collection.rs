@@ -1,6 +1,6 @@
 use std::cmp::max;
 use crate::{
-    Cypher, DataResponse, ErrorResponse, Links, NoContentResponse, Node, QueryResult, SerializedQueryResult, HandlerContext, EventRouting
+    encode, Cypher, DataResponse, ErrorResponse, EventRouting, HandlerContext, Links, NoContentResponse, Node, QueryResult, SerializedQueryResult
 };
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
@@ -77,6 +77,7 @@ async fn get(url: &String, access_key: &String, user: &String, event: JsValue) -
     }
     // Cannot be computed until we know if peek-ahead worked
     let next = off + lim;
+    let user = encode(user);
     let query = format!("
         MATCH (u:User {{email: '{user}'}}) 
         CALL (u) {{
@@ -125,6 +126,7 @@ async fn post(url: &String, access_key: &String, user: &String, event: JsValue) 
     let label = Some(event.query_string_parameters.left);
     let node = Node::new(Some(event.body), "n".to_string(), label);
     let links = Links::create();
+    let user = encode(user);
     let query = format!("
         MATCH (u:User {{email: '{user}'}})
         WITH u
