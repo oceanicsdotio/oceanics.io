@@ -1,13 +1,14 @@
 "use client";
-import React, { useEffect, useCallback, useState, useRef } from "react";
+import React, { useEffect, useCallback, useState, useRef, useReducer } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
+import client from "@catalog/client.module.css";
 import specification from "@app/../specification.yaml";
 import Link from "next/link";
 import { ACTIONS, useWorkerFixtures } from "@catalog/client";
 import { type NodeLike } from "@catalog/[collection]/client";
 import type { InteractiveMesh, MeshStyle } from "@oceanics/app";
-import { type Initial } from "@catalog/client";
+import { type Initial, messageQueueReducer } from "@catalog/client";
 // Placeholder visualization style
 const meshStyle: Initial<MeshStyle> = {
   backgroundColor: "#11002299",
@@ -108,7 +109,7 @@ export function Linked<T extends NodeLike>({
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading");
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Node or index data, if any.
    */
@@ -135,7 +136,7 @@ export function Linked<T extends NodeLike>({
           console.error("@worker", type, data);
           return;
         case ACTIONS.status:
-          setMessage(data.message);
+          appendToQueue(data.message);
           return;
         default:
           console.warn("@client", type, data);
@@ -182,7 +183,9 @@ export function Linked<T extends NodeLike>({
   }, []);
   return (
     <>
-      <p>{message}</p>
+      <div className={client.messages}>
+        {messages.toReversed().map((message: string) => <div>{message}</div>)}
+      </div>
       <View></View>
       <>
         {linked.map(({ uuid, name, ...rest }, index) => {

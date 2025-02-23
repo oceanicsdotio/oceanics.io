@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useReducer,
   type RefObject,
   useRef,
 } from "react";
@@ -10,8 +11,9 @@ import Markdown from "react-markdown";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
+import client from "@catalog/client.module.css";
 import specification from "@app/../specification.yaml";
-import { Initial, ACTIONS } from "@catalog/client";
+import { Initial, ACTIONS, messageQueueReducer } from "@catalog/client";
 function fromKey(collection: string) {
   return collection
     .split(/\.?(?=[A-Z])/)
@@ -60,7 +62,7 @@ export function Collection<T extends NodeLike>({
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading");
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Node or index data, if any.
    */
@@ -87,7 +89,7 @@ export function Collection<T extends NodeLike>({
           console.error("@worker", type, data);
           return;
         case ACTIONS.status:
-          setMessage(data.message);
+          appendToQueue(data.message);
           return;
         default:
           console.warn("@client", type, data);
@@ -143,7 +145,9 @@ export function Collection<T extends NodeLike>({
 
   return (
     <>
-      <p>{message}</p>
+      <div className={client.messages}>
+        {messages.toReversed().map((message: string) => <div>{message}</div>)}
+      </div>
       <>
         {collection.map(({ uuid, name, ...rest }, index) => {
           return (
