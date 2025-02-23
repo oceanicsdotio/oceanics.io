@@ -13147,10 +13147,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^5.9.6":
-  version: 5.9.6
-  resolution: "jose@npm:5.9.6"
-  checksum: 10/3ebbda9f6a96d493944f2720bf4436347884666cd87b7087a61cff12a3b540fe6fd743b5eb8defe7bc2a45aa58992ae6687da78797d91fc4e3e5e8588aa98c7d
+"jose@npm:6.0.4":
+  version: 6.0.4
+  resolution: "jose@npm:6.0.4"
+  checksum: 10/52daba286789c7146d761a4d7c61931eb1089b8fa13cd76ed0494bc07efad204c52501371cc4b52999bff5de452f53530dd276bcc26330695f9fa9885a47c112
   languageName: node
   linkType: hard
 
@@ -16996,11 +16996,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-markdown@npm:^9.0.3":
-  version: 9.0.3
-  resolution: "react-markdown@npm:9.0.3"
+"react-markdown@npm:10.0.0":
+  version: 10.0.0
+  resolution: "react-markdown@npm:10.0.0"
   dependencies:
     "@types/hast": "npm:^3.0.0"
+    "@types/mdast": "npm:^4.0.0"
     devlop: "npm:^1.0.0"
     hast-util-to-jsx-runtime: "npm:^2.0.0"
     html-url-attributes: "npm:^3.0.0"
@@ -17013,7 +17014,7 @@ __metadata:
   peerDependencies:
     "@types/react": ">=18"
     react: ">=18"
-  checksum: 10/b97eb9a61762762043263286ece030bd878acabe24bbf433767a9518cb18e434e26a75b1b810a7cb966e304ddb4e16bd4a15edcc808113b11b4fb85a68d99e8d
+  checksum: 10/513d9119587b561ac1195e3b2fa30b2bd9149b4dea658c189e2417fda600fbf9d5067967f098ea8e2d525b5fc7db00e3e4176ba2662a6eb503bc09d9b8bd5b5a
   languageName: node
   linkType: hard
 
@@ -20940,7 +20941,7 @@ __metadata:
     eslint-config-next: "npm:15.1.7"
     http-proxy-middleware: "npm:^3.0.3"
     jest: "npm:^29.7.0"
-    jose: "npm:^5.9.6"
+    jose: "npm:6.0.4"
     mapbox-gl: "npm:^3.10.0"
     neo4j-driver: "npm:^5.28.1"
     netlify-cli: "npm:^18.1.0"
@@ -20949,7 +20950,7 @@ __metadata:
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-google-recaptcha: "npm:^3.1.0"
-    react-markdown: "npm:^9.0.3"
+    react-markdown: "npm:10.0.0"
     ts-jest: "npm:^29.2.5"
     tsconfig-paths-webpack-plugin: "npm:^4.2.0"
     tsx: "npm:^4.19.2"
