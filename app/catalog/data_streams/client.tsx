@@ -1,5 +1,5 @@
 "use client";
-import { type Initial, ACTIONS, useWorkerFixtures } from "@catalog/client";
+import { type Initial, ACTIONS, MessageQueue, messageQueueReducer, useWorkerFixtures } from "@catalog/client";
 import {
   Collection,
   TextInput,
@@ -11,7 +11,7 @@ import { Create } from "@catalog/[collection]/create/client";
 import { Linked as LinkedGeneric } from "@app/catalog/[collection]/[related]/client";
 import openapi from "@app/../specification.yaml";
 import style from "@catalog/page.module.css";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useReducer } from "react";
 import type {
   InteractiveDataStream,
   DataStreamStyle,
@@ -207,7 +207,7 @@ export function View({}) {
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading");
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Node or index data, if any.
    */
@@ -239,7 +239,7 @@ export function View({}) {
           console.error("@worker", type, data);
           return;
         case ACTIONS.status:
-          setMessage(data.message);
+          appendToQueue(data.message);
           return;
         default:
           console.warn("@client", type, data);
@@ -420,7 +420,7 @@ export function View({}) {
    */
   return (
     <div>
-      <p>{message}</p>
+      <MessageQueue messages={messages} />
       <div>
         <button onClick={onPlay} disabled={play || !source}>
           Play

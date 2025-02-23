@@ -2,10 +2,9 @@
 import React, { useEffect, useCallback, useState, useRef, useReducer } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
-import client from "@catalog/client.module.css";
 import specification from "@app/../specification.yaml";
 import Link from "next/link";
-import { ACTIONS, useWorkerFixtures } from "@catalog/client";
+import { ACTIONS, MessageQueue, useWorkerFixtures } from "@catalog/client";
 import { type NodeLike } from "@catalog/[collection]/client";
 import type { InteractiveMesh, MeshStyle } from "@oceanics/app";
 import { type Initial, messageQueueReducer } from "@catalog/client";
@@ -183,9 +182,7 @@ export function Linked<T extends NodeLike>({
   }, []);
   return (
     <>
-      <div className={client.messages}>
-        {messages.toReversed().map((message: string) => <div>{message}</div>)}
-      </div>
+      <MessageQueue messages={messages} />
       <View></View>
       <>
         {linked.map(({ uuid, name, ...rest }, index) => {

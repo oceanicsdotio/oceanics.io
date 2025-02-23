@@ -114,6 +114,17 @@ export function messageQueueReducer(state: string[], action: string) {
   const line = `[${time}] ${action}`
   return [...state, line]
 }
+export function MessageQueue({
+  messages
+}: {
+  messages: string[]
+}) {
+  return (
+    <div className={client.messages}>
+      {messages.toReversed().map((message: string) => <div>{message}</div>)}
+    </div>
+  )
+}
 /**
  * Link items for listing available collections.
  */
@@ -174,9 +185,7 @@ export default function IndexClient({}) {
   // Display Component
   return (
     <>
-      <div className={client.messages}>
-        {messages.toReversed().map((message: string) => <div>{message}</div>)}
-      </div>
+      <MessageQueue messages={messages}/>
       {index.map(({ href, ...rest }, ind) => (
         <Entry key={href} open={ind === 0} href={href} {...rest} />
       ))}

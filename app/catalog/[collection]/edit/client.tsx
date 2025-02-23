@@ -5,11 +5,13 @@ import React, {
   useState,
   useCallback,
   type FormEventHandler,
+  useReducer,
 } from "react";
 import style from "@catalog/page.module.css";
+import client from "@catalog/client.module.css";
 import { useSearchParams } from "next/navigation";
 import { type NodeLike, IMutate } from "@catalog/[collection]/client";
-import { ACTIONS, useWorkerFixtures } from "@catalog/client";
+import { ACTIONS, messageQueueReducer, useWorkerFixtures } from "@catalog/client";
 export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
   const query = useSearchParams();
   const uuid = query.get("uuid") ?? "";
@@ -21,7 +23,7 @@ export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading");
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Node data, if any.
    */
@@ -42,7 +44,7 @@ export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
           return;
         case ACTIONS.status:
           window.scrollTo({ top: 0, behavior: "smooth" });
-          setMessage(data.message);
+          appendToQueue(data.message);
           return;
         default:
           console.warn("@client", type, data);
@@ -120,7 +122,9 @@ export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
     };
   return (
     <>
-      <p>{message}</p>
+      <div className={client.messages}>
+        {messages.toReversed().map((message: string) => <div>{message}</div>)}
+      </div>
       <Form
         action={"Save"}
         formRef={formRef}

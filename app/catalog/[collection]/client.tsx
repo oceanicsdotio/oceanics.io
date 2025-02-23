@@ -11,9 +11,8 @@ import Markdown from "react-markdown";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
-import client from "@catalog/client.module.css";
 import specification from "@app/../specification.yaml";
-import { Initial, ACTIONS, messageQueueReducer } from "@catalog/client";
+import { Initial, ACTIONS, messageQueueReducer, MessageQueue } from "@catalog/client";
 function fromKey(collection: string) {
   return collection
     .split(/\.?(?=[A-Z])/)
@@ -145,9 +144,7 @@ export function Collection<T extends NodeLike>({
 
   return (
     <>
-      <div className={client.messages}>
-        {messages.toReversed().map((message: string) => <div>{message}</div>)}
-      </div>
+      <MessageQueue messages={messages} />
       <>
         {collection.map(({ uuid, name, ...rest }, index) => {
           return (
