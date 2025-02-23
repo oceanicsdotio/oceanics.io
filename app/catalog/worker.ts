@@ -20,6 +20,10 @@ export const postError = (message: string) => {
 }
 function validateAndGetAccessToken(message: MessageEvent) {
   status(`Validating`);
+  if (!message.data || !message.data.data) {
+    postError("Invalid message format");
+    return null;
+  }
   const { data: { user } } = message.data;
   if (typeof user === "undefined" || !user) {
     postError("Missing user data")
@@ -44,15 +48,15 @@ function validateAndGetAccessToken(message: MessageEvent) {
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
-  const accessToken = validateAndGetAccessToken(message)
-  if (!accessToken) {
-    return
-  }
-  if (message.data.type !== "getIndex") {
-    postError(`Unknown message type: ${message.data.type}`);
-    return
-  }
   try {
+    const accessToken = validateAndGetAccessToken(message);
+    if (!accessToken) {
+      return;
+    }
+    if (message.data.type !== "getIndex") {
+      postError(`Unknown message type: ${message.data.type}`);
+      return;
+    }
     status(`Working`);
     const { panic_hook, getIndex } = await import("@oceanics/app");
     panic_hook();
@@ -63,11 +67,17 @@ async function listen(message: MessageEvent) {
       data: result
     });
   } catch (error: any) {
-    postError(error.message);
+    postError(`Unexpected error: ${error.message}`);
   }
 }
 /**
  * Respond to messages
  */
-self.addEventListener("message", listen);
+self.addEventListener("message", (event) => {
+  try {
+    listen(event);
+  } catch (error: any) {
+    postError(`Failed to process message: ${error.message}`);
+  }
+});
 export {}
