@@ -49,23 +49,6 @@
   box-shadow: 0 0 0 3px orange;
 }
 
-.submit {
-  padding: 1rem;
-  font-size: larger;
-  border-radius: 0.5rem;
-  margin: 1rem auto 1rem 0;
-  min-width: 300px;
-  color: orange;
-  background-color: black;
-  border: none;
-  box-shadow: 3px 3px 2px 0px black;
-}
-
-.submit:disabled {
-  color: gray;
-  background-color: lightgray;
-}
-
 .form {
   margin: 0;
   width: 100%;

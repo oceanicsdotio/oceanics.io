@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState, useRef, Suspense } from "react";
 import type { MiniMap } from "@oceanics/app";
-import style from "@app/page.module.css";
+import page from "@app/page.module.css";
+import layout from "@app/layout.module.css";
 import icons from "@app/oceanics.json";
 import type { FormEventHandler, ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -87,13 +88,13 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
 
   return (
     <form
-      className={style.form}
+      className={page.form}
       data-netlify="true"
       data-netlify-honeypot="bot-field"
       name={FORM_NAME}
       onSubmit={onSubmit}
     >
-      <p className={style.hidden}>
+      <p className={page.hidden}>
         <label>{"this should be hidden, don't fill it out"}</label>
         <input name="bot-field" ref={botField} />
       </p>
@@ -101,7 +102,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
         <code>Email</code>
       </label>
       <input
-        className={style.input}
+        className={page.input}
         id="email"
         type="email"
         name="email"
@@ -110,7 +111,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
         ref={email}
       />
       {children}
-      <button className={style.submit} type="submit" disabled={!verified}>
+      <button className={layout.submit} type="submit" disabled={!verified}>
         Submit
       </button>
       <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>
@@ -261,8 +262,8 @@ export function Oceanics({
     phase
   ]);
   return (
-    <div className={style.oceanside}>
-      <canvas ref={board} className={style.board} />
+    <div className={page.oceanside}>
+      <canvas ref={board} className={page.board} />
     </div>
   );
 }
