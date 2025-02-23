@@ -5,12 +5,13 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useReducer,
 } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Map } from "mapbox-gl";
 import { useSearchParams } from "next/navigation";
 // local
-import { type Initial, ACTIONS } from "@catalog/client";
+import { type Initial, ACTIONS, MessageQueue, messageQueueReducer } from "@catalog/client";
 import { Edit as EditGeneric } from "@catalog/[collection]/edit/client";
 import { Create } from "@catalog/[collection]/create/client";
 import { Linked as LinkedGeneric } from "@app/catalog/[collection]/[related]/client";
@@ -402,7 +403,7 @@ export function View({}) {
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading");
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Process web worker messages.
    */
@@ -410,7 +411,7 @@ export function View({}) {
     ({ data: { data, type } }: MessageEvent) => {
       switch (type) {
         case ACTIONS.status:
-          setMessage(data.message);
+          appendToQueue(data.message);
           return;
         case ACTIONS.error:
           console.error("@worker", type, data);
@@ -582,7 +583,7 @@ export function View({}) {
   }, [map, ready]);
   return (
     <div>
-      <p>{message}</p>
+      <MessageQueue messages={messages}/>
       <div className={style.locations}>
         <div className={style.mapbox} ref={ref} />
       </div>

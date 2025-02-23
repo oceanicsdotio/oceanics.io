@@ -13147,10 +13147,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:6.0.4":
-  version: 6.0.4
-  resolution: "jose@npm:6.0.4"
-  checksum: 10/52daba286789c7146d761a4d7c61931eb1089b8fa13cd76ed0494bc07efad204c52501371cc4b52999bff5de452f53530dd276bcc26330695f9fa9885a47c112
+"jose@npm:^6.0.4":
+  version: 6.0.5
+  resolution: "jose@npm:6.0.5"
+  checksum: 10/8b408dab01c139ef31e81558de4d7ec693dc63418a6b2641368b164aa7d01c6ee981078c4ee5a5615c8535e7f7dfcd146023b412fcc7703f71a0bcf960fc5671
   languageName: node
   linkType: hard
 
@@ -16996,7 +16996,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-markdown@npm:10.0.0":
+"react-markdown@npm:^10.0.0":
   version: 10.0.0
   resolution: "react-markdown@npm:10.0.0"
   dependencies:
@@ -20941,7 +20941,7 @@ __metadata:
     eslint-config-next: "npm:15.1.7"
     http-proxy-middleware: "npm:^3.0.3"
     jest: "npm:^29.7.0"
-    jose: "npm:6.0.4"
+    jose: "npm:^6.0.4"
     mapbox-gl: "npm:^3.10.0"
     neo4j-driver: "npm:^5.28.1"
     netlify-cli: "npm:^18.1.0"
@@ -20950,7 +20950,7 @@ __metadata:
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-google-recaptcha: "npm:^3.1.0"
-    react-markdown: "npm:10.0.0"
+    react-markdown: "npm:^10.0.0"
     ts-jest: "npm:^29.2.5"
     tsconfig-paths-webpack-plugin: "npm:^4.2.0"
     tsx: "npm:^4.19.2"

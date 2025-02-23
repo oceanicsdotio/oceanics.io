@@ -5,10 +5,11 @@ import React, {
   useCallback,
   useEffect,
   type FormEventHandler,
+  useReducer,
 } from "react";
 import { v7 as uuid7 } from "uuid";
 import { NodeLike, IMutate} from "@catalog/[collection]/client"
-import {ACTIONS, useWorkerFixtures} from "@catalog/client"
+import {ACTIONS, MessageQueue, messageQueueReducer, useWorkerFixtures} from "@catalog/client"
 
 export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
   const action = "Create";
@@ -16,7 +17,7 @@ export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
   /**
    * Status message to understand what is going on in the background.
    */
-  const [message, setMessage] = useState("↻ Loading");
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Process web worker messages.
    */
@@ -30,7 +31,7 @@ export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
           console.error("@worker", type, data);
           return;
         case ACTIONS.status:
-          setMessage(data.message);
+          appendToQueue(data.message);
           return;
         default:
           console.warn("@client", type, data);
@@ -82,7 +83,7 @@ export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
   });
   return (
     <>
-      <p>{message}</p>
+      <MessageQueue messages={messages} />
       <Form
         action={action}
         formRef={formRef}

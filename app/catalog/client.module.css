@@ -1,0 +1,9 @@
+.messages {
+    height: 50px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    border: 1px dashed lightblue;
+    margin-bottom: 2rem;
+    color: white;
+}
