@@ -39,21 +39,6 @@
   box-shadow: none;
   background-color: grey
 }
-.submit {
-  padding: 0.5rem;
-  font-size: larger;
-  border-radius: 0.5rem;
-  margin: 0.75rem auto 0.75rem 0;
-  min-width: 200px;
-  color: lightblue;
-  background-color: black;
-  border: 1px solid lightblue;
-  box-shadow: 3px 3px 2px 0px darkviolet;
-}
-.submit:disabled {
-  color: gray;
-  background-color: lightgray;
-}
 .form {
   margin: 0;
   width: 100%;

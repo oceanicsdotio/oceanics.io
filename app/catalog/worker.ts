@@ -1,8 +1,6 @@
-type WorkerCache = {
-  handlers: { [key: string]: Function },
-};
-let CACHE: WorkerCache | null = null;
-let postStatus = (message: string) => {
+// Convenience method for updating frontend status
+// as seen by the end user.
+const status = (message: string) => {
   self.postMessage({
     type: "status",
     data: {
@@ -10,7 +8,9 @@ let postStatus = (message: string) => {
     }
   })
 }
-export let postError = (message: string) => {
+// Convenience method for posting error message
+// to the frontend. Conditional handling may apply.
+export const postError = (message: string) => {
   self.postMessage({
     type: "error",
     data: {
@@ -18,68 +18,52 @@ export let postError = (message: string) => {
     }
   })
 }
-/**
- * Only perform startup routine once
- */
-async function startup(message: MessageEvent) {
+function validateAndGetAccessToken(message: MessageEvent) {
+  status(`Validating`);
   const { data: { user } } = message.data;
-  if (typeof user === "undefined") {
-    throw Error(`worker missing user data: ${JSON.stringify(message)}`)
+  if (typeof user === "undefined" || !user) {
+    postError("Missing user data")
+    return null
   }
-  const { token: { access_token = null } }: any = JSON.parse(user);
+  let userData: any;
+  try {
+    userData = JSON.parse(user);
+  } catch {
+    postError("Invalid user data");
+    return null
+  }
+  const { token: { access_token = null } } = userData;
   if (!access_token) {
-    throw Error(`worker missing access token`)
+    postError("Missing access token")
+    return null
   }
-  const { panic_hook, getIndex  } = await import("@oceanics/app");
-  // Provide better error messaging on web assembly panic
-  panic_hook();
-  async function getIndexAndPostMessage() {
-    const result = await getIndex(access_token);
-    postStatus(`Found ${result.length}`);
-    return result
-  }
-  return {
-    handlers: {
-      getIndex: getIndexAndPostMessage,
-    }
-  }
+  return access_token
 }
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
-  if (!CACHE) {
-    try {
-      CACHE = await startup(message);
-    } catch (error: any) {
-      self.postMessage({
-        type: "error",
-        data: error.message
-      });
-      return
-    }
-    postStatus(`Ready`);
+  const accessToken = validateAndGetAccessToken(message)
+  if (!accessToken) {
+    return
   }
-  const { handlers: { [message.data.type]: handler = null } } = CACHE as WorkerCache;
-  if (!handler) {
-    self.postMessage({
-      type: "error",
-      data: `unknown message format: ${message.data.type}`
-    });
+  if (message.data.type !== "getIndex") {
+    postError(`Unknown message type: ${message.data.type}`);
     return
   }
   try {
-    const result = await handler(message.data.data.query, message.data.data.body);
+    status(`Working`);
+    const { panic_hook, getIndex } = await import("@oceanics/app");
+    panic_hook();
+    const result = await getIndex(accessToken);
+    status(`Found ${result.length} collections`);
     self.postMessage({
       type: message.data.type,
       data: result
     });
   } catch (error: any) {
-    self.postMessage({
-      type: "error",
-      data: error.message
-    });
+    postError(error.message);
   }
 }
 /**

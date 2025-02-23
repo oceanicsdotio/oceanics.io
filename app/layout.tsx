@@ -1,6 +1,6 @@
 import React from "react";
 import "@app/globals.css";
-import styles from "@app/layout.module.css";
+import layout from "@app/layout.module.css";
 
 export default function RootLayout({
   children,
@@ -10,12 +10,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <main className={styles.main}>
-          <div className={styles.container}>
-            <div className={styles.content}>{children}</div>
+        <main className={layout.main}>
+          <div className={layout.container}>
+            <div className={layout.content}>
+              {children}
+            </div>
           </div>
         </main>
-        <footer className={styles.footer}>
+        <footer className={layout.footer}>
           <p>© 2018-25 Oceanicsdotio LLC</p>
           <p>
             Oceanicsdotio LLC is a Rockland Maine business building tools for civilian marine
@@ -30,3 +32,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

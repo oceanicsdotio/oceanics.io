@@ -1,7 +1,9 @@
 import React, { Suspense } from "react";
 import { Oceanics, Subscribe } from "@app/client";
 import { Metadata } from "next";
-import style from "@app/page.module.css";
+import Script from "next/script";
+import page from "@app/page.module.css";
+import layout from "@app/layout.module.css";
 
 export const metadata: Metadata = {
   title: "Oceanics.io",
@@ -11,7 +13,9 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <Suspense fallback={<div className={style.placeholder}></div>}>
+      <Script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></Script>
+      <div style={{"textAlign":"right"}} data-netlify-identity-button></div>
+      <Suspense fallback={<div className={page.placeholder}></div>}>
         <Oceanics
           gridSize={20}
           backgroundColor="#110022"
@@ -31,8 +35,8 @@ export default function Page() {
         decisions for the future. Whether watching your surf or seeking
         opportunity.
       </p>
-      <div className={`${style.subscribe}`}>
-        <h3>Request access to <a href="/catalog">our data catalog</a></h3>
+      <div className={`${page.subscribe}`}>
+        <h3>Request access to <a className={layout.link} href="/catalog">our data catalog</a></h3>
         <Subscribe
           {...{
             sitekey: process.env.NEXT_PUBLIC_SITE_RECAPTCHA_KEY ?? "",
