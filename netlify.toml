@@ -11,8 +11,8 @@
 
 [[plugins]]
   package = "@netlify/plugin-csp-nonce"
-  
-[functions]  
+
+[functions]
   node_bundler = "esbuild"
   included_files = [
     "specification.json"
