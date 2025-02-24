@@ -2,6 +2,9 @@ import React from "react";
 import layout from "@app/layout.module.css";
 import Link from "next/link";
 import {toKey} from "../layout";
+/**
+ * Append a link to the layout, uses the getStaticPaths to determine the href
+ */
 export default function Layout({
   children,
   params,
