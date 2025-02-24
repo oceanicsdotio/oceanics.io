@@ -19810,11 +19810,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.2":
-  version: 4.19.2
-  resolution: "tsx@npm:4.19.2"
+"tsx@npm:^4.19.3":
+  version: 4.19.3
+  resolution: "tsx@npm:4.19.3"
   dependencies:
-    esbuild: "npm:~0.23.0"
+    esbuild: "npm:~0.25.0"
     fsevents: "npm:~2.3.3"
     get-tsconfig: "npm:^4.7.5"
   dependenciesMeta:
@@ -19822,7 +19822,7 @@ __metadata:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10/4c5610ed1fb2f80d766681f8ac7827e1e8118dfe354c18f74800691f3ef1e9ed676a29842ab818806bcf8613cdc97c6af84b5645e768ddb7f4b0527b9100deda
+  checksum: 10/a7e7f41e5593b242772050abacf51908aa8a6d4d9ea6c29e80161eb557d664a0f4cc8d38d0c8c151fddb6c2e9e337af27ba0e269c9707ccd7eeff0e0ea7fcf98
   languageName: node
   linkType: hard
 
@@ -21079,7 +21079,7 @@ __metadata:
     react-markdown: "npm:^10.0.0"
     ts-jest: "npm:^29.2.5"
     tsconfig-paths-webpack-plugin: "npm:^4.2.0"
-    tsx: "npm:^4.19.2"
+    tsx: "npm:^4.19.3"
     typescript: "npm:^5.7.3"
     uuid: "npm:^11.0.5"
     yaml: "npm:^2.7.0"
