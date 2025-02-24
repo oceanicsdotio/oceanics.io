@@ -42,7 +42,6 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
   // Uses same nomenclature as the Google API
   const [response, setResponse] = useState<any>(null);
   const [verified, setVerified] = useState<boolean>(false);
-
   /**
    * Use response from Google API, and pass it through our
    * backend to verify that it is legitimate.

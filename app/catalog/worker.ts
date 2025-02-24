@@ -61,6 +61,10 @@ async function listen(message: MessageEvent) {
     const { panic_hook, getIndex } = await import("@oceanics/app");
     panic_hook();
     const result = await getIndex(accessToken);
+    if (result.message === "Unauthorized") { 
+      postError("Expired or invalid token");
+      return;
+    }
     status(`Found ${result.length} collections`);
     self.postMessage({
       type: message.data.type,

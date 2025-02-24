@@ -1256,20 +1256,15 @@ pub async fn get_index(access_token: String) -> Result<Promise, JsValue> {
     get_api(url, access_token).await
 }
 
-fn api_request(url: String, access_token: String, method: &str) -> Result<Promise, JsValue> {
+#[wasm_bindgen(js_name="getApi")]
+pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsValue> {
     let opts = RequestInit::new();
-    opts.set_method(method);
+    opts.set_method("GET");
     let request = Request::new_with_str_and_init(&url, &opts)?;
     request.headers().set("Accept", "application/json")?;
     let authorization = format!("Bearer {}", access_token);
     request.headers().set("Authorization", &authorization)?;
     let pending = fetch(&request, &opts);
-    Ok(pending)
-}
-
-#[wasm_bindgen(js_name="getApi")]
-pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsValue> {
-    let pending = api_request(url, access_token, "GET")?;
     let resolved = JsFuture::from(pending).await?;
     let response: Response = resolved.dyn_into().unwrap();
     let promise = response.json()?;
