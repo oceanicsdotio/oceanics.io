@@ -14,7 +14,7 @@ import style from "@catalog/page.module.css";
 import layout from "@app/layout.module.css";
 import specification from "@app/../specification.yaml";
 import { Initial, ACTIONS, messageQueueReducer, MessageQueue } from "@catalog/client";
-function fromKey(collection: string) {
+export function fromKey(collection: string) {
   return collection
     .split(/\.?(?=[A-Z])/)
     .join("_")

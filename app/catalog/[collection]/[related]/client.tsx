@@ -4,11 +4,12 @@ import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
 import specification from "@app/../specification.yaml";
 import Link from "next/link";
-import { ACTIONS, MessageQueue, useWorkerFixtures } from "@catalog/client";
-import { type NodeLike } from "@catalog/[collection]/client";
+import { ACTIONS, MessageQueue, useWorkerFixtures, type Initial, messageQueueReducer } from "@catalog/client";
+import { type NodeLike, fromKey } from "@catalog/[collection]/client";
 import type { InteractiveMesh, MeshStyle } from "@oceanics/app";
-import { type Initial, messageQueueReducer } from "@catalog/client";
-// Placeholder visualization style
+/**
+ * Placeholder visualization style
+ */
 const meshStyle: Initial<MeshStyle> = {
   backgroundColor: "#11002299",
   overlayColor: "lightblue",
@@ -22,13 +23,13 @@ const meshStyle: Initial<MeshStyle> = {
 /**
  * Interactive visualization viewport
  */
-export function View() {
+function View() {
   /**
    * Preview 2D render target.
    */
   const ref = useRef<HTMLCanvasElement>(null);
   /**
-   * Keep reference to the WASM constructor
+   * Keep reference to the WASM constructor.
    */
   const [wasm, setWasm] = useState<{
     InteractiveMesh: typeof InteractiveMesh;
@@ -71,19 +72,17 @@ export function View() {
   }, [wasm]);
   return <canvas className={style.canvas} ref={ref}></canvas>;
 }
-
-
-function fromKey(collection: string) {
-  return collection
-    .split(/\.?(?=[A-Z])/)
-    .join("_")
-    .toLowerCase();
-}
+/**
+ * Schema for the collection and related nodes.
+ */
 type Schema = {
   properties: Object;
   title: string;
   description: string;
 };
+/**
+ * Interface the generic Linked component.
+ */
 type ILinked = {
   collection: Schema;
   related: Schema;
@@ -92,7 +91,10 @@ type ILinked = {
 };
 /**
  * Display an index of all or some subset of the
- * available nodes in the database.
+ * available nodes in the database. This is not used
+ * directly in the page component, like other Client
+ * components. Instead is is used as a helper function
+ * imported into entity specific Linked components.
  */
 export function Linked<T extends NodeLike>({
   collection,
@@ -113,6 +115,9 @@ export function Linked<T extends NodeLike>({
    * Node or index data, if any.
    */
   const [linked, setLinked] = useState<T[]>([]);
+  /**
+   * Pagination state is set in the backend.
+   */
   const [page, setPage] = useState<{
     next?: string;
     previous?: string;
