@@ -36,7 +36,7 @@ export default function Page() {
         opportunity.
       </p>
       <div className={`${page.subscribe}`}>
-        <h3>Request access to <a className={layout.link} href="/catalog">our data catalog</a></h3>
+        <h3>Request early access to <a className={layout.link} href="/catalog">our Ocean data catalog</a>:</h3>
         <Subscribe
           {...{
             sitekey: process.env.NEXT_PUBLIC_SITE_RECAPTCHA_KEY ?? "",

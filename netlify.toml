@@ -21,3 +21,16 @@
     "@oceanics/functions",
     "neo4j-driver"
   ]
+
+[[redirects]]
+  from = "/catalog/*"
+  to = "/catalog/:splat"
+  force = true
+  status = 200
+  conditions = {Role = ["user"]}
+
+[[redirects]]
+  from = "/catalog/*"
+  to = "/"
+  force = true
+  status = 401
