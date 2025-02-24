@@ -10,6 +10,7 @@ import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/clien
 import {Collection, TextInput, FormArgs} from "@catalog/[collection]/client";
 import React, { useRef } from "react";
 import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
@@ -113,10 +114,10 @@ export function Form({
         description={properties.feature.description}
         defaultValue={initial.feature}
       ></TextInput>
-      <button className={style.submit} disabled={disabled}>
+      <button className={layout.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset">
+      <button className={layout.submit} type="reset">
         Reset
       </button>
     </form>

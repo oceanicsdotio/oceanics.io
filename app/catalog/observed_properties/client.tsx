@@ -10,6 +10,7 @@ import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
 import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 /**
  * Get DataStreams properties from OpenAPI schema
  */
@@ -107,10 +108,10 @@ export function Form({
         defaultValue={initial.definition}
         readOnly={disabled}
       ></TextInput>
-      <button className={style.submit} disabled={disabled}>
+      <button className={layout.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset" disabled={disabled}>
+      <button className={layout.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>

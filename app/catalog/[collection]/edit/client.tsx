@@ -7,7 +7,7 @@ import React, {
   type FormEventHandler,
   useReducer,
 } from "react";
-import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 import client from "@catalog/client.module.css";
 import { useSearchParams } from "next/navigation";
 import { type NodeLike, IMutate } from "@catalog/[collection]/client";
@@ -133,7 +133,7 @@ export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
         onSubmit={onSubmit}
       />
       <button
-        className={style.submit}
+        className={layout.submit}
         onClick={onDelete}
         disabled={worker.disabled||!exists}
       >

@@ -5,6 +5,7 @@ import type { HistoricalLocations } from "@oceanics/app";
 import { type Initial } from "@catalog/client";
 
 import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
 import {Create} from "@catalog/[collection]/create/client";
 import {Linked as LinkedGeneric} from "@app/catalog/[collection]/[related]/client";
@@ -85,10 +86,10 @@ export function Form({
           required
           description={properties.time.description}
         />
-        <button className={style.submit} disabled={disabled}>
+        <button className={layout.submit} disabled={disabled}>
           {action}
         </button>
-        <button className={style.submit} type="reset">
+        <button className={layout.submit} type="reset">
           Reset
         </button>
       </form>

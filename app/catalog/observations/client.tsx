@@ -9,6 +9,7 @@ import {Collection, TextInput, NumberInput, FormArgs} from "@catalog/[collection
 const components = specification.components;
 const schema = components.schemas.Observations;
 import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 export function Data() {
   return <Collection<Observations> title={schema.title} />
 }
@@ -122,10 +123,10 @@ export function Form({
         description={schema.properties.parameters.description}
         defaultValue={initial.parameters}
       ></TextInput>
-      <button className={style.submit} disabled={disabled}>
+      <button className={layout.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset">
+      <button className={layout.submit} type="reset">
         Reset
       </button>
     </form>

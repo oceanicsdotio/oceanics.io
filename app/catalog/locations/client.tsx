@@ -22,6 +22,7 @@ import {
   FormArgs,
 } from "@catalog/[collection]/client";
 import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 import specification from "@app/../specification.yaml";
 import { type Locations as LocationsType } from "@oceanics/app";
 /**
@@ -216,16 +217,16 @@ function CreateForm({
         step={0.00001}
       ></NumberInput>
       <button
-        className={style.submit}
+        className={layout.submit}
         type="button"
         onClick={askForPosition}
       >
         Use Your Location
       </button>
-      <button className={style.submit} disabled={disabled}>
+      <button className={layout.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset">
+      <button className={layout.submit} type="reset">
         Reset
       </button>
     </form>
@@ -316,10 +317,10 @@ function UpdateForm({
         }
         readOnly
       ></TextInput>
-      <button className={style.submit} disabled={disabled}>
+      <button className={layout.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset" disabled={disabled}>
+      <button className={layout.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>

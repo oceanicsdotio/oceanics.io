@@ -11,6 +11,7 @@ import Markdown from "react-markdown";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
+import layout from "@app/layout.module.css";
 import specification from "@app/../specification.yaml";
 import { Initial, ACTIONS, messageQueueReducer, MessageQueue } from "@catalog/client";
 function fromKey(collection: string) {
@@ -346,10 +347,10 @@ export function FormContainer({
   return (
     <form className={style.form} onSubmit={onSubmit} ref={formRef}>
       {children}
-      <button className={style.submit} disabled={disabled}>
+      <button className={layout.submit} disabled={disabled}>
         {action}
       </button>
-      <button className={style.submit} type="reset" disabled={disabled}>
+      <button className={layout.submit} type="reset" disabled={disabled}>
         Reset
       </button>
     </form>
