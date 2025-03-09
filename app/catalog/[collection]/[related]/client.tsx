@@ -1,14 +1,14 @@
 "use client";
-import React, { useEffect, useCallback, useState, useRef, useReducer } from "react";
+import React, { useEffect, useState, useRef, useReducer } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
 import specification from "@app/../specification.yaml";
 import Link from "next/link";
-import { ACTIONS, MessageQueue, useWorkerFixtures, type Initial, messageQueueReducer } from "@catalog/client";
+import { ACTIONS, MessageQueue, type Initial, messageQueueReducer } from "@catalog/client";
 import { type NodeLike, fromKey } from "@catalog/[collection]/client";
 import type { InteractiveMesh, MeshStyle } from "@oceanics/app";
 /**
- * Placeholder visualization style
+ * Placeholder visualization style.
  */
 const meshStyle: Initial<MeshStyle> = {
   backgroundColor: "#11002299",
@@ -21,9 +21,44 @@ const meshStyle: Initial<MeshStyle> = {
   radius: 5,
 };
 /**
- * Interactive visualization viewport
+ * Schema for the collection and related nodes.
  */
-function View() {
+type Schema = {
+  properties: Object;
+  title: string;
+  description: string;
+};
+/**
+ * Interface the generic Linked component.
+ */
+type ILinked = {
+  collection: Schema;
+  related: Schema;
+  nav?: boolean;
+  AdditionalProperties?: React.FunctionComponent | null;
+};
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database. This is not used
+ * directly in the page component, like other Client
+ * components. Instead is is used as a helper function
+ * imported into entity specific Linked components.
+ */
+export function Linked<T extends NodeLike>({
+  collection,
+  related,
+  AdditionalProperties,
+  nav,
+}: ILinked) {
+  const schema = (specification.components.schemas as any)[related.title];
+  const options = Object.keys(schema.properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key) => key.split("@")[0]);
+  const query = useSearchParams();
+  /**
+   * Status message to understand what is going on in the background.
+   */
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Preview 2D render target.
    */
@@ -70,47 +105,6 @@ function View() {
       if (requestId) cancelAnimationFrame(requestId);
     };
   }, [wasm]);
-  return <canvas className={style.canvas} ref={ref}></canvas>;
-}
-/**
- * Schema for the collection and related nodes.
- */
-type Schema = {
-  properties: Object;
-  title: string;
-  description: string;
-};
-/**
- * Interface the generic Linked component.
- */
-type ILinked = {
-  collection: Schema;
-  related: Schema;
-  nav?: boolean;
-  AdditionalProperties?: React.FunctionComponent | null;
-};
-/**
- * Display an index of all or some subset of the
- * available nodes in the database. This is not used
- * directly in the page component, like other Client
- * components. Instead is is used as a helper function
- * imported into entity specific Linked components.
- */
-export function Linked<T extends NodeLike>({
-  collection,
-  related,
-  AdditionalProperties,
-  nav,
-}: ILinked) {
-  const schema = (specification.components.schemas as any)[related.title];
-  const options = Object.keys(schema.properties)
-    .filter((key: string) => key.includes("@"))
-    .map((key) => key.split("@")[0]);
-  const query = useSearchParams();
-  /**
-   * Status message to understand what is going on in the background.
-   */
-  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Node or index data, if any.
    */
@@ -125,10 +119,22 @@ export function Linked<T extends NodeLike>({
   }>({
     current: 1,
   });
-  /**
-   * Process web worker messages.
+    /**
+   * Ref to Web Worker.
    */
-  const workerMessageHandler = useCallback(
+  const worker = useRef<Worker>(null);
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    const left_uuid = query.get("uuid");
+    worker.current = new Worker(
+      new URL("@catalog/[collection]/[related]/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    const workerMessageHandler = 
     ({ data: { data, type } }: MessageEvent) => {
       switch (type) {
         case ACTIONS.getLinked:
@@ -137,7 +143,7 @@ export function Linked<T extends NodeLike>({
           setPage(data.page);
           return;
         case ACTIONS.error:
-          console.error("@worker", type, data);
+          appendToQueue(data.message);
           return;
         case ACTIONS.status:
           appendToQueue(data.message);
@@ -146,28 +152,11 @@ export function Linked<T extends NodeLike>({
           console.warn("@client", type, data);
           return;
       }
-    },
-    []
-  );
-  /**
-   * Ref to Web Worker.
-   */
-  const worker = useWorkerFixtures();
-  /**
-   * Load Web Worker on component mount
-   */
-  useEffect(() => {
-    const left_uuid = query.get("uuid");
-    worker.ref.current = new Worker(
-      new URL("@catalog/[collection]/[related]/worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
-    worker.ref.current.addEventListener("message", workerMessageHandler, {
+    }
+    worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    worker.post({
+    worker.current.postMessage({
       type: ACTIONS.getLinked,
       data: {
         query: {
@@ -179,8 +168,7 @@ export function Linked<T extends NodeLike>({
         },
       },
     });
-    const handle = worker.ref.current;
-    worker.setDisabled(false);
+    const handle = worker.current;
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
@@ -188,7 +176,7 @@ export function Linked<T extends NodeLike>({
   return (
     <>
       <MessageQueue messages={messages} />
-      <View></View>
+      <canvas className={style.canvas} ref={ref}></canvas>
       <>
         {linked.map(({ uuid, name, ...rest }, index) => {
           const a = fromKey(related.title);
