@@ -24,7 +24,7 @@ wasm-opt = [
 ignored = ["serde_derive", "wasm-bindgen-futures"]
 
 [dependencies]
-serde = { version = "1.0.218", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_derive = "1.0.218"
 # no-std compatibility, while allowing heap
 serde_json = {version="1.0.140", default-features = false, features = ["alloc"]}
