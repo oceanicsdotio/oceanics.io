@@ -21,12 +21,12 @@ ignored = ["serde_derive", "regex"]
 [dependencies]
 js-sys = "0.3.77"
 wasm-bindgen-futures = "0.4.50"
-serde = { version = "1.0.218", features = ["derive"] }
-serde_derive = "1.0.218"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_derive = "1.0.219"
 serde-wasm-bindgen = "0.6.5"
 console_error_panic_hook = "0.1.7"
 regex = "1.11.1"
-chrono = { version = "0.4.39", features = ["serde"] }
+chrono = { version = "0.4.40", features = ["serde"] }
 wasm-bindgen = { version = "0.2.93", features = ["serde-serialize"] }
 web-sys = { version = "0.3.72", features = [
     'CanvasGradient',
@@ -56,4 +56,4 @@ web-sys = { version = "0.3.72", features = [
     'Window',
     'console'
 ]}
-indexmap = "2.7.1"
+indexmap = "2.8.0"
