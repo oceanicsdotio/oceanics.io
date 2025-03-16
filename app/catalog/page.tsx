@@ -40,7 +40,7 @@ export function CollectionPage({
   children: ReactNode;
   schema: {
     title: string;
-    properties: any;
+    properties: object;
     description: string;
   };
   showActions?: boolean;

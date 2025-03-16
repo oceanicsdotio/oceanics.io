@@ -14,7 +14,7 @@ const LINKED = `${FUNCTIONS}/linked`;
  * Get iterable of node types, suitable for concurrent testing
  */
 let nodeTypes: [string, number][] = [];
-const types = (examples as unknown as [string]).reduce((acc: { [key: string]: number }, [label]) => {
+const types = (examples as unknown as [string]).reduce((acc: Record<string, number>, [label]) => {
   return {
     ...acc,
     [label]: (acc[label] ?? 0) + 1
@@ -36,7 +36,7 @@ const fetchToken = async () => {
     }
   })
 
-  const result: any = await response.json();
+  const result = await response.json();
   if (!response.ok) {
     console.log("fetch result", result)
   }
@@ -65,7 +65,7 @@ describe("functions", function () {
             "Content-Type": "application/x-www-form-urlencoded"
           }
         })
-        const result: any = await response.json();
+        const result = await response.json();
         expect(result.access_token.length).toBeGreaterThan(0);
       })
     })
@@ -129,7 +129,7 @@ describe("functions", function () {
           },
         })
         expect(response.status).toEqual(200);
-        const data: any = await response.json();
+        const data = await response.json();
         expect(data.length).toEqual(nodeTypes.length);
       });
     })
@@ -179,7 +179,7 @@ describe("functions", function () {
         })
       });
       // Create entities linked to the authenticated service account holder
-      test.each(examples as [string, any, any][])(`creates %s %s`, async function (nodeType: string, _: string, properties: any) {
+      test.each(examples as [string, string, object][])(`creates %s %s`, async function (nodeType: string, _: string, properties: object) {
         const _filter = ([key]: [string, unknown]) => !key.includes("@");
         const filtered = Object.entries(properties).filter(_filter);
         const body = JSON.stringify(Object.fromEntries(filtered));
@@ -208,7 +208,7 @@ describe("functions", function () {
     });
     // Confirm that we can retrieve the pre-computed Nodes
     describe("collection.get", function () {
-      let PAGE_SIZE = 10;
+      const PAGE_SIZE = 10;
       let token: string;
       beforeAll(async function () {
         token = await fetchToken();
@@ -223,7 +223,7 @@ describe("functions", function () {
           }
         })
         expect(response.status).toBe(200);
-        const data: any = await response.json();
+        const data = await response.json();
         const actual = data["@iot.count"]
         expect(typeof actual).toBe("number");
         expect(actual).toBeGreaterThanOrEqual(0);
@@ -244,10 +244,9 @@ describe("functions", function () {
       // Retrieves collection with paging
       test.each(nodeTypes)(`retrieves %s with paging (N=%s) `, async function (nodeType: string, count: number) {
         expect(typeof count).toBe("number");
-        let offset = 0;
-        let collected = [];
+        const offset = 0;
+        const collected = [];
         let nextPage = `?offset=${offset}&limit=${PAGE_SIZE}`
-        let previous = null;
         while (nextPage) {
           const url = `${COLLECTION}${nextPage}&left=${nodeType}`;
           const response = await fetch(url, {
@@ -257,7 +256,7 @@ describe("functions", function () {
             }
           })
           expect(response.status).toBe(200);
-          const data: any = await response.json();
+          const data = await response.json();
           const actual = data["@iot.count"]
           expect(typeof actual).toBe("number");
           expect(actual).toBeGreaterThanOrEqual(1);
@@ -304,7 +303,7 @@ describe("functions", function () {
         },
       })
       expect(response.status).toEqual(200);
-      const data: any = await response.json();
+      const data = await response.json();
       expect(data["@iot.count"]).toBe(1)
       expect(data["value"].length).toBe(1)
       expect(data["value"][0].uuid).toBe(uuid)
@@ -329,17 +328,17 @@ describe("functions", function () {
   //     expect(response.status).toEqual(204);
   //   })
   // })
-
+  type Item = [string, string, object];
   describe("topology", function () {
-    let linkedExamples: [string, string, string, string][] = [];
-    (examples as any[]).forEach((each: any) => {
-      const [left, left_uuid, props]: any = each;
+    const linkedExamples: [string, string, string, string][] = [];
+    (examples as Item[]).forEach((each: Item) => {
+      const [left, left_uuid, props] = each;
       Object.entries(props).forEach(([key, value]) => {
         if (key.includes("@iot.navigation")) {
-          let [right] = key.split("@");
-          (value as any[]).forEach(({ name: [name] }) => {
-            (examples as any[]).forEach((item) => {
-              const [_right, right_uuid, _props]: any = item;
+          const [right] = key.split("@");
+          (value as {name: [string]}[]).forEach(({ name: [name] }) => {
+            (examples as Item[]).forEach((item) => {
+              const [_right, right_uuid, _props] = item;
               const is_label_match = right === _right;
               const is_name_match = _props.name === name;
               if (is_label_match && is_name_match) {
@@ -400,11 +399,11 @@ describe("functions", function () {
         })
         
         if (linkedResponse.status !== 200) {
-          const data: any = await linkedResponse.json();
+          const data = await linkedResponse.json();
           console.error(data)
         }
         expect(linkedResponse.status).toBe(200);
-        const data: any = await linkedResponse.json();
+        const data = await linkedResponse.json();
         expect(data["@iot.count"]).toBe(1)
         expect(data["value"].length).toBe(1)
         expect(data["value"][0].uuid).toBe(rightUuid)

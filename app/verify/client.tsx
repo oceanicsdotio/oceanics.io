@@ -46,6 +46,7 @@ export default function ValidateToken({ verify }: IValidateToken) {
           router.push("/verify/failure")
         }
       } catch (error) {
+        console.error(error);
         router.push("/verify/error");
       }
       

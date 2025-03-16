@@ -21,7 +21,7 @@ const lookup = {
 }
 
 function err_response(message: string, status_code: number, details: string) {
-  let body = JSON.stringify({
+  const body = JSON.stringify({
     message,
     details
   });

@@ -65,7 +65,7 @@ export function Create<T extends NodeLike>({ title, Form }: IMutate<T>) {
   }, []);
 
   const onSubmit =
-    (callback: any): FormEventHandler =>
+    (callback: () => object|object[]): FormEventHandler =>
     (event) => {
       event.preventDefault();
       worker.post({

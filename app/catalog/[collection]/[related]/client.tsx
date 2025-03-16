@@ -1,14 +1,20 @@
 "use client";
-import React, { useEffect, useCallback, useState, useRef, useReducer } from "react";
+import React, { useEffect, useState, useRef, useReducer } from "react";
 import { useSearchParams } from "next/navigation";
 import style from "@catalog/page.module.css";
-import specification from "@app/../specification.yaml";
+import OpenAPI from "@app/../specification.yaml";
 import Link from "next/link";
-import { ACTIONS, MessageQueue, useWorkerFixtures } from "@catalog/client";
-import { type NodeLike } from "@catalog/[collection]/client";
+import {
+  ACTIONS,
+  MessageQueue,
+  type Initial,
+  messageQueueReducer,
+} from "@catalog/client";
+import { type NodeLike, fromKey } from "@catalog/[collection]/client";
 import type { InteractiveMesh, MeshStyle } from "@oceanics/app";
-import { type Initial, messageQueueReducer } from "@catalog/client";
-// Placeholder visualization style
+/**
+ * Placeholder visualization style.
+ */
 const meshStyle: Initial<MeshStyle> = {
   backgroundColor: "#11002299",
   overlayColor: "lightblue",
@@ -20,15 +26,114 @@ const meshStyle: Initial<MeshStyle> = {
   radius: 5,
 };
 /**
- * Interactive visualization viewport
+ * Schema for the collection and related nodes.
  */
-export function View() {
+interface Schema {
+  properties: object;
+  title: string;
+  description: string;
+};
+/**
+ * Interface the generic Linked component.
+ */
+interface ILinked {
+  collection: Schema;
+  related: Schema;
+  nav?: boolean;
+  AdditionalProperties?: React.FunctionComponent | null;
+};
+/**
+ * Interface for the Neighbor component.
+ */
+interface NeighborProps {
+  index: number;
+  options: string[];
+  basePath: string;
+  nav?: boolean;
+  AdditionalProperties?: React.FunctionComponent | null;
+}
+/**
+ * Navigation interface for each neighbor.
+ */
+function Neighbor<T extends NodeLike>({
+  options,
+  basePath,
+  uuid,
+  name,
+  index,
+  nav,
+  AdditionalProperties,
+  ...rest
+}: NeighborProps & T) {
+  return (
+    <details key={uuid} name="exclusive" open={index === 0}>
+      <summary>
+        <Link href={`${basePath}/edit?uuid=${uuid}`} prefetch={false}>
+          {name ?? uuid}
+        </Link>
+        {nav && (
+          <>
+            {" [ "}
+            <Link href={`${basePath}/view?uuid=${uuid}`} prefetch={false}>
+              view
+            </Link>
+            {" ]"}
+          </>
+        )}
+      </summary>
+      {AdditionalProperties && (
+        <div className={style.add_props}>
+          <AdditionalProperties {...rest} />
+        </div>
+      )}
+      <ul>
+        {options.map((each) => {
+          return (
+            <li>
+              <Link
+                href={`${basePath}/${fromKey(
+                  each
+                )}?uuid=${uuid}`}
+                prefetch={false}
+              >
+                {each}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </details>
+  );
+}
+/**
+ * Display an index of all or some subset of the
+ * available nodes in the database. This is not used
+ * directly in the page component, like other Client
+ * components. Instead is is used as a helper function
+ * imported into entity specific Linked components.
+ */
+export function Linked<T extends NodeLike>({
+  collection,
+  related,
+  AdditionalProperties,
+  nav,
+}: ILinked) {
+  const schema = OpenAPI.components.schemas[related.title];
+  const options = Object.keys(schema.properties)
+    .filter((key: string) => key.includes("@"))
+    .map((key) => key.split("@")[0]);
+  const basePath = `/catalog/${fromKey(related.title)}`;
+  const query = useSearchParams();
+  /**
+   * Status message to understand what is going on in the background.
+   */
+  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Preview 2D render target.
    */
   const ref = useRef<HTMLCanvasElement>(null);
   /**
-   * Keep reference to the WASM constructor
+   * Keep reference to the WASM constructor.
    */
   const [wasm, setWasm] = useState<{
     InteractiveMesh: typeof InteractiveMesh;
@@ -69,50 +174,13 @@ export function View() {
       if (requestId) cancelAnimationFrame(requestId);
     };
   }, [wasm]);
-  return <canvas className={style.canvas} ref={ref}></canvas>;
-}
-
-
-function fromKey(collection: string) {
-  return collection
-    .split(/\.?(?=[A-Z])/)
-    .join("_")
-    .toLowerCase();
-}
-type Schema = {
-  properties: Object;
-  title: string;
-  description: string;
-};
-type ILinked = {
-  collection: Schema;
-  related: Schema;
-  nav?: boolean;
-  AdditionalProperties?: React.FunctionComponent | null;
-};
-/**
- * Display an index of all or some subset of the
- * available nodes in the database.
- */
-export function Linked<T extends NodeLike>({
-  collection,
-  related,
-  AdditionalProperties,
-  nav,
-}: ILinked) {
-  const schema = (specification.components.schemas as any)[related.title];
-  const options = Object.keys(schema.properties)
-    .filter((key: string) => key.includes("@"))
-    .map((key) => key.split("@")[0]);
-  const query = useSearchParams();
-  /**
-   * Status message to understand what is going on in the background.
-   */
-  const [messages, appendToQueue] = useReducer(messageQueueReducer, []);
   /**
    * Node or index data, if any.
    */
   const [linked, setLinked] = useState<T[]>([]);
+  /**
+   * Pagination state is set in the backend.
+   */
   const [page, setPage] = useState<{
     next?: string;
     previous?: string;
@@ -121,18 +189,29 @@ export function Linked<T extends NodeLike>({
     current: 1,
   });
   /**
-   * Process web worker messages.
+   * Ref to Web Worker.
    */
-  const workerMessageHandler = useCallback(
-    ({ data: { data, type } }: MessageEvent) => {
+  const worker = useRef<Worker>(null);
+  /**
+   * Load Web Worker on component mount
+   */
+  useEffect(() => {
+    appendToQueue("Ready");
+    const left_uuid = query.get("uuid");
+    worker.current = new Worker(
+      new URL("@catalog/[collection]/[related]/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    const workerMessageHandler = ({ data: { data, type } }: MessageEvent) => {
       switch (type) {
         case ACTIONS.getLinked:
-          window.scrollTo({ top: 0, behavior: "smooth" });
           setLinked(data.value);
           setPage(data.page);
           return;
         case ACTIONS.error:
-          console.error("@worker", type, data);
+          appendToQueue(data.message);
           return;
         case ACTIONS.status:
           appendToQueue(data.message);
@@ -141,30 +220,16 @@ export function Linked<T extends NodeLike>({
           console.warn("@client", type, data);
           return;
       }
-    },
-    []
-  );
-  /**
-   * Ref to Web Worker.
-   */
-  const worker = useWorkerFixtures();
-  /**
-   * Load Web Worker on component mount
-   */
-  useEffect(() => {
-    const left_uuid = query.get("uuid");
-    worker.ref.current = new Worker(
-      new URL("@catalog/[collection]/[related]/worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
-    worker.ref.current.addEventListener("message", workerMessageHandler, {
+    };
+    worker.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
-    worker.post({
+    const user = localStorage.getItem("gotrue.user");
+    appendToQueue("Authenticating");
+    worker.current.postMessage({
       type: ACTIONS.getLinked,
       data: {
+        user,
         query: {
           left: collection.title,
           left_uuid: left_uuid,
@@ -174,8 +239,7 @@ export function Linked<T extends NodeLike>({
         },
       },
     });
-    const handle = worker.ref.current;
-    worker.setDisabled(false);
+    const handle = worker.current;
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
@@ -183,49 +247,19 @@ export function Linked<T extends NodeLike>({
   return (
     <>
       <MessageQueue messages={messages} />
-      <View></View>
+      <canvas className={style.canvas} ref={ref}></canvas>
       <>
-        {linked.map(({ uuid, name, ...rest }, index) => {
-          const a = fromKey(related.title);
+        {linked.map((props, index) => {
           return (
-            <details key={uuid} name="exclusive" open={index === 0}>
-              <summary>
-                <Link href={`/catalog/${a}/edit?uuid=${uuid}`} prefetch={false}>
-                  {name ?? uuid}
-                </Link>
-                {nav && (
-                  <>
-                    {" [ "}
-                    <Link
-                      href={`/catalog/${a}/view?uuid=${uuid}`}
-                      prefetch={false}
-                    >
-                      view
-                    </Link>
-                    {" ]"}
-                  </>
-                )}
-              </summary>
-              {AdditionalProperties && (
-                <div className={style.add_props}>
-                  <AdditionalProperties {...(rest as any)} />
-                </div>
-              )}
-              <ul>
-                {options.map((each) => {
-                  return (
-                    <li>
-                      <Link
-                        href={`/catalog/${fromKey(related.title)}/${fromKey(each)}?uuid=${uuid}`}
-                        prefetch={false}
-                      >
-                        {each}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </details>
+            <Neighbor
+              key={props.uuid}
+              index={index}
+              nav={nav}
+              options={options}
+              basePath={basePath}
+              AdditionalProperties={AdditionalProperties}
+              {...props}
+            ></Neighbor>
           );
         })}
         <p>

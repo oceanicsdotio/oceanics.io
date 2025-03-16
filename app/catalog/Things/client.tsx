@@ -79,7 +79,12 @@ function Fields({
   initial,
   disabled,
 }: {
-  refs: any;
+  refs: {
+    uuid: React.RefObject<HTMLInputElement>;
+    name: React.RefObject<HTMLInputElement>;
+    description: React.RefObject<HTMLInputElement>;
+    properties: React.RefObject<HTMLInputElement>;
+  };
   initial: Initial<Things>;
   disabled: boolean;
 }) {

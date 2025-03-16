@@ -19,13 +19,14 @@ const components = {
   Sensors,
   Things,
 };
+type ValidComponents = keyof typeof components;
 export function fromKey(collection: string) {
   return collection
     .split(/\.?(?=[A-Z])/)
     .join("_")
     .toLowerCase();
 }
-export type Props = {
+export interface Props {
   params: Promise<{ collection: string }>;
 };
 export function capitalizeFirstLetter(string: string) {
@@ -34,7 +35,7 @@ export function capitalizeFirstLetter(string: string) {
 export function toKey(collection: string) {
   return collection.split("_").map(capitalizeFirstLetter).join("");
 }
-export function collectionSlugs(components: Object) {
+export function collectionSlugs(components: object) {
   return Object.keys(components).map((collection) => {
     return {
       collection: fromKey(collection),
@@ -45,8 +46,8 @@ export async function generateStaticParams() {
   return collectionSlugs(components);
 }
 export function collectionMetadata(action: string, collection: string) {
-  const key = toKey(collection);
-  const schema = (openapi.components.schemas as any)[key];
+  const key = toKey(collection) as ValidComponents;
+  const schema = openapi.components.schemas[key];
   return formatMetadata(action, schema);
 }
 export async function generateMetadata({ params }: Props) {
@@ -55,9 +56,9 @@ export async function generateMetadata({ params }: Props) {
 }
 export default async function Page({ params }: Props) {
   const { collection } = await params;
-  const key = toKey(collection);
-  const schema = (openapi.components.schemas as any)[key];
-  const Component = (components as any)[key];
+  const key = toKey(collection) as ValidComponents;
+  const schema = openapi.components.schemas[key];
+  const Component = components[key];
   return (
     <CollectionPage schema={schema}>
       <Component></Component>

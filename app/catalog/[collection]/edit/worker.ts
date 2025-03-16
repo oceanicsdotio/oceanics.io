@@ -1,39 +1,19 @@
-let postStatus = (message: string) => {
-  self.postMessage({
-    type: "status",
-    data: {
-      message
-    }
-  })
-}
-let postError = (message: string) => {
-  self.postMessage({
-    type: "error",
-    data: {
-      message
-    }
-  })
-}
+import {status, postError, validateAndGetAccessToken} from "@catalog/worker";
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
-  const { data: { user, query, body }, type } = message.data;
-  if (typeof user === "undefined") {
-    postError(`worker missing user data: ${JSON.stringify(message)}`)
-    return
+  const accessToken = await validateAndGetAccessToken(message);
+  if (!accessToken) {
+    return;
   }
-  const { token: { access_token = null } }: any = JSON.parse(user);
-  if (!access_token) {
-    postError(`worker missing access token`);
-    return
-  }
+  const { data: { query, body }, type } = message.data;
   switch (type) {
-    case "getEntity":
+    case "getEntity": {
       const { getEntity } = await import("@oceanics/app");
-      const getEntityResult = await getEntity(access_token, query);
-      postStatus(`Found ${getEntityResult.value.length}`);
+      const getEntityResult = await getEntity(accessToken, query);
+      status(`Found ${getEntityResult.value.length}`);
       if (getEntityResult.value.length === 1) {
         self.postMessage({
           type,
@@ -42,24 +22,26 @@ async function listen(message: MessageEvent) {
           }
         })
       }
-      return;
-    case "updateEntity":
+      break;
+    }
+    case "updateEntity": {
       const { updateEntity } = await import("@oceanics/app");
-      const updated = await updateEntity(access_token, query, body);
+      const updated = await updateEntity(accessToken, query, body);
       if (updated) {
-        postStatus(`Updated 1`);
+        status(`Updated 1`);
       }
-      return;
-    case "deleteEntity":
+      break;
+    }
+    case "deleteEntity": {
       const { deleteEntity } = await import("@oceanics/app");
-      const deleted = await deleteEntity(access_token, query);
+      const deleted = await deleteEntity(accessToken, query);
       if (deleted) {
-        postStatus(`Deleted 1`);
+        status(`Deleted 1`);
       }
-      return;
+      break;
+    }
     default:
       postError(`unknown message format: ${message.data.type}`);
-      return;
   }
 }
 /**

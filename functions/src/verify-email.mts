@@ -19,6 +19,7 @@ const headers = {
  * and write it as a base64 string to cloud
  * object storage.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function (event: Request, _: Context) {
     if (event.method !== "POST") {
         return new Response("Method not supported", {
@@ -41,6 +42,7 @@ export default async function (event: Request, _: Context) {
             headers
         })  
     } catch (error) {
+        console.error(error);
         return new Response(JSON.stringify({ success: false }), {
             status: 401,
             headers

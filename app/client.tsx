@@ -22,7 +22,7 @@ interface ISubscribe {
   verify: IVerify;
 }
 
-const encode = (data: any) => {
+const encode = (data: object) => {
   return Object.keys(data)
     .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
     .join("&");
@@ -40,7 +40,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
   const ref = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   // Uses same nomenclature as the Google API
-  const [response, setResponse] = useState<any>(null);
+  const [response, setResponse] = useState<object|null>(null);
   const [verified, setVerified] = useState<boolean>(false);
   /**
    * Use response from Google API, and pass it through our
@@ -114,7 +114,7 @@ export function Subscribe({ children, sitekey, verify }: ISubscribe) {
         Submit
       </button>
       <Suspense fallback={<p>Loading ReCAPTCHA...</p>}>
-        {/*  @ts-expect-error */}
+        {/*  @ts-expect-error: ReCAPTCHA component does not have proper TypeScript definitions */}
         <ReCAPTCHA ref={ref} sitekey={sitekey} onChange={setResponse}></ReCAPTCHA>
       </Suspense>
     </form>
@@ -202,7 +202,7 @@ export function Oceanics({
     if (!canvas) return;
     const target = canvas.getContext("2d");
     if (!target) return;
-    const [width, _] = ["width", "height"].map(
+    const [width] = ["width"].map(
       (dim: string) =>
         parseInt(getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2)) *
         window.devicePixelRatio
@@ -224,7 +224,7 @@ export function Oceanics({
   useEffect(() => {
     if (!board.current || !interactive) return;
     let requestId: number | null = null;
-    let canvas = board.current;
+    const canvas = board.current;
     
     interactive.target.imageSmoothingEnabled = false;
     (function render() {

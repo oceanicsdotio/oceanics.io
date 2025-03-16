@@ -5,7 +5,8 @@ import * as jose from "jose";
  * When we get a form submission, check that an email needs to 
  * be sent to verify the address.
  */
-export default async function (req: Request, _context: Context) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default async function (req: Request, _: Context) {
   const {payload: {email}} = await req.json();
   const obfuscated = Buffer.from(email).toString('base64');
   const url = new URL(req.url);

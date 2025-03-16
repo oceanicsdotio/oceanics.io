@@ -1,6 +1,6 @@
 // Convenience method for updating frontend status
 // as seen by the end user.
-const status = (message: string) => {
+export const status = (message: string) => {
   self.postMessage({
     type: "status",
     data: {
@@ -18,7 +18,7 @@ export const postError = (message: string) => {
     }
   })
 }
-function validateAndGetAccessToken(message: MessageEvent) {
+export function validateAndGetAccessToken(message: MessageEvent) {
   status(`Validating`);
   if (!message.data || !message.data.data) {
     postError("Invalid message format");
@@ -61,10 +61,6 @@ async function listen(message: MessageEvent) {
     const { panic_hook, getIndex } = await import("@oceanics/app");
     panic_hook();
     const result = await getIndex(accessToken);
-    if (result.message === "Unauthorized") { 
-      postError("Expired or invalid token");
-      return;
-    }
     status(`Found ${result.length} collections`);
     self.postMessage({
       type: message.data.type,

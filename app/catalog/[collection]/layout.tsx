@@ -12,7 +12,9 @@ export default function Layout({
   params,
 }: {
   children: React.ReactNode;
-  params: any;
+  params: {
+    collection: string;
+  };
 }) {
   const href = `/catalog/${params.collection}`;
   const key = toKey(params.collection);

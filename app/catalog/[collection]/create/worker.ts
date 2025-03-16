@@ -1,78 +1,26 @@
-type WorkerCache = {
-  handlers: { [key: string]: Function },
-};
-let CACHE: WorkerCache | null = null;
-let postStatus = (message: string) => {
-  self.postMessage({
-    type: "status",
-    data: {
-      message
-    }
-  })
-}
-/**
- * Only perform startup routine once
- */
-async function startup(message: MessageEvent) {
-  const { data: { user } } = message.data;
-  if (typeof user === "undefined") {
-    throw Error(`worker missing user data: ${JSON.stringify(message)}`)
-  }
-  const { token: { access_token = null } }: any = JSON.parse(user);
-  if (!access_token) {
-    throw Error(`worker missing access token`)
-  }
-  const { panic_hook, createEntity } = await import("@oceanics/app");
-  // Provide better error messaging on web assembly panic
-  panic_hook();
-  async function createAndPostMessage(query: any, body: string) {
-    const result = await createEntity(access_token, query, body);
-    postStatus(`Created 1`);
-    return result
-  }
-  return {
-    handlers: {
-      createEntity: createAndPostMessage,
-    }
-  }
-}
+import {status, validateAndGetAccessToken, postError} from "@catalog/worker";
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
  */
 async function listen(message: MessageEvent) {
-  if (!CACHE) {
-    try {
-      CACHE = await startup(message);
-    } catch (error: any) {
-      self.postMessage({
-        type: "error",
-        data: error.message
-      });
-      return
-    }
-    postStatus(`Ready`);
+  const accessToken = validateAndGetAccessToken(message);
+  if (!accessToken) {
+    return;
   }
-  const { handlers: { [message.data.type]: handler = null } } = CACHE as WorkerCache;
-  if (!handler) {
-    self.postMessage({
-      type: "error",
-      data: `unknown message format: ${message.data.type}`
-    });
+  if (message.data.type !== "createEntity") {
+    postError(`unknown message format: ${message.data.type}`);
     return
   }
-  try {
-    const result = await handler(message.data.data.query, message.data.data.body);
-    self.postMessage({
-      type: message.data.type,
-      data: result
-    });
-  } catch (error: any) {
-    self.postMessage({
-      type: "error",
-      data: error.message
-    });
-  }
+  const { data: { query, body } } = message.data;
+  const { panic_hook, createEntity } = await import("@oceanics/app");
+  panic_hook();
+  const result = await createEntity(accessToken, query, body);
+  status(`Created 1`);
+  self.postMessage({
+    type: message.data.type,
+    data: result
+  });
 }
 /**
  * Respond to messages

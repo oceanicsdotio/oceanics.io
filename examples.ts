@@ -44,13 +44,13 @@ const cacheItem = (label: string, props: object) => {
  * be populated with UUID for each record. This is used
  * to reference instances across test runs.
  */
-const schemaToLookup = ([label, { examples = [] }]: [string, { examples: any[] }]) => {
-  let _flatten = cacheItem.bind(undefined, label)
+const schemaToLookup = ([label, { examples = [] }]: [string, { examples: object[] }]) => {
+  const _flatten = cacheItem.bind(undefined, label)
   return examples.map(_flatten);
 }
 
-const reducePrecision = (data: Object | Array<number>, precision: number) => {
-  const replacer = function (_: string, val: Number | string): Number | string {
+const reducePrecision = (data: object | number[], precision: number) => {
+  const replacer = function (_: string, val: number | string): number | string {
     return (typeof val === "number") ? Number(val.toFixed(precision)) : val;
   }
   return JSON.stringify(data, replacer)
@@ -67,7 +67,7 @@ if (import.meta.url.startsWith('file:')) { // (A)
       target
     ] = process.argv.slice(2)
     const specText = readFileSync(specification, "utf8");
-    const { components: { schemas } }: { components: { schemas: any[] } } = JSON.parse(specText);
+    const { components: { schemas } }: { components: { schemas: object[] } } = JSON.parse(specText);
     const all = Object.entries(schemas).flatMap(schemaToLookup);
 
     const fromSpec = (all as [string, string, { uuid?: string }][]).filter(
