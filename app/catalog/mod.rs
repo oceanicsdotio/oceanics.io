@@ -219,9 +219,7 @@ impl MulAssign<Vec3> for &mut Vec3 {
         }
     }
 }
-/**
- * Public interface for Vec3 type.
- */
+/// Public interface for Vec3 type.
 impl Vec3 {
     pub fn normal_form(&self) -> Vec3 {
         let [a, b, c] = self.value;
@@ -330,13 +328,11 @@ impl Vec3 {
     };
 }
 
-/*
-* Update the agent position from velocity.
-*
-* The environmental effects are:
-* - drag: lose velocity over time
-* - bounce: lose velocity on interaction
-*/
+/// Update the agent position from velocity.
+/// 
+/// The environmental effects are:
+/// - drag: lose velocity over time
+/// - bounce: lose velocity on interaction
 fn next_state(
     coordinates: &Vec3,
     velocity: &Vec3,
@@ -366,95 +362,79 @@ fn next_state(
 fn color_map_z(z: f64, fade: &f64) -> String {
     format!("rgba({},{},{},{:.2})", 255, 0, 255, 1.0 - fade * z)
 }
-/**
- * Reversibly combine two integers into a single integer.
- *
- * In this case we are segmenting the linear index of an ordered array,
- * to break it into chunks named with the hash of their own interval.
- *
- * The interval is implicit in the hash, and can be extracted to rebuild
- * the entire array by concatenating the chunks.
- *
- * This is intended to be used for vertex arrays, but can be applied
- * generally to any single or multidimensional array.  
- */
-fn encode(x: u32, y: u32, radix: u8) -> String {
-    let mut z = (x + y) * (x + y + 1) / 2 + y;
-    let mut hash = String::new();
-    loop {
-        let character = std::char::from_digit(z % radix as u32, radix as u32).unwrap();
-        hash.push(character);
-        z /= radix as u32;
-        if z == 0 {
-            break;
-        };
-    }
-    hash.chars().rev().collect()
-}
 
-/**
- * Restore the interval values from a "hashed" string. Used in building
- * an interval `from_hash`.
- */
-fn decode(hash: &String, radix: u8) -> [u32; 2] {
-    let z = u32::from_str_radix(hash, radix as u32).unwrap();
-    let w = (0.5 * (((8 * z + 1) as f32).sqrt() - 1.0)).floor() as u32;
-    let y = z - w * (w + 1) / 2;
-    [w - y, y]
-}
 
-/**
- * The `IndexInterval` is a way of referencing a slice of a 1-dimensional
- * array of N-dimensional tuples.
- *
- * The main use is to chunk vertex arrays and assign them a unique
- * key that can be decoded into the index range.
- *
- * The limitation is that each chunk must contain contiguously
- * indexed points. Re-indexing might be required if the points
- * are not ordered in the desired manner.
- */
+/// The `IndexInterval` is a way of referencing a slice of a 1-dimensional
+/// array of N-dimensional tuples.
+/// 
+/// The main use is to chunk vertex arrays and assign them a unique
+/// key that can be decoded into the index range. The implementation
+/// uses Cantor's pairing function.
+/// 
+/// The limitation is that each chunk must contain contiguously
+/// indexed points. Re-indexing might be required if the points
+/// are not ordered in the desired manner.
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct IndexInterval {
-    /**
-     * Start is inclusive.
-     */
+    /// Start is inclusive.
     start: u32,
-    /**
-     * End is not inclusive
-     */
+    /// End is not inclusive
     end: u32,
-    /**
-     * Reversible string representation of the interval.
-     */
+    /// Reversible string representation of the interval.
     pub hash: String,
-    /**
-     * Radix for byte string encoding.
-     */
+    /// Radix for byte string encoding.
     radix: u8,
 }
-/**
- * JavaScript bindings `impl` meant to be called in the browser or a node function.
- */
+/// JavaScript bindings `impl` meant to be called in the 
+/// browser or a node function.
 impl IndexInterval {
-    /**
-     * Create a new interval struct and pre-calculate the "hash" of the slice range.
-     */
+    /// Reversibly combine two integers into a single integer, using
+    /// Cantor's pairing function.
+    ///
+    /// In this case we are segmenting the linear index of an ordered array,
+    /// to break it into chunks named with the hash of their own interval.
+    ///
+    /// The interval is implicit in the hash, and can be extracted to rebuild
+    /// the entire array by concatenating the chunks.
+    ///
+    /// This is intended to be used for vertex arrays, but can be applied
+    /// generally to any single or multidimensional array.
+    fn encode(x: u32, y: u32, radix: u8) -> String {
+        let mut z = (x + y) * (x + y + 1) / 2 + y;
+        let mut hash = String::new();
+        loop {
+            let character = std::char::from_digit(z % radix as u32, radix as u32).unwrap();
+            hash.push(character);
+            z /= radix as u32;
+            if z == 0 {
+                break;
+            };
+        }
+        hash.chars().rev().collect()
+    }
+    /// Restore the interval values from a "hashed" string. Used in building
+    /// an interval `from_hash`.
+    fn decode(hash: &String, radix: u8) -> [u32; 2] {
+        let z = u32::from_str_radix(hash, radix as u32).unwrap();
+        let w = (0.5 * (((8 * z + 1) as f32).sqrt() - 1.0)).floor() as u32;
+        let y = z - w * (w + 1) / 2;
+        [w - y, y]
+    }
+    /// Create a new interval struct and pre-calculate the 
+    /// "hash" of the slice range.
     pub fn new(start: u32, end: u32, radix: u8) -> Self {
         IndexInterval {
             start,
             end,
-            hash: encode(start, end, radix),
+            hash: Self::encode(start, end, radix),
             radix,
         }
     }
-    /**
-     * Create an `IndexInterval` from a hash.
-     */
+    /// Create an `IndexInterval` from a hash.
     pub fn from_hash(hash: &JsValue, radix: u8) -> Self {
         let hash_string = hash.as_string().unwrap();
-        let [start, end] = decode(&hash_string, radix);
+        let [start, end] = Self::decode(&hash_string, radix);
         IndexInterval {
             start,
             end,
@@ -462,27 +442,30 @@ impl IndexInterval {
             radix,
         }
     }
-    /**
-     * Get the net interval in the sequence
-     */
+    /// Get the next interval in the sequence, assuming that 
+    /// each interval has the same length.
     pub fn next(&self) -> Self {
-        IndexInterval::new(self.end + 1, self.end + self.end - self.start, self.radix)
+        let start = self.end + 1;
+        let end = self.end + self.end - self.start;
+        IndexInterval::new(start, end, self.radix)
     }
-    /**
-     * Getter to allow access to hash
-     */
+    /// Getter to allow access to hash
     pub fn hash(&self) -> String {
         self.hash.clone()
     }
 }
-/**
- * The vertex array contains the points that make up the spatial component of
- * a triangulation network.
- */
+/// The vertex array contains the points that make up the spatial component of
+/// a triangulation network. With a u16 index, we can have up to 65,535 points.
+/// This would take about 2.4MB of memory.
 #[derive(Clone)]
 struct VertexArray {
+    /// Prefix for storage in the object store, so that array 
+    /// can be easily retrieved.
     prefix: String,
+    /// The interval of the array, for stitching together chunks.
     interval: IndexInterval,
+    /// The points in the array, indexed by a u16. 
+    /// This allows 65,535 points.
     points: HashMap<u16, Vec3>,
 }
 
@@ -496,7 +479,9 @@ impl VertexArray {
             interval: IndexInterval::new(start, end, radix),
         }
     }
-    /// Next interval. No error-checking.
+    /// Next interval. No error-checking, so the end of the
+    /// slice might be out of bounds, or there may not be 
+    /// a next interval.
     pub fn next_interval(&self) -> IndexInterval {
         self.interval.next()
     }
@@ -504,64 +489,46 @@ impl VertexArray {
     pub fn fragment(&self) -> String {
         format!("{}/nodes/{}", self.prefix, self.interval.hash())
     }
-
+    /// Total number of vertices, not the capacity of the HashMap.
     pub fn count(&self) -> usize {
         self.points.len()
     }
 }
-/**
- * Public interface for VertexArray. Not used by JavaScript side.
- */
+/// Public interface for VertexArray. Not used by JavaScript side.
 impl VertexArray {
-    /**
-     * Points are private for serialization, so we need a getter
-     */
+    /// Points are private for serialization, so we need a getter
     pub fn points(&self) -> &HashMap<u16, Vec3> {
         &self.points
     }
     pub fn values_mut(&mut self) -> ValuesMut<u16, Vec3> {
         self.points.values_mut()
     }
-    /**
-     * Hoist the method for inserting points. Don't have to make points public.
-     */
+    /// Hoist the method for inserting points. Don't have to make points public.
     pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
         self.points.insert(index, coordinates);
     }
-    /**
-     * Hoist query by index function from
-     */
+    /// Hoist query by index function from child
     pub fn contains_key(&self, index: &u16) -> bool {
         self.points.contains_key(index)
     }
-    /**
-     * Get a single point
-     */
+    /// Get a single point
     pub fn get(&self, index: &u16) -> Option<&Vec3> {
         self.points.get(index)
     }
-    /**
-     * Hoist mutable point getter
-     */
+    /// Hoist mutable point getter
     pub fn get_mut(&mut self, index: &u16) -> Option<&mut Vec3> {
         self.points.get_mut(index)
     }
-    /**
-     * Re-scale the points in place by a constant factor
-     * in each dimension (xyz). Then return self for chaining.
-     */
+    /// Re-scale the points in place by a constant factor
+    /// in each dimension (xyz). Then return self for chaining.
     pub fn scale(&mut self, sx: f64, sy: f64, sz: f64) -> &Self {
         for vert in self.points.values_mut() {
             vert.value = [vert.x() * sx, vert.y() * sy, vert.z() * sz];
         }
         self
     }
-    /**
-     * Shift each child vertex by a constant offset
-     * in each each dimension (xyz).
-     *
-     * Then return self for chaining.
-     */
+    /// Shift each child vertex by a constant offset
+    /// in each each dimension (xyz). Then return self for chaining.
     pub fn shift(&mut self, dx: f64, dy: f64, dz: f64) -> &Self {
         for vert in self.points.values_mut() {
             vert.value = [vert.x() + dx, vert.y() + dy, vert.z() + dz];
@@ -574,25 +541,21 @@ impl VertexArray {
     }
 }
 
-/**
- * A hashable cell index is necessary because a HashSet cannot
- * be used as the key to a HashMap.
- *
- * The following rules and properties apply:
- * - first index is always the lowest
- * - triangle is assumed to be wound counter-clockwise
- * - flipping inverts winding
- * - triangles with same indices but different windings are not identical (two-sided)
- */
+/// A hashable cell index is necessary because a HashSet cannot
+/// be used as the key to a HashMap.
+///
+/// The following rules and properties apply:
+/// - first index is always the lowest
+/// - triangle is assumed to be wound counter-clockwise
+/// - flipping inverts winding
+/// - triangles with same indices but different windings are not identical (two-sided)
 #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
 struct CellIndex {
     pub indices: [u16; 3],
 }
 
 impl CellIndex {
-    /**
-     * Sort the indices and create a CellIndex.
-     */
+    /// Sort the indices and create a CellIndex.
     pub fn new(a: u16, b: u16, c: u16) -> CellIndex {
         if a == b || b == c || c == a {
             panic!("Degenerate CellIndex ({},{},{})", a, b, c);
@@ -602,37 +565,29 @@ impl CellIndex {
         index.sort();
         index
     }
-    /**
-     * Wrapping getter
-     */
+    /// Wrapping getter
     pub fn get(&self, position: usize) -> u16 {
         self.indices[position % 3]
     }
-    /**
-     * Swap any two indices in place
-     */
+    /// Swap any two indices in place
     fn swap(&mut self, a: usize, b: usize) {
         let temp = self.indices[a];
         self.indices[a] = self.indices[b];
         self.indices[b] = temp;
     }
-    /**
-     * Invert the winding of the triangle while
-     * keeping the first vertex the same
-     */
+    /// Invert the winding of the triangle while
+    /// keeping the first vertex the same
     pub fn flip(&mut self) {
         self.swap(1, 2);
     }
-    /*
-     * Sorting should put lowest index first, but preserve the
-     * winding of the triangle by shifting instead of reordering.
-     *
-     * If the third is smallest, shift shift left 2
-     * If the second is smallest, shift left 1
-     * Else, do nothing
-     *
-     * Shifting left is accomplished with 2 swaps.
-     */
+    /// Sorting should put lowest index first, but preserve the
+    /// winding of the triangle by shifting instead of reordering.
+    ///
+    /// - If the third is smallest, shift left 2
+    /// - If the second is smallest, shift left 1
+    /// - Else, do nothing
+    ///
+    /// Shifting left is accomplished with 2 swaps.
     fn sort(&mut self) {
         while self.indices[0] > self.indices[1] || self.indices[0] > self.indices[2] {
             self.swap(0, 1);
@@ -640,34 +595,38 @@ impl CellIndex {
         }
     }
 }
-/**
-* Use the spring extension and intrinsic dropout probability
-* to determine whether the spring instance should contribute
-* to this iteration of force calculations.
-*
-* The bounding box is used to normalize. The effect is that
-* long springs create a small RHS in the comparison, so it is
-* more likely that they dropout.
 
-   * Higher drop rates speed up the animation loop, but make
-   * N-body calculations less deterministic.
-   */
+/// Use the spring extension and intrinsic dropout probability
+/// to determine whether the spring instance should contribute
+/// to this iteration of force calculations.
+/// 
+/// The bounding box is used to normalize. The effect is that
+/// long springs create a small RHS in the comparison, so it is
+/// more likely that they dropout.
+///
+/// Higher drop rates speed up the animation loop, but make
+/// N-body calculations less deterministic.
 #[derive(Copy, Clone)]
 struct Edge {
-    pub spring_constant: f64, // spring constant
-    pub length: f64,          // zero position length
+    /// For physics-based spring force calculations
+    pub spring_constant: f64,
+    /// Extension of the spring
+    pub length: f64,
 }
 impl Edge {
-    /**
-     * Basic spring force for calculating the acceleration on objects.
-     * Distance from current X to local zero of spring reference frame.
-     *
-     * May be positive or negative in the range (-sqrt(3),sqrt(3)).
-     *
-     * If the sign is positive, the spring is overextended, and exerts
-     * a positive force on the root object.
-     * Force is along the (jj-ii) vector
-     */
+    /// Basic spring force for calculating the acceleration on objects.
+    /// Distance from current X to local zero of spring reference frame.
+    ///
+    /// May be positive or negative in the range (-sqrt(3),sqrt(3)).
+    ///
+    /// If the sign is positive, the spring is overextended, and exerts
+    /// a positive force on the root object with force is along 
+    /// the (jj-ii) vector.
+    /// 
+    /// * extension: distance from equilibrium
+    /// * velocity_differential: difference in velocity between the two nodes
+    /// * collision: distance from the root object to the collision point
+    /// 
     pub fn force(&self, extension: f64, velocity_differential: f64, collision: f64) -> f64 {
         let mass = 1.0;
         let k1 = self.spring_constant;
@@ -675,57 +634,44 @@ impl Edge {
             + k1 * (extension - self.length - 2.0 * collision) / mass
     }
 }
-/**
- * Edge index is like a CellIndex, but has only 2 nodes. The direction does not
- * matter, as they are sorted at creation.
- */
+/// Edge index is like a CellIndex, but has only 2 nodes. 
+/// The direction does not matter, as they are sorted at creation.
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
 struct EdgeIndex {
+    /// A bit degenerate, and maybe doesn't need to be in struct,
+    /// but allows for a more expressive API.
     pub indices: [u16; 2],
 }
 impl EdgeIndex {
-    /**
-     * Sort the indices and create a EdgeIndex.
-     * TODO: ensure uniqueness to avoid degenerate scenarios
-     */
+    /// Sort the indices and create a EdgeIndex.
+    /// TODO: ensure uniqueness to avoid degenerate scenarios
     pub fn new(a: u16, b: u16) -> EdgeIndex {
         let mut indices = [a, b];
         indices.sort();
         EdgeIndex { indices }
     }
-
-    pub fn items(&self) -> [&u16; 2] {
-        [&self.indices[0], &self.indices[1]]
-    }
 }
-/**
- * Topology is the structure underlying the TriangularMesh
- */
+/// Topology is the structure underlying the TriangularMesh
 #[derive(Clone)]
 struct Topology {
+    /// The cells are the triangles in the mesh, not used 
+    /// for open topologies, but possibly useful for identifying
+    /// abstract patterns.
     pub cells: HashSet<CellIndex>,
-    pub edges: HashMap<EdgeIndex, Edge>,
-    pub normals: HashMap<CellIndex, Vec3>,
-    pub neighbors: Vec<Vec<usize>>,
+    /// Edges can define cells, or can be relationships in an
+    /// an unstructured topology like an arbitrary graph.
+    pub edges: HashMap<EdgeIndex, Edge>
 }
-/**
- * Internal `impl`
- */
+/// Internal `impl`
 impl Topology {
-    /**
-     * Create an empty topology structure.
-     */
+    /// Create an empty topology structure.
     pub fn new() -> Topology {
         Topology {
             cells: HashSet::with_capacity(0),
-            edges: HashMap::new(),
-            normals: HashMap::with_capacity(0),
-            neighbors: Vec::with_capacity(0),
+            edges: HashMap::new()
         }
     }
-    /**
-     * Take an unordered array of point indices, and
-     */
+    /// Take an unordered array of point indices, and
     pub fn insert_cell(&mut self, index: [u16; 3]) {
         let [a, b, c] = index;
         self.cells.insert(CellIndex::new(a, b, c));
@@ -748,11 +694,9 @@ impl Topology {
             }
         }
     }
-    /**
-     * Take an unordered pair of point indices, create an ordered
-     * and unique `EdgeIndex`, calculate the length of the edge,
-     * and insert into the `edges` map.
-     */
+    /// Take an unordered pair of point indices, create an ordered
+    /// and unique `EdgeIndex`, calculate the length of the edge,
+    /// and insert into the `edges` map.
     pub fn insert_edge(&mut self, index: [u16; 2], length: f64, spring_constant: f64) {
         let [a, b] = index;
         let edge_index = EdgeIndex::new(a, b);
@@ -787,19 +731,13 @@ struct TriangularMesh {
     pub vertex_array: VertexArray,
     pub topology: Topology,
 }
-/**
- * Internal `impl` for the TriangularMesh data structure.
- */
+/// Internal `impl` for the TriangularMesh data structure.
 impl TriangularMesh {
-    /**
-     * Hoist the `insert_cell` function from child `vertex_array`.
-     */
+    /// Hoist the `insert_cell` function from child `vertex_array`.
     pub fn insert_cell(&mut self, index: [u16; 3]) {
         self.topology.insert_cell(index);
     }
-    /**
-     * Hoist the `insert_point` function from child `vertex_array`.
-     */
+    ///  Hoist the `insert_point` function from child `vertex_array`.
     pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
         self.vertex_array.insert_point(index, coordinates);
     }
@@ -827,11 +765,9 @@ impl TriangularMesh {
         }
         lookup
     }
-    /**
-     * Reflect across a single axis and return the reference
-     * to self to enable chaining, because that tends to be
-     * how the reflect command is used.
-     */
+    /// Reflect across a single axis and return the reference
+    /// to self to enable chaining, because that tends to be
+    /// how the reflect command is used.
     pub fn reflect(&mut self, dim: usize) -> &mut Self {
         for vert in self.vertex_array.values_mut() {
             vert.value[dim] *= -1.0;
@@ -845,14 +781,11 @@ impl TriangularMesh {
         self.topology.cells = flipped;
         self
     }
-    /**
-     * Insert the children of another mesh instance into the
-     * current one.
-     *
-     * All added vertex references are offset by the length of
-     * the current vertex_array, which currently does NOT
-     * guarantee that no collisions happen.
-     */
+    /// Insert the children of another mesh instance into the
+    /// current one.
+    /// All added vertex references are offset by the length of
+    /// the current vertex_array, which currently does NOT
+    /// guarantee that no collisions happen.
     fn append(&mut self, mesh: &TriangularMesh) {
         let offset = self.vertex_array.count() as u16;
         for (index, vert) in mesh.vertex_array.points().iter() {
@@ -865,18 +798,14 @@ impl TriangularMesh {
             });
         }
     }
-    /**
-     * Rotate the vertices in place around an arbitrary axis.
-     */
+    /// Rotate the vertices in place around an arbitrary axis.
     pub fn rotate(&mut self, angle: &f64, axis: &Vec3) -> &Self {
         for coordinates in self.vertex_array.values_mut() {
             coordinates.value = coordinates.rotate(angle, axis).value;
         }
         self
     }
-    /**
-     * Calculate the normals of each face.
-     */
+    /// Calculate the normals of each face.
     fn normals(&mut self) -> (HashMap<u16, (Vec3, u8)>, HashMap<CellIndex, Vec3>) {
         let capacity = self.vertex_array.count();
         let mut normals: HashMap<u16, (Vec3, u8)> = HashMap::with_capacity(capacity);
@@ -927,9 +856,7 @@ impl TriangularMesh {
             vertex_array,
             topology: Topology {
                 cells: HashSet::with_capacity(nx * ny * 2),
-                edges: HashMap::with_capacity(nx * ny * 2 * 3),
-                neighbors: Vec::with_capacity(0),
-                normals: HashMap::with_capacity(0),
+                edges: HashMap::with_capacity(nx * ny * 2 * 3)
             },
         };
 
@@ -986,9 +913,7 @@ pub struct MeshStyle {
     #[wasm_bindgen(js_name = radius)]
     pub radius: f64,
 }
-/**
- * Container for mesh that also contains rendering target information.
- */
+/// Container for mesh that also contains rendering target information.
 #[wasm_bindgen]
 pub struct InteractiveMesh {
     mesh: TriangularMesh,
@@ -997,9 +922,7 @@ pub struct InteractiveMesh {
 }
 #[wasm_bindgen]
 impl InteractiveMesh {
-    /**
-     * By default create a simple RTIN graph
-     */
+    /// By default create a simple RTIN graph
     #[wasm_bindgen(constructor)]
     pub fn new(nx: u16, ny: u16) -> InteractiveMesh {
         let mesh = TriangularMesh::from_rectilinear_shape(nx as usize, ny as usize);
@@ -1019,11 +942,9 @@ impl InteractiveMesh {
         };
         interactive
     }
-    /**
-     * Render the current state of single Agent to HTML canvas. The basic
-     * representation includes a scaled circle indicating the position,
-     * and a heading indicator for the current direction of travel.
-     */
+    /// Render the current state of single Agent to HTML canvas. The basic
+    /// representation includes a scaled circle indicating the position,
+    /// and a heading indicator for the current direction of travel.
     fn draw_nodes(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &MeshStyle) -> u16 {
         let mut count: u16 = 0;
         for (index, vert) in self.mesh.vertex_array.points().iter() {
@@ -1068,7 +989,7 @@ impl InteractiveMesh {
         ctx.set_line_width(style.line_width);
         let mut count: u16 = 0;
         for (index, edge) in self.mesh.topology.edges.iter() {
-            let [ii, jj] = index.items();
+            let [ii, jj] = &index.indices;
             let a = self
                 .mesh
                 .vertex_array
@@ -1157,8 +1078,8 @@ impl InteractiveMesh {
         self.frames += 1;
     }
     /// Update link forces and vectors.
-    /// First use the edges to apply forces vectors to each particle, incrementally
-    /// updating the velocity.
+    /// First use the edges to apply forces vectors to each 
+    /// particle, incrementally updating the velocity.
     #[wasm_bindgen(js_name=updateState)]
     pub fn update_links_and_positions(
         &mut self,
@@ -1168,7 +1089,7 @@ impl InteractiveMesh {
         collision_threshold: f64,
     ) {
         for (index, edge) in self.mesh.topology.edges.iter() {
-            let [ii, jj] = index.items();
+            let [ii, jj] = &index.indices;
             let points = &self.mesh.vertex_array;
             if !points.contains_key(ii) || !points.contains_key(jj) {
                 panic!("Bad index into vertex array")
@@ -1191,7 +1112,7 @@ impl InteractiveMesh {
             let acceleration: Vec3 = delta.normalized()
                 * edge.force(extension, (predicted - extension) / dt, collision_threshold);
 
-            for particle in index.items().iter() {
+            for particle in index.indices.iter() {
                 let velocity = self.velocity.get_mut(particle).unwrap();
                 velocity.value = (velocity.clone() + acceleration).value;
             }
