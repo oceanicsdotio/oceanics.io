@@ -24,7 +24,8 @@ export default tseslint.config(
   ]),
   {
     rules: {
-      "no-empty-pattern": "off",
+      "no-empty-pattern": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   }
 );

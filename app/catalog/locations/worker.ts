@@ -130,13 +130,19 @@ function transform({ location, ...rest }: { location?: any }) {
     },
   };
 }
+interface Location {
+  geometry: {
+    type: string;
+  };
+}
 function hasLocation({ location }: { location?: object }) {
   return typeof location !== "undefined"
 }
-function isMultiPolygon(location: object) {
+function isMultiPolygon(location: Location) {
   return location.geometry.type === "MultiPolygon"
 }
-function collectionToMultiPolygonLayer(result: object[], limit: number, offset: number) {
+
+function collectionToMultiPolygonLayer(result: Location[], limit: number, offset: number) {
   const multiPolygons = result.filter(isMultiPolygon)
   if (!multiPolygons.length) return;
   const id = `locations-multi-polygons-${offset}-${limit}`
@@ -145,7 +151,7 @@ function collectionToMultiPolygonLayer(result: object[], limit: number, offset: 
     "line-color": "rgba(255,255,255,0.5)"
   })
 }
-function collectionToPointLayer(result: object[], limit: number, offset: number) {
+function collectionToPointLayer(result: Location[], limit: number, offset: number) {
   const points = result.filter((location) => location.geometry.type === "Point");
   if (!points.length) return;
   const id = `locations-points-${offset}-${limit}`
@@ -156,7 +162,14 @@ function collectionToPointLayer(result: object[], limit: number, offset: number)
     "circle-stroke-color": "orange",
   });
 }
-function processPageResult(result: object, limit: number, offset: number) {
+interface Collection {
+  value: object[];
+  page: {
+    current: number;
+    next: string;
+  };
+}
+function processPageResult(result: Collection, limit: number, offset: number) {
   status(`Processing page ${result.page.current}`);
   const parsed = result.value.filter(hasLocation).map(transform);
   collectionToPointLayer(parsed, limit, offset);
