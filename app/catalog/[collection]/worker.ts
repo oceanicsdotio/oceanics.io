@@ -5,24 +5,27 @@ import { postError, validateAndGetAccessToken, status } from "@catalog/worker";
  */
 async function listen(message: MessageEvent) {
   const accessToken = validateAndGetAccessToken(message);
+  const type = message.data.type;
   if (!accessToken) {
     return;
   }
-  if (message.data.type !== "getCollection") {
+  if (type !== "getCollection") {
     postError(`unknown message format: ${type}`);
     return
   }
   const { panic_hook, getCollection } = await import("@oceanics/app");
   try {
     panic_hook();
-    const result = await getCollection(access_token, message.data.query);
+    const result = await getCollection(accessToken, message.data.query);
     status(`Found ${result.value.length}`);
     self.postMessage({
       type,
       data: result
     });
-  } catch (error: any) {
-    postError(error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      postError(error.message);
+    }
   }
 }
 /**

@@ -15,7 +15,7 @@ import { Linked as Things } from "@catalog/things/client";
  * Result of the generateStaticParams function, which
  * is available to the page and metadata functions.
  */
-type Props = {
+interface Props {
   params: Promise<{
     collection: string;
     related: string;
@@ -51,7 +51,7 @@ type ValidComponents = keyof typeof components;
  */
 export async function generateStaticParams() {
   return Object.keys(components).flatMap((collection) => {
-    const schema = (OpenAPI.components.schemas as any)[collection];
+    const schema = OpenAPI.components.schemas[collection];
     const options = Object.keys(schema.properties)
       .filter((key: string) => key.includes("@"))
       .map((key) => {

@@ -20,6 +20,7 @@ const components = {
   Sensors,
   Things,
 };
+type ValidComponents = keyof typeof components;
 export async function generateStaticParams() {
   return collectionSlugs(components);
 }
@@ -29,9 +30,9 @@ export async function generateMetadata({ params }: Props) {
 }
 export default async function Page({ params }: Props) {
   const { collection } = await params;
-  const key = toKey(collection);
-  const schema = (openapi.components.schemas as any)[key];
-  const Client = (components as any)[key];
+  const key = toKey(collection) as ValidComponents;
+  const schema = openapi.components.schemas[key];
+  const Client = components[key];
   return (
     <CollectionPage schema={schema} showActions={false}>
       <Client></Client>

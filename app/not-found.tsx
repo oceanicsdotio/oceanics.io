@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { Metadata } from "next";
 import React from "react";
 import layout from "./layout.module.css";

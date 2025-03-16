@@ -2,7 +2,7 @@
 import specification from "@app/../specification.yaml";
 import type { Sensors } from "@oceanics/app";
 import { type Initial } from "../client";
-import React, { useCallback, useRef } from "react";
+import React, { Ref, useCallback, useRef } from "react";
 import style from "@catalog/page.module.css";
 import layout from "@app/layout.module.css";
 import {Edit as EditGeneric} from "@catalog/[collection]/edit/client";
@@ -50,7 +50,7 @@ export function Form({
   action: string;
   initial: Initial<Sensors>;
   onSubmit: any;
-  formRef: any;
+  formRef: Ref<HTMLFormElement>;
   disabled: boolean;
 }) {
   /**

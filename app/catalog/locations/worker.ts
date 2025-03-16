@@ -1,21 +1,7 @@
 import { DOMParser } from "@xmldom/xmldom";
-let postStatus = (message: string) => {
-  self.postMessage({
-    type: "status",
-    data: {
-      message
-    }
-  })
-}
-let postError = (message: string) => {
-  self.postMessage({
-    type: "error",
-    data: {
-      message
-    }
-  })
-}
-function postSource(id: string, features: any[], attribution: string) {
+import {status, postError} from "@catalog/worker"
+
+function postSource(id: string, features: object[], attribution: string) {
   self.postMessage({
     type: "source",
     data: {
@@ -31,7 +17,7 @@ function postSource(id: string, features: any[], attribution: string) {
     }
   })
 }
-function postLayer(id: string, type: string, paint: any) {
+function postLayer(id: string, type: string, paint: object) {
   self.postMessage({
     type: "layer",
     data: {
@@ -53,8 +39,8 @@ function postLayer(id: string, type: string, paint: any) {
  * because window.DOMParser is not available in Web Worker
  */
 async function getFileSystem(query: { url: string }) {
-  let url = query.url;
-  let _parser = new DOMParser();
+  const url = query.url;
+  const _parser = new DOMParser();
   const response = await fetch(url, {
     method: "GET",
     mode: "cors",
@@ -66,7 +52,7 @@ async function getFileSystem(query: { url: string }) {
     (x) => x.nodeName === "ListBucketResult"
   );
   const nodes = Array.from(childNodes).map((node) => {
-    let key = node.childNodes[0]?.textContent ?? ""
+    const key = node.childNodes[0]?.textContent ?? ""
     return {
       key,
       updated: node.childNodes[1]?.textContent ?? "",
@@ -92,7 +78,7 @@ async function getFragment(url: string, attribution: string) {
     .then((blob) => blob.arrayBuffer());
   const dataView = new Float32Array(arrayBuffer); // view
   const count = dataView.length / 3;
-  let feature_collection = []; // copy
+  const feature_collection = []; // copy
   let point = 0;
   while (point < count) {
     const start = point * 3;
@@ -125,7 +111,7 @@ async function getFragment(url: string, attribution: string) {
   });
 };
 async function searchFragments(query: any) {
-  postStatus(`Getting filesystem...`);
+  status(`Getting filesystem...`);
   const collection = "assets/necofs_gom3_mesh/nodes";
   const attribution = "UMass Dartmouth";
   const result = await getFileSystem(query);
@@ -144,13 +130,13 @@ function transform({ location, ...rest }: { location?: any }) {
     },
   };
 }
-function hasLocation({ location }: { location?: any }) {
+function hasLocation({ location }: { location?: object }) {
   return typeof location !== "undefined"
 }
-function isMultiPolygon(location: any) {
+function isMultiPolygon(location: object) {
   return location.geometry.type === "MultiPolygon"
 }
-function collectionToMultiPolygonLayer(result: any, limit: number, offset: number) {
+function collectionToMultiPolygonLayer(result: object[], limit: number, offset: number) {
   const multiPolygons = result.filter(isMultiPolygon)
   if (!multiPolygons.length) return;
   const id = `locations-multi-polygons-${offset}-${limit}`
@@ -159,8 +145,8 @@ function collectionToMultiPolygonLayer(result: any, limit: number, offset: numbe
     "line-color": "rgba(255,255,255,0.5)"
   })
 }
-function collectionToPointLayer(result: any, limit: number, offset: number) {
-  const points = result.filter((location: any) => location.geometry.type === "Point");
+function collectionToPointLayer(result: object[], limit: number, offset: number) {
+  const points = result.filter((location) => location.geometry.type === "Point");
   if (!points.length) return;
   const id = `locations-points-${offset}-${limit}`
   postSource(id, points, "Oceanics.io");
@@ -170,9 +156,9 @@ function collectionToPointLayer(result: any, limit: number, offset: number) {
     "circle-stroke-color": "orange",
   });
 }
-function processPageResult(result: any, limit: number, offset: number) {
-  postStatus(`Processing page ${result.page.current}`);
-  let parsed = result.value.filter(hasLocation).map(transform);
+function processPageResult(result: object, limit: number, offset: number) {
+  status(`Processing page ${result.page.current}`);
+  const parsed = result.value.filter(hasLocation).map(transform);
   collectionToPointLayer(parsed, limit, offset);
   collectionToMultiPolygonLayer(parsed, limit, offset);
   return { total: parsed.length, next: result.page.next };
@@ -186,7 +172,7 @@ async function listen(message: MessageEvent) {
   if (typeof user === "undefined") {
     postError(`worker missing user data: ${JSON.stringify(message)}`)
   }
-  const { token: { access_token = null } }: any = JSON.parse(user);
+  const { token: { access_token = null } } = JSON.parse(user);
   if (!access_token) {
     postError(`worker missing access token`)
   }
@@ -220,13 +206,14 @@ async function listen(message: MessageEvent) {
     const result = await getCollection(access_token, {
       left, limit, offset
     });
-    let stats = processPageResult(result, limit, offset);
+    const stats = processPageResult(result, limit, offset);
     total += stats.total;
     next = stats.next;
   }
-  postStatus(`Found ${total}`)
+  status(`Found ${total}`)
 }
 /**
  * Respond to messages
  */
 self.addEventListener("message", listen);
+export default {}

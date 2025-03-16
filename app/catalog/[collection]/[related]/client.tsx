@@ -28,15 +28,15 @@ const meshStyle: Initial<MeshStyle> = {
 /**
  * Schema for the collection and related nodes.
  */
-type Schema = {
-  properties: Object;
+interface Schema {
+  properties: object;
   title: string;
   description: string;
 };
 /**
  * Interface the generic Linked component.
  */
-type ILinked = {
+interface ILinked {
   collection: Schema;
   related: Schema;
   nav?: boolean;
@@ -45,7 +45,7 @@ type ILinked = {
 /**
  * Interface for the Neighbor component.
  */
-type NeighborProps = {
+interface NeighborProps {
   index: number;
   options: string[];
   basePath: string;
@@ -83,7 +83,7 @@ function Neighbor<T extends NodeLike>({
       </summary>
       {AdditionalProperties && (
         <div className={style.add_props}>
-          <AdditionalProperties {...(rest as any)} />
+          <AdditionalProperties {...rest} />
         </div>
       )}
       <ul>

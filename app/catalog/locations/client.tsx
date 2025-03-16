@@ -125,7 +125,7 @@ function CreateForm({
    */
   const askForPosition = useCallback(() => {
     const usePosition = (position: GeolocationPosition) => {
-      let location = refs.location;
+      const location = refs.location;
       if (position && location.latitude.current && location.longitude.current) {
         location.latitude.current.value = position.coords.latitude.toFixed(
           GEOLOCATION_PRECISION
@@ -245,7 +245,7 @@ function UpdateForm({
 }: FormArgs<LocationsType>) {
   const location = useMemo(()=>{
     if (typeof initial.location === "undefined") return undefined
-    const parsed = JSON.parse(initial.location as any);
+    const parsed = JSON.parse(initial.location as unknown as string);
     if (parsed.type === "Point") {
       return parsed
     } 
@@ -418,15 +418,13 @@ export function View({}) {
           console.error("@worker", type, data);
           return;
         case "layer":
-          let exists = !!map && !!map.getLayer(data.id);
-          if (exists) {
+          if (!!map && !!map.getLayer(data.id)) {
             map?.removeLayer(data.id);
           }
           map?.addLayer(data, "cities");
           return;
         case "source":
-          let source_exists = !!map && !!map.getSource(data.id);
-          if (source_exists) {
+          if (!!map && !!map.getSource(data.id)) {
             map?.removeSource(data.id);
           }
           map?.addSource(data.id, data.source);
@@ -457,7 +455,7 @@ export function View({}) {
         type: "module",
       }
     );
-    let second = new Worker(
+    const second = new Worker(
       new URL("@catalog/locations/worker.ts", import.meta.url),
       {
         type: "module",
@@ -537,7 +535,7 @@ export function View({}) {
    */
   useEffect(() => {
     if (!navigator.geolocation || !map || !ready) return;
-    let onGetPosition = (location: GeolocationPosition) => {
+    const onGetPosition = (location: GeolocationPosition) => {
       map.addLayer({
         id: `home`,
         type: "circle",

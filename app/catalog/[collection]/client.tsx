@@ -6,6 +6,7 @@ import React, {
   useReducer,
   type RefObject,
   useRef,
+  FormEventHandler,
 } from "react";
 import Markdown from "react-markdown";
 import Link from "next/link";
@@ -21,18 +22,18 @@ export function fromKey(collection: string) {
     .toLowerCase();
 }
 const parameters = specification.components.parameters;
-export type FormArgs<T> = {
+export interface FormArgs<T> {
   action: string;
   initial: Initial<T>;
-  onSubmit: Function;
+  onSubmit: FormEventHandler<HTMLFormElement>;
   formRef: RefObject<HTMLFormElement | null>;
   disabled: boolean;
 };
-export type IMutate<T> = {
+export interface IMutate<T> {
   title: string;
   Form: React.FunctionComponent<FormArgs<T>>;
 };
-export type NodeLike = { uuid: string; name?: string };
+export interface NodeLike { uuid: string; name?: string };
 /**
  * Wraps collection retrieval and paging. Need to provide
  * a concrete type annotation, but at least expects uuid
@@ -54,7 +55,7 @@ export function Collection<T extends NodeLike>({
   nav?: boolean;
   AdditionalProperties?: React.FunctionComponent | null;
 }) {
-  const schema = (specification.components.schemas as any)[title];
+  const schema = specification.components.schemas[title];
   const options = Object.keys(schema.properties)
     .filter((key: string) => key.includes("@"))
     .map((key) => key.split("@")[0]);
@@ -181,7 +182,7 @@ export function Collection<T extends NodeLike>({
                 <li>Attributes</li>
                 <ul>
                 {AdditionalProperties && (
-                  <AdditionalProperties {...(rest as any)} />
+                  <AdditionalProperties {...rest} />
                 )}
                 </ul>
               </ul>
@@ -341,8 +342,8 @@ export function FormContainer({
   children: React.ReactNode;
   disabled: boolean;
   action: string;
-  onSubmit: any;
-  formRef: any;
+  onSubmit: FormEventHandler<HTMLFormElement>;
+  formRef: RefObject<HTMLFormElement | null>;
 }) {
   return (
     <form className={style.form} onSubmit={onSubmit} ref={formRef}>

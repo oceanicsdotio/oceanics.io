@@ -1,19 +1,4 @@
-let postStatus = (message: string) => {
-  self.postMessage({
-    type: "status",
-    data: {
-      message
-    }
-  })
-}
-let postError = (message: string) => {
-  self.postMessage({
-    type: "error",
-    data: {
-      message
-    }
-  })
-}
+import {status, postError, validateAndGetAccessToken} from "@catalog/worker";
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
@@ -33,7 +18,7 @@ async function listen(message: MessageEvent) {
     case "getEntity":
       const { getEntity } = await import("@oceanics/app");
       const getEntityResult = await getEntity(access_token, query);
-      postStatus(`Found ${getEntityResult.value.length}`);
+      status(`Found ${getEntityResult.value.length}`);
       if (getEntityResult.value.length === 1) {
         self.postMessage({
           type,
@@ -47,14 +32,14 @@ async function listen(message: MessageEvent) {
       const { updateEntity } = await import("@oceanics/app");
       const updated = await updateEntity(access_token, query, body);
       if (updated) {
-        postStatus(`Updated 1`);
+        status(`Updated 1`);
       }
       return;
     case "deleteEntity":
       const { deleteEntity } = await import("@oceanics/app");
       const deleted = await deleteEntity(access_token, query);
       if (deleted) {
-        postStatus(`Deleted 1`);
+        status(`Deleted 1`);
       }
       return;
     default:

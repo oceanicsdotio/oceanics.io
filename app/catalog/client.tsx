@@ -46,7 +46,7 @@ export function useWorkerFixtures() {
    * On submission, we delegate the request to our background
    * worker, which will report on success/failure.
    */
-  const post = useCallback((message: { type: string; data: any }) => {
+  const post = useCallback((message: { type: string; data: object }) => {
     if (!ref.current) {
       console.error("Worker isn't ready");
       return;
@@ -70,7 +70,7 @@ export function useWorkerFixtures() {
  * The data type returned from the
  * API on successful query.
  */
-type IndexItem = {
+interface IndexItem {
   description: string;
   name: string;
   href: string;
@@ -92,9 +92,7 @@ function Entry({
   open,
 }: IndexItem & { open: boolean }) {
   const { description } = (
-    specification.components.schemas as {
-      [key: string]: { description?: string };
-    }
+    specification.components.schemas as Record<string, { description?: string }>
   )[name];
   return (
     <details name="exclusive" open={open}>

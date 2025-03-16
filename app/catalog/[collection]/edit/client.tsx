@@ -107,7 +107,7 @@ export function Edit<T extends NodeLike>({ Form, title }: IMutate<T>) {
    * Update allowed parameters
    */
   const onSubmit =
-    (callback: any): FormEventHandler =>
+    (callback: () => {uuid: string}): FormEventHandler =>
     (event) => {
       event.preventDefault();
       const { uuid, ...data } = callback();

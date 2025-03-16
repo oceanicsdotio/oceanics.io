@@ -168,20 +168,20 @@ export function AdditionalProperties(rest: Initial<DataStreams>) {
 /**
  * Buffer of visible/stored observations.
  */
-let capacity = 100;
+const capacity = 100;
 /**
  * Number of bins to use in histogram.
  */
-let bins = 10;
+const bins = 10;
 /**
  * System time scalar
  */
-let timeConstant = 1 / capacity;
+const timeConstant = 1 / capacity;
 /**
  * Drawing style type is from WASM, but we have to leave
  * out bound methods.
  */
-let draw: Initial<DataStreamStyle> = {
+const draw: Initial<DataStreamStyle> = {
   streamColor: "lightblue",
   overlayColor: "lightblue",
   backgroundColor: "#11002299",
@@ -214,7 +214,7 @@ export function View({}) {
    */
   const [collection, setCollection] = useState<DataStreams[]>([]);
 
-  const [page, setPage] = useState<{
+  const [, setPage] = useState<{
     next?: string;
     previous?: string;
     current: number;
@@ -351,7 +351,7 @@ export function View({}) {
       const elapsed = performance.now() - clock.offset - clock.start;
       const phenomenonTime = timeConstant * elapsed;
       const result = Math.sin(phenomenonTime);
-      let obs: any = { phenomenonTime, result, uuid: "" };
+      const obs = { phenomenonTime, result, uuid: "" };
       interactive.pushObservation(obs, -1.0, 1.0);
       interactive.draw(handle, draw, false);
       requestId = requestAnimationFrame(render);
@@ -372,7 +372,7 @@ export function View({}) {
   useEffect(() => {
     if (!collection.length) return;
     console.log(collection);
-    setSource(collection[0] as any);
+    setSource(collection[0]);
   }, [collection]);
   /**
    * UI Restart Controller

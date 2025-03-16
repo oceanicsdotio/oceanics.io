@@ -1,5 +1,6 @@
 import type { Context } from "@netlify/functions";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async (req: Request, _: Context) => {
     if (req.method !== "POST") {
         return {
