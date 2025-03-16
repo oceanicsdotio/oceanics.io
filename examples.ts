@@ -67,7 +67,7 @@ if (import.meta.url.startsWith('file:')) { // (A)
       target
     ] = process.argv.slice(2)
     const specText = readFileSync(specification, "utf8");
-    const { components: { schemas } }: { components: { schemas: object[] } } = JSON.parse(specText);
+    const { components: { schemas } }: { components: { schemas: Record<string, { examples: object[] }> } } = JSON.parse(specText);
     const all = Object.entries(schemas).flatMap(schemaToLookup);
 
     const fromSpec = (all as [string, string, { uuid?: string }][]).filter(

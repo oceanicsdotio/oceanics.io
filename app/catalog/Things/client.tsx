@@ -80,10 +80,10 @@ function Fields({
   disabled,
 }: {
   refs: {
-    uuid: React.RefObject<HTMLInputElement>;
-    name: React.RefObject<HTMLInputElement>;
-    description: React.RefObject<HTMLInputElement>;
-    properties: React.RefObject<HTMLInputElement>;
+    uuid: React.RefObject<HTMLInputElement|null>;
+    name: React.RefObject<HTMLInputElement|null>;
+    description: React.RefObject<HTMLInputElement|null>;
+    properties: React.RefObject<HTMLInputElement|null>;
   };
   initial: Initial<Things>;
   disabled: boolean;

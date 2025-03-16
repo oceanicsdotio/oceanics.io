@@ -25,7 +25,7 @@ const parameters = specification.components.parameters;
 export interface FormArgs<T> {
   action: string;
   initial: Initial<T>;
-  onSubmit: FormEventHandler<HTMLFormElement>;
+  onSubmit: (callback: () => {uuid?:string, [key: string]: unknown}) => FormEventHandler<HTMLFormElement>;
   formRef: RefObject<HTMLFormElement | null>;
   disabled: boolean;
 };

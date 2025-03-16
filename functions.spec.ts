@@ -328,7 +328,7 @@ describe("functions", function () {
   //     expect(response.status).toEqual(204);
   //   })
   // })
-  type Item = [string, string, object];
+  type Item = [string, string, {uuid: string, name: string, [key: string]: unknown}];
   describe("topology", function () {
     const linkedExamples: [string, string, string, string][] = [];
     (examples as Item[]).forEach((each: Item) => {

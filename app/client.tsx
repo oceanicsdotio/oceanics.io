@@ -22,7 +22,7 @@ interface ISubscribe {
   verify: IVerify;
 }
 
-const encode = (data: object) => {
+const encode = (data: Record<string, string|number>) => {
   return Object.keys(data)
     .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
     .join("&");
