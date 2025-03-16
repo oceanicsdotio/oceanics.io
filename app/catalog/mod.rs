@@ -539,6 +539,13 @@ impl VertexArray {
     pub fn vector(&self, start: &u16, end: &u16) -> Vec3 {
         self.points[end] - self.points[start]
     }
+    /// Rotate the vertices in place around an arbitrary axis.
+    pub fn rotate(&mut self, angle: &f64, axis: &Vec3) -> &Self {
+        for coordinates in self.values_mut() {
+            coordinates.value = coordinates.rotate(angle, axis).value;
+        }
+        self
+    }
 }
 
 /// A hashable cell index is necessary because a HashSet cannot
@@ -660,7 +667,9 @@ struct Topology {
     pub cells: HashSet<CellIndex>,
     /// Edges can define cells, or can be relationships in an
     /// an unstructured topology like an arbitrary graph.
-    pub edges: HashMap<EdgeIndex, Edge>
+    pub edges: HashMap<EdgeIndex, Edge>,
+    /// Bookkeeping for the maximum index in the mesh
+    max_index: u16
 }
 /// Internal `impl`
 impl Topology {
@@ -668,27 +677,35 @@ impl Topology {
     pub fn new() -> Topology {
         Topology {
             cells: HashSet::with_capacity(0),
-            edges: HashMap::new()
+            edges: HashMap::new(),
+            max_index: 0
         }
     }
-    /// Take an unordered array of point indices, and
+    /// Take an unordered array of point indices, representing
+    /// a triangle, and add the cells and edges to the topology,
+    /// preventing duplicate edges. Duplicates are expected when
+    /// the mesh is triangular.
+    /// As a side effect, the maximum index is updated.
     pub fn insert_cell(&mut self, index: [u16; 3]) {
         let [a, b, c] = index;
-        self.cells.insert(CellIndex::new(a, b, c));
-
-        let _edges = vec![
+        let max_test = index.iter().max().unwrap();
+        self.max_index = self.max_index.max(*max_test);
+        let cell = CellIndex::new(a, b, c);
+        let edges = vec![
             EdgeIndex::new(a, b),
             EdgeIndex::new(b, c),
             EdgeIndex::new(c, a),
         ];
-
-        for key in _edges {
+        if !self.cells.contains(&cell) {
+            self.cells.insert(cell);
+        }
+        for key in edges {
             if !self.edges.contains_key(&key) {
                 self.edges.insert(
                     key,
                     Edge {
-                        spring_constant: 0.01,
-                        length: 0.1,
+                        spring_constant: 0.01, // todo: calculate from coordinates
+                        length: 0.1, // todo: calculate from coordinates
                     },
                 );
             }
@@ -696,11 +713,15 @@ impl Topology {
     }
     /// Take an unordered pair of point indices, create an ordered
     /// and unique `EdgeIndex`, calculate the length of the edge,
-    /// and insert into the `edges` map.
+    /// and insert into the `edges` map. This is used for unstructured
+    /// graphs that are not necessarily triangulated. Unlike
+    /// `insert_cell`, this does not create a cell, and will panic
+    /// on duplicates.
     pub fn insert_edge(&mut self, index: [u16; 2], length: f64, spring_constant: f64) {
         let [a, b] = index;
+        let max_test = index.iter().max().unwrap();
+        self.max_index = self.max_index.max(*max_test);
         let edge_index = EdgeIndex::new(a, b);
-
         if self.edges.contains_key(&edge_index) {
             panic!(
                 "Attempted to create Edge with duplicate index ({},{})",
@@ -708,7 +729,6 @@ impl Topology {
                 a.max(b)
             );
         }
-
         self.edges.insert(
             edge_index,
             Edge {
@@ -717,40 +737,12 @@ impl Topology {
             },
         );
     }
-}
-/**
- * Unstructured triangular mesh, commonly used in finite element simulations
- * and visualizing three dimension objects.
- *
- * - points: vertices
- * - cells: topology
- * - edges: memoized edges from cell insertions
- */
-#[derive(Clone)]
-struct TriangularMesh {
-    pub vertex_array: VertexArray,
-    pub topology: Topology,
-}
-/// Internal `impl` for the TriangularMesh data structure.
-impl TriangularMesh {
-    /// Hoist the `insert_cell` function from child `vertex_array`.
-    pub fn insert_cell(&mut self, index: [u16; 3]) {
-        self.topology.insert_cell(index);
-    }
-    ///  Hoist the `insert_point` function from child `vertex_array`.
-    pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
-        self.vertex_array.insert_point(index, coordinates);
-    }
-    /**
-     * Because we memoize the edges as triangles are inserted, we can cheat and reconstruct
-     * the neighbors from the pairs.
-     *
-     * This increases the cost of the program.
-     */
+    /// Because we memoize edges and max index as triangles are inserted, 
+    /// we can reconstruct the neighbors from the pairs.
+    /// This increases the cost of the program.
     pub fn neighbors(&self) -> HashMap<u16, HashSet<u16>> {
-        let count = self.vertex_array.count();
-        let mut lookup: HashMap<u16, HashSet<u16>> = HashMap::with_capacity(count);
-        for (edge, _metadata) in self.topology.edges.iter() {
+        let mut lookup: HashMap<u16, HashSet<u16>> = HashMap::with_capacity(self.max_index as usize);
+        for (edge, _metadata) in self.edges.iter() {
             let [a, b] = &edge.indices;
             if lookup.contains_key(a) {
                 lookup.get_mut(a).unwrap().insert(*b);
@@ -764,6 +756,28 @@ impl TriangularMesh {
             }
         }
         lookup
+    }
+}
+
+/// Unstructured triangular mesh, commonly used in finite element simulations
+/// and visualizing three dimension objects.
+#[derive(Clone)]
+struct TriangularMesh {
+    /// The vertex array contains the points that make up the spatial component of
+    /// a triangulation network.
+    pub vertex_array: VertexArray,
+    /// The topology defines relationships between the points in the vertex array.
+    pub topology: Topology,
+}
+/// Internal `impl` for the TriangularMesh data structure.
+impl TriangularMesh {
+    /// Hoist the `insert_cell` function from child `vertex_array`.
+    pub fn insert_cell(&mut self, index: [u16; 3]) {
+        self.topology.insert_cell(index);
+    }
+    ///  Hoist the `insert_point` function from child `vertex_array`.
+    pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
+        self.vertex_array.insert_point(index, coordinates);
     }
     /// Reflect across a single axis and return the reference
     /// to self to enable chaining, because that tends to be
@@ -798,13 +812,7 @@ impl TriangularMesh {
             });
         }
     }
-    /// Rotate the vertices in place around an arbitrary axis.
-    pub fn rotate(&mut self, angle: &f64, axis: &Vec3) -> &Self {
-        for coordinates in self.vertex_array.values_mut() {
-            coordinates.value = coordinates.rotate(angle, axis).value;
-        }
-        self
-    }
+
     /// Calculate the normals of each face.
     fn normals(&mut self) -> (HashMap<u16, (Vec3, u8)>, HashMap<CellIndex, Vec3>) {
         let capacity = self.vertex_array.count();
@@ -845,6 +853,7 @@ impl TriangularMesh {
         let dy = 1.0 / (ny as f64);
         let mut ni = 0;
         let mut start_pattern = false;
+        let max_index = (nx + 1) * (ny + 1);
         let vertex_array = VertexArray::new(
             "rtin-sample".to_string(),
             0,
@@ -856,7 +865,8 @@ impl TriangularMesh {
             vertex_array,
             topology: Topology {
                 cells: HashSet::with_capacity(nx * ny * 2),
-                edges: HashMap::with_capacity(nx * ny * 2 * 3)
+                edges: HashMap::with_capacity(nx * ny * 2 * 3),
+                max_index: max_index as u16,
             },
         };
 
@@ -916,8 +926,11 @@ pub struct MeshStyle {
 /// Container for mesh that also contains rendering target information.
 #[wasm_bindgen]
 pub struct InteractiveMesh {
+    /// Topology and vertex data
     mesh: TriangularMesh,
+    /// Number of frames rendered for performance profiling
     frames: usize,
+    /// Velocity of each vertex for animations
     velocity: HashMap<u16, Vec3>,
 }
 #[wasm_bindgen]
@@ -978,13 +991,13 @@ impl InteractiveMesh {
         }
         count
     }
-    /**
-     * Edges are rendered as rays originating at the linked particle, and terminating
-     * at a point defined by the source plus the `vec` attribute of Edge.
-     *
-     * Display size for agents is used to calculate an offset, so that the ray begins
-     * on the surface of a 3D sphere, projected into the X,Y plane.
-     */
+    /// Edges are rendered as rays originating at the linked particle, 
+    /// and terminating
+    /// at a point defined by the source plus the `vec` attribute of Edge.
+    ///
+    /// Display size for agents is used to calculate an offset, 
+    /// so that the ray begins
+    /// on the surface of a 3D sphere, projected into the X,Y plane.
     fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &MeshStyle) -> u16 {
         ctx.set_line_width(style.line_width);
         let mut count: u16 = 0;
@@ -1128,7 +1141,7 @@ impl InteractiveMesh {
     /// Rotate the mesh in place
     #[wasm_bindgen]
     pub fn rotate(&mut self, angle: f64, ax: f64, ay: f64, az: f64) {
-        self.mesh.rotate(
+        self.mesh.vertex_array.rotate(
             &angle,
             &Vec3 {
                 value: [ax, ay, az],
