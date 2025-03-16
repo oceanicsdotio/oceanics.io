@@ -9,9 +9,9 @@ import { postError, status, validateAndGetAccessToken } from "@catalog/worker";
  */
 async function listen(message: MessageEvent) {
   const accessToken = validateAndGetAccessToken(message);
-    if (!accessToken) {
-      return;
-    }
+  if (!accessToken) {
+    return;
+  }
   if (message.data.type !== "getLinked") {
     postError(`unknown message format: ${message.data.type}`);
     return
