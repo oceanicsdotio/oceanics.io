@@ -17,7 +17,7 @@
         "@netlify/functions": "3.0.0",
         "@oceanics/app": "file:app/lib",
         "@oceanics/functions": "file:functions/lib",
-        "@xmldom/xmldom": "0.9.7",
+        "@xmldom/xmldom": "0.9.8",
         "jose": "6.0.4",
         "mapbox-gl": "3.10.0",
         "neo4j-driver": "5.28.1",
