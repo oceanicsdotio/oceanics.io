@@ -21,7 +21,7 @@
         "jose": "6.0.4",
         "mapbox-gl": "3.10.0",
         "neo4j-driver": "5.28.1",
-        "next": "15.1.7",
+        "next": "15.2.2",
         "postmark": "4.0.5",
         "react": "19.0.0",
         "react-dom": "19.0.0",
