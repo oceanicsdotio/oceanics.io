@@ -5848,10 +5848,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:0.9.7":
-  version: 0.9.7
-  resolution: "@xmldom/xmldom@npm:0.9.7"
-  checksum: 10/76168bb32b3f57450c4c8a5426578f2b50d50f7ae1efbd208df17de6667378b33eb7a851f0fa812c63bc791bbdace0103c873088222805a5ae9f17f171f7028f
+"@xmldom/xmldom@npm:0.9.8":
+  version: 0.9.8
+  resolution: "@xmldom/xmldom@npm:0.9.8"
+  checksum: 10/5f88d27a50bb624b0b46b8359853e1a3501217e743b132c5cbe76115646bb4b7a2128c1f0c32f045c7b452689f5206e9bba7d7292c6c13a81eed5e43c2e5ec7c
   languageName: node
   linkType: hard
 
@@ -21428,7 +21428,7 @@ __metadata:
     "@types/xmldom": "npm:0.1.34"
     "@typescript-eslint/eslint-plugin": "npm:8.26.1"
     "@typescript-eslint/parser": "npm:8.26.1"
-    "@xmldom/xmldom": "npm:0.9.7"
+    "@xmldom/xmldom": "npm:0.9.8"
     babel-jest: "npm:29.7.0"
     depcheck: "npm:1.4.7"
     eslint: "npm:^9.22.0"
