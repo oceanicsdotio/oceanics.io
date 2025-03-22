@@ -1141,15 +1141,23 @@ impl InteractiveMesh {
     }
 }
 
+/// Query parameters for selection nodes from 
+/// the graph database.
 #[derive(Deserialize)]
 struct LinkedQuery {
+    /// Entity type of the root node
     left: String,
+    /// UUID of the root node
     left_uuid: String,
+    /// Entity type of the linked node
     right: String,
+    /// Maximum number of linked nodes to return
     limit: u32,
+    /// Offset for pagination
     offset: u32
 }
 
+/// Fetch subset of nodes connected to a root node, by entity type
 #[wasm_bindgen(js_name="getLinked")]
 pub async fn get_linked(access_token: String, query: JsValue) -> Result<Promise, JsValue> {
     let query: LinkedQuery = serde_wasm_bindgen::from_value(query).unwrap();

@@ -21,12 +21,16 @@ use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
+/// Bind intrinsic JavaScript functions to Rust
 #[wasm_bindgen]
 extern "C" {
+    /// Bind the fetch API to Rust
     #[wasm_bindgen(js_name = fetch)]
     fn fetch(input: &Request, init: &RequestInit) -> Promise;
 }
 
+/// Get a JSON API response from a URL, with an access token.
+/// Convenience function for making authenticated requests.
 #[wasm_bindgen(js_name="getApi")]
 pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsValue> {
     let opts = RequestInit::new();
@@ -42,6 +46,8 @@ pub async fn get_api(url: String, access_token: String) -> Result<Promise, JsVal
     Ok(promise)
 }
 
+/// Get the index of the SensorThings API, from the index Netlify function.
+/// This will include counts of each type, from the node hash table.
 #[wasm_bindgen(js_name="getIndex")]
 pub async fn get_index(access_token: String) -> Result<Promise, JsValue> {
     let url = "/.netlify/functions/index".to_string();
