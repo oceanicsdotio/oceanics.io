@@ -19,7 +19,7 @@ The top-level directory contains this `README.md` along with configuration files
 
 The site is hosted on Netlify. The build process is setup in `netlify.toml` and `makefile`.
 
-We use `yarn` to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. Shared dependencies are defined in `package.json`. Yarn itself can be updated with `yarn set version stable`.
+We use `yarn` to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. Shared dependencies are defined in `package.json`. Yarn itself can be updated with `yarn set version stable`. Netlify build requires using `node-modules`, and prevents migrating to Yarn PnP.
 
 The `app` directory contains our NextJS web page. Client interaction is through React Hooks and browser APIs.
 
@@ -76,3 +76,4 @@ Some tips that could help save some time...
 - Neo4j routing error: Likely that the URL or password for the database instance are out of date in the web UI. Can be applied from the commandline, by updating the `.env` to match the `.envrc`.
 - 502 Gateway Error: a Neo4j routing error from bad credentials or URL can result in this status code
 - Yarn updates: when you are ready to update the version of yarn used, run `yarn set version stable`, followed by an install.
+- Yarn nodeLinker: Netlify does not support PnP as a nodeLinker, you gotta use node-modules
