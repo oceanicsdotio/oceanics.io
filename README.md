@@ -19,7 +19,7 @@ The top-level directory contains this `README.md` along with configuration files
 
 The site is hosted on Netlify. The build process is setup in `netlify.toml` and `makefile`.
 
-We use `yarn` to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. Shared dependencies are defined in `package.json`.
+We use `yarn` to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. Shared dependencies are defined in `package.json`. Yarn itself can be updated with `yarn set version stable`.
 
 The `app` directory contains our NextJS web page. Client interaction is through React Hooks and browser APIs.
 
