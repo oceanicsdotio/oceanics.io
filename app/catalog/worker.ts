@@ -15,9 +15,9 @@ async function listen(message: MessageEvent) {
       return;
     }
     status(`Working`);
-    const { panic_hook, getIndex } = await import("@oceanics/app");
-    panic_hook();
-    const result = await getIndex(accessToken);
+    const wasm = await import("@oceanics/app");
+    wasm.panic_hook();
+    const result = await wasm.getIndex(accessToken);
     status(`Found ${result.length} collections`);
     self.postMessage({
       type: message.data.type,
