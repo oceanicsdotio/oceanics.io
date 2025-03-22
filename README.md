@@ -50,7 +50,7 @@ These need to be defined in Netlify cloud, but it can help to have saved locally
 - `NODE_VERSION`: Node version used to build functions, also the default runtime for functions when deployed
 - `NETLIFY_NEXT_PLUGIN_SKIP`: We define our our build process and pre-build static assets
 
-Fewer are used [publically by Next](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#bundling-environment-variables-for-the-browser) `app`:
+Fewer are used [publicly by Next](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#bundling-environment-variables-for-the-browser) `app`:
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 - `NEXT_PUBLIC_SITE_RECAPTCHA_KEY`: Google ReCaptcha frontend key
 
