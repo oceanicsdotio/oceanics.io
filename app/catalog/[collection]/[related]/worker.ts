@@ -1,4 +1,4 @@
-import { postError, status, validateAndGetAccessToken } from "@catalog/worker";
+import { postError, status, validateAndGetAccessToken } from "@catalog/worker-utils";
 /**
  * The worker processes messages from the main thread,
  * related to topological queries needed to build a graph
