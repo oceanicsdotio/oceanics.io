@@ -1,4 +1,4 @@
-import {status, validateAndGetAccessToken, postError} from "@catalog/worker";
+import {status, validateAndGetAccessToken, postError} from "@catalog/worker-utils";
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 

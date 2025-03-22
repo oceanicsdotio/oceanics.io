@@ -2,7 +2,6 @@
 import React, {
   useEffect,
   useState,
-  useCallback,
   useReducer,
   type RefObject,
   useRef,
@@ -76,30 +75,6 @@ export function Collection<T extends NodeLike>({
     current: 1,
   });
   /**
-   * Process web worker messages.
-   */
-  const workerMessageHandler = useCallback(
-    ({ data: { data, type } }: MessageEvent) => {
-      switch (type) {
-        case ACTIONS.getCollection:
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setCollection(data.value);
-          setPage(data.page);
-          return;
-        case ACTIONS.error:
-          console.error("@worker", type, data);
-          return;
-        case ACTIONS.status:
-          appendToQueue(data.message);
-          return;
-        default:
-          console.warn("@client", type, data);
-          return;
-      }
-    },
-    []
-  );
-  /**
    * Ref to Web Worker.
    */
   const ref = useRef<Worker>(null);
@@ -107,34 +82,49 @@ export function Collection<T extends NodeLike>({
    * Load Web Worker on component mount
    */
   useEffect(() => {
-    const user = localStorage.getItem("gotrue.user");
-    if (typeof user === "undefined" || !user) {
-      const err = "! You are not logged in";
-      console.error(err);
-      return;
-    }
-    if (!ref.current) {
-      ref.current = new Worker(
-        new URL("@catalog/[collection]/worker.ts", import.meta.url),
-        {
-          type: "module",
+    appendToQueue("Ready");
+    ref.current = new Worker(
+      new URL("@catalog/[collection]/worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+    const workerMessageHandler = 
+      ({ data: { data, type } }: MessageEvent) => {
+        switch (type) {
+          case ACTIONS.getCollection:
+            setCollection(data.value);
+            setPage(data.page);
+            return;
+          case ACTIONS.error:
+            console.error("@worker", type, data);
+            return;
+          case ACTIONS.status:
+            appendToQueue(data.message);
+            return;
+          default:
+            console.warn("@client", type, data);
+            return;
         }
-      );
-    }
+      };
     ref.current.addEventListener("message", workerMessageHandler, {
       passive: true,
     });
+    const user = localStorage.getItem("gotrue.user");
     const limit = query.get("limit") ?? `${parameters.limit.schema.default}`;
     const offset = query.get("offset") ?? `${parameters.offset.schema.default}`;
+    const _query = {
+      left: title,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    }
+    console.log("Query", _query);
+    appendToQueue("Authenticating");
     ref.current.postMessage({
       type: ACTIONS.getCollection,
       data: {
         user,
-        query: {
-          left: title,
-          limit: parseInt(limit),
-          offset: parseInt(offset),
-        },
+        query: _query
       },
     });
     // Durable ref, current may change before cleanup
@@ -142,7 +132,7 @@ export function Collection<T extends NodeLike>({
     return () => {
       handle.removeEventListener("message", workerMessageHandler);
     };
-  }, [workerMessageHandler]);
+  }, []);
 
   return (
     <>

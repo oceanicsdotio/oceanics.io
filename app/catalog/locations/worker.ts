@@ -1,5 +1,5 @@
 import { DOMParser } from "@xmldom/xmldom";
-import {status, postError} from "@catalog/worker"
+import {status, postError} from "@catalog/worker-utils";
 
 function postSource(id: string, features: object[], attribution: string) {
   self.postMessage({
