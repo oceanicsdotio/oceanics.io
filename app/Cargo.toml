@@ -56,4 +56,4 @@ web-sys = { version = "0.3.77", features = [
     'Window',
     'console'
 ]}
-indexmap = "2.8.0"
+indexmap = "2.9.0"
