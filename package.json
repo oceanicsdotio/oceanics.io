@@ -2,7 +2,7 @@
     "name": "www-oceanics-io",
     "private": true,
     "type": "module",
-    "packageManager": "yarn@4.7.0",
+    "packageManager": "yarn@4.9.1",
     "description": "Blue computing",
     "version": "1.0.0",
     "author": "Oceanicsdotio LLC <business@oceanics.io>",
