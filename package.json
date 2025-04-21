@@ -19,7 +19,7 @@
         "@oceanics/functions": "file:functions/lib",
         "@xmldom/xmldom": "0.9.8",
         "jose": "6.0.10",
-        "mapbox-gl": "3.10.0",
+        "mapbox-gl": "3.11.0",
         "neo4j-driver": "5.28.1",
         "next": "15.3.0",
         "postmark": "4.0.5",
