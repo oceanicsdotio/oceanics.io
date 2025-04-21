@@ -2452,17 +2452,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.23.0":
-  version: 9.23.0
-  resolution: "@eslint/js@npm:9.23.0"
-  checksum: 10/d1d38fa2c4234f6ebed8e202530c9dccf565c47283f4e3c53955a47fed2bf8c59988f535672a32b53c14fed72e456c1c5cb050cd98a45474086b9693cbfa97d6
-  languageName: node
-  linkType: hard
-
 "@eslint/js@npm:9.24.0":
   version: 9.24.0
   resolution: "@eslint/js@npm:9.24.0"
   checksum: 10/d210114c147a1c1ebfaed5f32734e7c1f8ef551a5ea48ea67f9469668aa4079565ccd038412437bca87515d51dc9e8b8c788473dcf3d08e35dfb27e92cb3ce1b
+  languageName: node
+  linkType: hard
+
+"@eslint/js@npm:9.25.1":
+  version: 9.25.1
+  resolution: "@eslint/js@npm:9.25.1"
+  checksum: 10/ad5812889598de32d674ef60c0e61468ac5c7f3b6ecf98b0e29d1e88d7af8ba3aab255b8c0a46bbaf654047bbd2ee5aa033db9b53e330f97615093fcccde4cbb
   languageName: node
   linkType: hard
 
@@ -5105,6 +5105,15 @@ __metadata:
   version: 4.0.4
   resolution: "@types/http-cache-semantics@npm:4.0.4"
   checksum: 10/a59566cff646025a5de396d6b3f44a39ab6a74f2ed8150692e0f31cc52f3661a68b04afe3166ebe0d566bd3259cb18522f46e949576d5204781cd6452b7fe0c5
+  languageName: node
+  linkType: hard
+
+"@types/http-proxy@npm:^1.17.15":
+  version: 1.17.16
+  resolution: "@types/http-proxy@npm:1.17.16"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/a054ac8f5301acfcfdcec3a775f52dc371180bbe60037906534312f10cceb3799b4a16e46c56c22f9925d078e11dcda1723c38f1ddd124be8169a4cccca69c8c
   languageName: node
   linkType: hard
 
@@ -8495,7 +8504,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4.4.0":
+"debug@npm:4.4.0, debug@npm:^4.3.6":
   version: 4.4.0
   resolution: "debug@npm:4.4.0"
   dependencies:
@@ -11948,6 +11957,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"http-proxy-middleware@npm:3.0.5":
+  version: 3.0.5
+  resolution: "http-proxy-middleware@npm:3.0.5"
+  dependencies:
+    "@types/http-proxy": "npm:^1.17.15"
+    debug: "npm:^4.3.6"
+    http-proxy: "npm:^1.18.1"
+    is-glob: "npm:^4.0.3"
+    is-plain-object: "npm:^5.0.0"
+    micromatch: "npm:^4.0.8"
+  checksum: 10/83c1956be6451a5f4a2f3c7b3d84085dbd47e1efb5bb684c1ed668a6606c18c7c07be823b0dbba1326955b64cf88de2672492940b0b48d140215fbdb06105c9a
+  languageName: node
+  linkType: hard
+
 "http-proxy@npm:1.18.1, http-proxy@npm:^1.18.1":
   version: 1.18.1
   resolution: "http-proxy@npm:1.18.1"
@@ -12787,6 +12810,13 @@ __metadata:
   version: 4.1.0
   resolution: "is-plain-obj@npm:4.1.0"
   checksum: 10/6dc45da70d04a81f35c9310971e78a6a3c7a63547ef782e3a07ee3674695081b6ca4e977fbb8efc48dae3375e0b34558d2bcd722aec9bddfa2d7db5b041be8ce
+  languageName: node
+  linkType: hard
+
+"is-plain-object@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "is-plain-object@npm:5.0.0"
+  checksum: 10/e32d27061eef62c0847d303125440a38660517e586f2f3db7c9d179ae5b6674ab0f469d519b2e25c147a1a3bc87156d0d5f4d8821e0ce4a9ee7fe1fcf11ce45c
   languageName: node
   linkType: hard
 
@@ -21495,7 +21525,7 @@ __metadata:
     "@babel/core": "npm:7.26.10"
     "@babel/preset-env": "npm:7.26.9"
     "@babel/preset-typescript": "npm:7.27.0"
-    "@eslint/js": "npm:9.23.0"
+    "@eslint/js": "npm:9.25.1"
     "@netlify/functions": "npm:3.0.4"
     "@netlify/plugin-csp-nonce": "npm:1.4.0"
     "@oceanics/app": "file:app/lib"
@@ -21517,6 +21547,7 @@ __metadata:
     depcheck: "npm:1.4.7"
     eslint: "npm:9.24.0"
     eslint-config-next: "npm:15.2.3"
+    http-proxy-middleware: "npm:3.0.5"
     jest: "npm:29.7.0"
     jose: "npm:6.0.10"
     mapbox-gl: "npm:3.10.0"
