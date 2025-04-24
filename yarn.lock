@@ -14515,9 +14515,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mapbox-gl@npm:3.10.0":
-  version: 3.10.0
-  resolution: "mapbox-gl@npm:3.10.0"
+"mapbox-gl@npm:3.11.0":
+  version: 3.11.0
+  resolution: "mapbox-gl@npm:3.11.0"
   dependencies:
     "@mapbox/jsonlint-lines-primitives": "npm:^2.0.2"
     "@mapbox/mapbox-gl-supported": "npm:^3.0.0"
@@ -14547,7 +14547,7 @@ __metadata:
     supercluster: "npm:^8.0.1"
     tinyqueue: "npm:^3.0.0"
     vt-pbf: "npm:^3.1.3"
-  checksum: 10/9a672004546b073bf45b99882899736cfef9f15d0e93a52e5b79020a5c9cbce3c707ddb8e3310ce5668ba7ea348a7be832b889c9ee119e07937d066ff626964f
+  checksum: 10/7f6f3fbb8f8681ca578a3747ba6de8bba110cc86842d50f81bed1ef3133e51c357836f7e2ecadd8585fc7f6e79ef0c381c76542e64ec31c181522c966d5510e5
   languageName: node
   linkType: hard
 
@@ -21550,7 +21550,7 @@ __metadata:
     http-proxy-middleware: "npm:3.0.5"
     jest: "npm:29.7.0"
     jose: "npm:6.0.10"
-    mapbox-gl: "npm:3.10.0"
+    mapbox-gl: "npm:3.11.0"
     neo4j-driver: "npm:5.28.1"
     netlify-cli: "npm:20.0.0"
     next: "npm:15.3.0"
