@@ -51,7 +51,7 @@
         "babel-jest": "29.7.0",
         "depcheck": "1.4.7",
         "eslint": "9.26.0",
-        "eslint-config-next": "15.2.3",
+        "eslint-config-next": "15.3.2",
         "http-proxy-middleware": "3.0.5",
         "jest": "29.7.0",
         "netlify-cli": "20.0.0",
