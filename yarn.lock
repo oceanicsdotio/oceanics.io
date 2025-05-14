@@ -13869,10 +13869,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:6.0.10":
-  version: 6.0.10
-  resolution: "jose@npm:6.0.10"
-  checksum: 10/8ba0d1aca94bdf780247c737328114fab3e394e1531e881dfe3fdd1d4a293b08cf7c0242769e72c8c8eee15c95761b542cf10730c3dfbb108084762df7d25cec
+"jose@npm:6.0.11":
+  version: 6.0.11
+  resolution: "jose@npm:6.0.11"
+  checksum: 10/f362a02bb8230e6364ac701c757442d4737f1d29bc70042ec8d2d93e1f2822e68b1d3cd5c26d12545b2b49afb87dcc155c6e448f9758ed58626714062ece2cbd
   languageName: node
   linkType: hard
 
@@ -21859,7 +21859,7 @@ __metadata:
     eslint-config-next: "npm:15.3.2"
     http-proxy-middleware: "npm:3.0.5"
     jest: "npm:29.7.0"
-    jose: "npm:6.0.10"
+    jose: "npm:6.0.11"
     mapbox-gl: "npm:3.11.1"
     neo4j-driver: "npm:5.28.1"
     netlify-cli: "npm:20.0.0"
