@@ -40,7 +40,7 @@
         "@types/geojson": "7946.0.16",
         "@types/jest": "29.5.14",
         "@types/mapbox-gl": "3.4.1",
-        "@types/node": "22.15.18",
+        "@types/node": "22.15.21",
         "@types/react": "19.1.4",
         "@types/react-dom": "19.1.5",
         "@types/react-google-recaptcha": "2.1.9",
