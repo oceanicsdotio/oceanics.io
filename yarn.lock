@@ -3554,9 +3554,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/build@npm:32.1.4":
-  version: 32.1.4
-  resolution: "@netlify/build@npm:32.1.4"
+"@netlify/build@npm:32.2.0":
+  version: 32.2.0
+  resolution: "@netlify/build@npm:32.2.0"
   dependencies:
     "@bugsnag/js": "npm:^7.0.0"
     "@netlify/blobs": "npm:^8.2.0"
@@ -3624,7 +3624,7 @@ __metadata:
       optional: true
   bin:
     netlify-build: bin.js
-  checksum: 10/bf8fcd125b037c60d96fd54f2e6bbaf92d74bab9391e37c5d81d2591c78a3b836beab34bb160fe7d2ee0ea9ceb791c04be070b8c007cb1ec1baa259347fe6739
+  checksum: 10/639150ffebf014698986f13fed54c4d17b97a9c04ad28868f7335d42eb3b78b47b93a684e97c3e2b387905ee538e2ff4808994719177a122426c379712331144
   languageName: node
   linkType: hard
 
@@ -15841,14 +15841,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"netlify-cli@npm:21.5.0":
-  version: 21.5.0
-  resolution: "netlify-cli@npm:21.5.0"
+"netlify-cli@npm:21.5.1":
+  version: 21.5.1
+  resolution: "netlify-cli@npm:21.5.1"
   dependencies:
     "@fastify/static": "npm:7.0.4"
     "@netlify/api": "npm:13.4.0"
     "@netlify/blobs": "npm:8.2.0"
-    "@netlify/build": "npm:32.1.4"
+    "@netlify/build": "npm:32.2.0"
     "@netlify/build-info": "npm:9.0.4"
     "@netlify/config": "npm:22.2.0"
     "@netlify/edge-bundler": "npm:13.0.3"
@@ -15942,7 +15942,7 @@ __metadata:
   bin:
     netlify: bin/run.js
     ntl: bin/run.js
-  checksum: 10/7cf02e06cfd5a505fcdc54daa6a9a7e28240e876457a28080dc329d171702181f38f88b8c9a33349f275801577a47be6f0f4ea8cf13e2acc8345bc8eef2e6524
+  checksum: 10/091b306d4b297f6515479ccad1b3719bbe778a40dfacf3853a4ea533dac71ee0df0a8cd7f360b7fe0e328ecae7875c4663d0d5dd5c20d43a444bbf51c55b2ba2
   languageName: node
   linkType: hard
 
@@ -21946,7 +21946,7 @@ __metadata:
     jose: "npm:6.0.11"
     mapbox-gl: "npm:3.11.1"
     neo4j-driver: "npm:5.28.1"
-    netlify-cli: "npm:21.5.0"
+    netlify-cli: "npm:21.5.1"
     next: "npm:15.3.0"
     postmark: "npm:4.0.5"
     react: "npm:19.1.0"
