@@ -5701,12 +5701,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:19.1.4":
-  version: 19.1.4
-  resolution: "@types/react@npm:19.1.4"
+"@types/react@npm:19.1.8":
+  version: 19.1.8
+  resolution: "@types/react@npm:19.1.8"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10/b8744e03bc3f7d4d686681ab039e0b2454fbb2110436b8b7f6ee9e6c5f8f8552231c6c273b908f69b3eae1745aeb7b075949bb3983ba8b36c3b0c2888e22726c
+  checksum: 10/a3e6fe0f60f22828ef887f30993aa147b71532d7b1219dd00d246277eb7a9ca01ec533096237fa21ca1bccb3653373b4e8e59e5ae59f9c793058384bbc1f4d5c
   languageName: node
   linkType: hard
 
@@ -22451,7 +22451,7 @@ __metadata:
     "@types/jest": "npm:29.5.14"
     "@types/mapbox-gl": "npm:3.4.1"
     "@types/node": "npm:24.0.7"
-    "@types/react": "npm:19.1.4"
+    "@types/react": "npm:19.1.8"
     "@types/react-dom": "npm:19.1.5"
     "@types/react-google-recaptcha": "npm:2.1.9"
     "@types/uuid": "npm:10.0.0"
