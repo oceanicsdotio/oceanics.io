@@ -5927,12 +5927,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:19.1.8":
-  version: 19.1.8
-  resolution: "@types/react@npm:19.1.8"
+"@types/react@npm:19.1.10":
+  version: 19.1.10
+  resolution: "@types/react@npm:19.1.10"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10/a3e6fe0f60f22828ef887f30993aa147b71532d7b1219dd00d246277eb7a9ca01ec533096237fa21ca1bccb3653373b4e8e59e5ae59f9c793058384bbc1f4d5c
+  checksum: 10/2c2f98e4a36144cddc9300483d0b14a0721dbb3b2fc2242e3841391589570dd344cde0c901eb291dba597a8efdb70543b0dbbae6cc2bef2061eb185c4ca55522
   languageName: node
   linkType: hard
 
@@ -18592,10 +18592,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.1.0":
-  version: 19.1.0
-  resolution: "react@npm:19.1.0"
-  checksum: 10/d0180689826fd9de87e839c365f6f361c561daea397d61d724687cae88f432a307d1c0f53a0ee95ddbe3352c10dac41d7ff1ad85530fb24951b27a39e5398db4
+"react@npm:19.1.1":
+  version: 19.1.1
+  resolution: "react@npm:19.1.1"
+  checksum: 10/9801530fdc939e1a7a499422e930515b2400809cb39c2872984e99f832d233f61659a693871183dac3155c2f9b2c9dcf4440a56bd18983277ae92860e38c3a61
   languageName: node
   linkType: hard
 
@@ -22594,7 +22594,7 @@ __metadata:
     "@types/jest": "npm:29.5.14"
     "@types/mapbox-gl": "npm:3.4.1"
     "@types/node": "npm:24.0.7"
-    "@types/react": "npm:19.1.8"
+    "@types/react": "npm:19.1.10"
     "@types/react-dom": "npm:19.1.5"
     "@types/react-google-recaptcha": "npm:2.1.9"
     "@types/uuid": "npm:10.0.0"
@@ -22614,7 +22614,7 @@ __metadata:
     netlify-cli: "npm:22.2.2"
     next: "npm:15.3.4"
     postmark: "npm:4.0.5"
-    react: "npm:19.1.0"
+    react: "npm:19.1.1"
     react-dom: "npm:19.1.0"
     react-google-recaptcha: "npm:3.1.0"
     react-markdown: "npm:10.1.0"
