@@ -27,7 +27,7 @@ ignored = ["serde_derive", "wasm-bindgen-futures"]
 serde = { version = "1.0.219", features = ["derive"] }
 serde_derive = "1.0.219"
 # no-std compatibility, while allowing heap
-serde_json = {version="1.0.142", default-features = false, features = ["alloc"]}
+serde_json = {version="1.0.143", default-features = false, features = ["alloc"]}
 serde-wasm-bindgen = "0.6.5"
 console_error_panic_hook = "0.1.7"
 wasm-bindgen = { version = "0.2.100", features = ["serde-serialize"] }
