@@ -14,7 +14,7 @@
         "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
     },
     "dependencies": {
-        "@netlify/functions": "4.2.1",
+        "@netlify/functions": "4.2.5",
         "@oceanics/app": "file:app/lib",
         "@oceanics/functions": "file:functions/lib",
         "@xmldom/xmldom": "0.9.8",
